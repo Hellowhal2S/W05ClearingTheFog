@@ -1,0 +1,407 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>17.0</VCProjectVersion>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectGuid>{59a9c47a-6a98-4bc3-b529-aec7bcb32238}</ProjectGuid>
+    <RootNamespace>Week0v2</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>Week5ClearingTheFog</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>$(SolutionDir)Binaries\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)Intermediate\Build\$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>$(SolutionDir)Binaries\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)Intermediate\Build\$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>$(SolutionDir)Binaries\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)Intermediate\Build\$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>$(SolutionDir)Binaries\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)Intermediate\Build\$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalIncludeDirectories>$(ProjectDir)\Engine\Source\ThirdParty\DirectXTK\Include;$(ProjectDir)\Shaders;$(ProjectDir)\Engine\Source\Runtime\InteractiveToolsFramework;$(ProjectDir)\Engine\Source\ThirdParty;$(ProjectDir)\Engine\Source\Runtime;$(ProjectDir)\Engine\Source\Runtime\Windows;$(ProjectDir)\Engine\Source\ThirdParty\include;$(ProjectDir)\Engine\Source\Editor;$(ProjectDir)\Engine\Source\Runtime\CoreUObject;$(ProjectDir)\Engine\Source\Runtime\Core;$(ProjectDir)\Engine\Source\Runtime\Launch;$(ProjectDir)\Engine\Source\Runtime\Engine;$(ProjectDir)\Engine\Source\Runtime\Engine\Classes;$(ProjectDir)\Engine\Source;$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>DirectXTK.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalIncludeDirectories>$(ProjectDir)\Engine\Source\ThirdParty\DirectXTK\Include;$(ProjectDir)\Shaders;$(ProjectDir)\Engine\Source\Runtime\InteractiveToolsFramework;$(ProjectDir)\Engine\Source\ThirdParty;$(ProjectDir)\Engine\Source\Runtime;$(ProjectDir)\Engine\Source\Runtime\Windows;$(ProjectDir)\Engine\Source\ThirdParty\include;$(ProjectDir)\Engine\Source\Editor;$(ProjectDir)\Engine\Source\Runtime\CoreUObject;$(ProjectDir)\Engine\Source\Runtime\Core;$(ProjectDir)\Engine\Source\Runtime\Launch;$(ProjectDir)\Engine\Source\Runtime\Engine;$(ProjectDir)\Engine\Source\Runtime\Engine\Classes;$(ProjectDir)\Engine\Source;$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>DirectXTK.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>$(ProjectDir)\Engine\Source\ThirdParty\DirectXTK\Include;$(ProjectDir)\Shaders;$(ProjectDir)\Engine\Source\Runtime\InteractiveToolsFramework;$(ProjectDir)\Engine\Source\ThirdParty;$(ProjectDir)\Engine\Source\Runtime;$(ProjectDir)\Engine\Source\Runtime\Windows;$(ProjectDir)\Engine\Source\ThirdParty\include;$(ProjectDir)\Engine\Source\Editor;$(ProjectDir)\Engine\Source\Runtime\CoreUObject;$(ProjectDir)\Engine\Source\Runtime\Core;$(ProjectDir)\Engine\Source\Runtime\Launch;$(ProjectDir)\Engine\Source\Runtime\Engine;$(ProjectDir)\Engine\Source\Runtime\Engine\Classes;$(ProjectDir)\Engine\Source;$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>$(ProjectDir)Engine\Source\ThirdParty\DirectXTK\Lib\$(PlatformTarget)\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>DirectXTK.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>$(ProjectDir)\Engine\Source\ThirdParty\DirectXTK\Include;$(ProjectDir)\Shaders;$(ProjectDir)\Engine\Source\Runtime\InteractiveToolsFramework;$(ProjectDir)\Engine\Source\ThirdParty;$(ProjectDir)\Engine\Source\Runtime;$(ProjectDir)\Engine\Source\Runtime\Windows;$(ProjectDir)\Engine\Source\ThirdParty\include;$(ProjectDir)\Engine\Source\Editor;$(ProjectDir)\Engine\Source\Runtime\CoreUObject;$(ProjectDir)\Engine\Source\Runtime\Core;$(ProjectDir)\Engine\Source\Runtime\Launch;$(ProjectDir)\Engine\Source\Runtime\Engine;$(ProjectDir)\Engine\Source\Runtime\Engine\Classes;$(ProjectDir)\Engine\Source;$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>$(SolutionDir)Week0v2\Engine\Source\ThirdParty\DirectXTK\Lib\x64\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>DirectXTK.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <FxCompile>
+      <ShaderModel>5.0</ShaderModel>
+    </FxCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="Engine\Source\Editor\LevelEditor\SLevelEditor.cpp" />
+    <ClCompile Include="Engine\Source\Editor\PropertyEditor\ViewportTypePanel.cpp" />
+    <ClCompile Include="Engine\Source\Editor\UnrealEd\ImGuiWidget.cpp" />
+    <ClCompile Include="Engine\Source\Editor\UnrealEd\UnrealEdEventRouter.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\CoreUObject\UObject\Casts.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\CoreUObject\UObject\NameTypes.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\CoreUObject\UObject\UObjectArray.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\CoreUObject\UObject\UObjectHash.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Core\Container\String.cpp" />
+    <ClCompile Include="Engine\Source\Editor\PropertyEditor\ControlEditorPanel.cpp" />
+    <ClCompile Include="Engine\Source\Editor\PropertyEditor\OutlinerEditorPanel.cpp" />
+    <ClCompile Include="Engine\Source\Editor\PropertyEditor\PropertyEditorPanel.cpp" />
+    <ClCompile Include="Engine\Source\Editor\UnrealEd\UnrealEd.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Core\EngineStatics.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Core\HAL\PlatformMemory.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Core\Math\JungleMath.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Core\Math\Vector.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\ActorEditor.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\Player.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\ActorComponent.cpp" />
+    <ClCompile Include="Engine\Source\Editor\UnrealEd\EditorViewportClient.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Engine\Engine.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Engine\Level.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Engine\StaticMeshActor.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Engine\World.cpp">
+    </ClCompile>
+    <ClCompile Include="Engine\Source\Runtime\Engine\UnrealEngine.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Launch\LaunchEngineLoop.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Slate\Widgets\Layout\SSplitter.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Engine\ResourceMgr.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\UnrealClient.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\InteractiveToolsFramework\BaseGizmos\GizmoArrowComponent.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Camera\CameraComponent.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\UserInterface\Console.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\CubeComp.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Core\Math\Define.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\InteractiveToolsFramework\BaseGizmos\GizmoBaseComponent.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\InteractiveToolsFramework\BaseGizmos\GizmoCircleComponent.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Launch\EditorEngine.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Launch\ImGuiManager.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\SlateCore\Widgets\SWindow.cpp" />
+    <ClCompile Include="Engine\Source\ThirdParty\include\ImGUI\imgui.cpp" />
+    <ClCompile Include="Engine\Source\ThirdParty\include\ImGUI\imgui_demo.cpp" />
+    <ClCompile Include="Engine\Source\ThirdParty\include\ImGUI\imgui_draw.cpp" />
+    <ClCompile Include="Engine\Source\ThirdParty\include\ImGUI\imgui_impl_dx11.cpp" />
+    <ClCompile Include="Engine\Source\ThirdParty\include\ImGUI\imgui_impl_win32.cpp" />
+    <ClCompile Include="Engine\Source\ThirdParty\include\ImGUI\imgui_tables.cpp" />
+    <ClCompile Include="Engine\Source\ThirdParty\include\ImGUI\imgui_widgets.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\LightComponent.cpp" />
+    <ClCompile Include="Engine\Source\Editor\PropertyEditor\ShowFlags.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\SkySphereComponent.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\InteractiveToolsFramework\BaseGizmos\TransformGizmo.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Launch\Launch.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Windows\D3D11RHI\GraphicDevice.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\CoreUObject\UObject\Object.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\CoreUObject\UObject\ObjectFactory.cpp" />
+    <ClCompile Include="Engine\Source\Editor\UnrealEd\PrimitiveBatch.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\PrimitiveComponent.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Renderer\Renderer.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\InteractiveToolsFramework\BaseGizmos\GizmoRectangleComponent.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\SceneComponent.cpp" />
+    <ClCompile Include="Engine\Source\Editor\UnrealEd\SceneMgr.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\SphereComp.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\UBillboardComponent.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\UParticleSubUVComp.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\UText.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\UTextUUID.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\QuadTexture.cpp" />
+    <ClCompile Include="Engine\Source\ThirdParty\tinyfiledialogs\tinyfiledialogs.cpp" />
+    <ClCompile Include="UEditorStateManager.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Engine\Source\Runtime\Core\Delegates\Delegate.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Delegates\DelegateCombination.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\Engine.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\Level.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\StaticMeshActor.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\World.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\UnrealEngine.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\ViewportClient.h" />
+    <ClInclude Include="Engine\Source\Editor\LevelEditor\SLevelEditor.h" />
+    <ClInclude Include="Engine\Source\Editor\PropertyEditor\ViewportTypePanel.h" />
+    <ClInclude Include="Engine\Source\Editor\UnrealEd\ImGuiWidget.h" />
+    <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\Casts.h" />
+    <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\NameTypes.h" />
+    <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\UObjectArray.h" />
+    <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\UObjectHash.h" />
+    <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\UObjectIterator.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Container\Array.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Container\ContainerAllocator.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Container\CString.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Container\Map.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Container\Pair.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Container\Set.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Container\String.h" />
+    <ClInclude Include="Engine\Source\Editor\PropertyEditor\ControlEditorPanel.h" />
+    <ClInclude Include="Engine\Source\Editor\PropertyEditor\OutlinerEditorPanel.h" />
+    <ClInclude Include="Engine\Source\Editor\PropertyEditor\PropertyEditorPanel.h" />
+    <ClInclude Include="Engine\Source\Editor\UnrealEd\UnrealEd.h" />
+    <ClInclude Include="Engine\Source\Editor\UnrealEd\UnrealEdEventRouter.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\EngineStatics.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\HAL\PlatformMemory.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\HAL\PlatformType.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Math\JungleMath.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Math\MathUtility.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\ActorComponent.h" />
+    <ClInclude Include="Engine\Source\Editor\UnrealEd\EditorViewportClient.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\EngineTypes.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\ResourceMgr.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\UnrealClient.h" />
+    <ClInclude Include="Engine\Source\Runtime\InteractiveToolsFramework\BaseGizmos\GizmoArrowComponent.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Camera\CameraComponent.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\UserInterface\Console.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\CubeComp.h" />
+    <ClInclude Include="Engine\Source\Runtime\Launch\Define.h" />
+    <ClInclude Include="Engine\Source\Runtime\InteractiveToolsFramework\BaseGizmos\GizmoCircleComponent.h" />
+    <ClInclude Include="Engine\Source\Editor\UnrealEd\EditorPanel.h" />
+    <ClInclude Include="Engine\Source\Runtime\Launch\EngineBaseTypes.h" />
+    <ClInclude Include="Engine\Source\Runtime\Launch\EditorEngine.h" />
+    <ClInclude Include="Engine\Source\Runtime\Launch\ImGuiManager.h" />
+    <ClInclude Include="Engine\Source\Runtime\Launch\LaunchEngineLoop.h" />
+    <ClInclude Include="Engine\Source\Runtime\SlateCore\Widgets\SWindow.h" />
+    <ClInclude Include="Engine\Source\Runtime\Slate\Widgets\Layout\SSplitter.h" />
+    <ClInclude Include="Engine\Source\ThirdParty\DirectXTK\Include\DDSTextureLoader.h" />
+    <ClInclude Include="Engine\Source\ThirdParty\tinyfiledialogs\tinyfiledialogs.h" />
+    <ClInclude Include="Font\IconDefs.h" />
+    <ClInclude Include="Font\RawFonts.h" />
+    <ClInclude Include="Engine\Source\Runtime\InteractiveToolsFramework\BaseGizmos\GizmoBaseComponent.h" />
+    <ClInclude Include="Engine\Source\ThirdParty\include\ImGUI\imconfig.h" />
+    <ClInclude Include="Engine\Source\ThirdParty\include\ImGUI\imgui.h" />
+    <ClInclude Include="Engine\Source\ThirdParty\include\ImGUI\imgui_impl_dx11.h" />
+    <ClInclude Include="Engine\Source\ThirdParty\include\ImGUI\imgui_impl_win32.h" />
+    <ClInclude Include="Engine\Source\ThirdParty\include\ImGUI\imgui_internal.h" />
+    <ClInclude Include="Engine\Source\ThirdParty\include\ImGUI\imstb_rectpack.h" />
+    <ClInclude Include="Engine\Source\ThirdParty\include\ImGUI\imstb_textedit.h" />
+    <ClInclude Include="Engine\Source\ThirdParty\include\ImGUI\imstb_truetype.h" />
+    <ClInclude Include="Engine\Source\Editor\PropertyEditor\IWindowToggleable.h" />
+    <ClInclude Include="Engine\Source\ThirdParty\JSON\json.hpp" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\LightComponent.h" />
+    <ClInclude Include="Engine\Source\Editor\PropertyEditor\ShowFlags.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\SkySphereComponent.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\Texture.h" />
+    <ClInclude Include="Engine\Source\Runtime\InteractiveToolsFramework\BaseGizmos\TransformGizmo.h" />
+    <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\ObjectFactory.h" />
+    <ClInclude Include="Engine\Source\Editor\UnrealEd\PrimitiveBatch.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\PrimitiveComponent.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\Quad.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\QuadTexture.h" />
+    <ClInclude Include="Engine\Source\Runtime\InteractiveToolsFramework\BaseGizmos\GizmoRectangleComponent.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\SceneComponent.h" />
+    <ClInclude Include="Engine\Source\Editor\UnrealEd\SceneMgr.h" />
+    <ClInclude Include="Engine\Source\Runtime\Windows\D3D11RHI\GraphicDevice.h" />
+    <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\Object.h" />
+    <ClInclude Include="Engine\Source\Runtime\Renderer\Renderer.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\SphereComp.h" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Engine\FLoaderOBJ.cpp" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Math\Vector.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\FLoaderOBJ.h" />
+    <ClInclude Include="Engine\Source\Runtime\Serialization\Serializer.h" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\Material\Material.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\MeshComponent.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\Mesh\StaticMesh.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\StaticMeshComponent.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\GameFramework\Actor.cpp" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Math\Matrix.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Math\Quat.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Math\Vector4.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Actors\Player.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\GameFramework\Actor.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\Material\Material.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\MeshComponent.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\Mesh\StaticMesh.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\StaticMeshComponent.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\UBillboardComponent.h" />
+    <ClCompile Include="Engine\Source\Runtime\CoreUObject\UObject\UClass.cpp" />
+    <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\ObjectMacros.h" />
+    <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\ObjectTypes.h" />
+    <ClInclude Include="Engine\Source\Runtime\CoreUObject\UObject\UClass.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\UParticleSubUVComp.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\UText.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\UTextUUID.h" />
+    <ClInclude Include="UEditorStateManager.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="Shaders\StaticMeshPixelShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">mainPS</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">mainPS</EntryPointName>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="Shaders\PixelTextureShader.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </FxCompile>
+    <FxCompile Include="Shaders\ShaderLine.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </FxCompile>
+    <FxCompile Include="Shaders\ShaderW0.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </FxCompile>
+    <FxCompile Include="Shaders\StaticMeshVertexShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">mainVS</EntryPointName>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">mainVS</EntryPointName>
+    </FxCompile>
+    <FxCompile Include="Shaders\VertexTextureShader.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include=".editorconfig" />
+  </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="Week0v2.natvis" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets" />
+</Project>
