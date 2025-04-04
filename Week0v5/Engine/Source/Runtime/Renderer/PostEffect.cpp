@@ -18,6 +18,7 @@ namespace PostEffect
     ID3D11Texture2D* DepthOnlyTexture;
     ID3D11ShaderResourceView* DepthOnlySRV;
     ID3D11DepthStencilView* DepthOnlyDSV;
+    
     ID3D11RenderTargetView* WorldPosRTV;
     ID3D11Texture2D* WorldPosTexture;
     ID3D11ShaderResourceView* WorldPosSRV;

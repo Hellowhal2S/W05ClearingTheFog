@@ -301,23 +301,6 @@ void FGraphicsDevice::Prepare()
     DeviceContext->OMSetBlendState(nullptr, nullptr, 0xffffffff); // 블렌뎅 상태 설정, 기본블렌딩 상태임
 }
 
-void FGraphicsDevice::Prepare(D3D11_VIEWPORT* viewport)
-{
-    DeviceContext->ClearRenderTargetView(FrameBufferRTV, ClearColor); // 렌더 타겟 뷰에 저장된 이전 프레임 데이터를 삭제
-    DeviceContext->ClearDepthStencilView(DepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0); // 깊이 버퍼 초기화 추가
-
-    DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST); // 정점 연결 방식 설정
-
-    DeviceContext->RSSetViewports(1, viewport); // GPU가 화면을 렌더링할 영역 설정
-    DeviceContext->RSSetState(CurrentRasterizer); //레스터 라이저 상태 설정
-
-    DeviceContext->OMSetDepthStencilState(DepthStencilState, 0);
-
-    DeviceContext->OMSetRenderTargets(1, &FrameBufferRTV, DepthStencilView); // 렌더 타겟 설정(백버퍼를 가르킴)
-    DeviceContext->OMSetBlendState(nullptr, nullptr, 0xffffffff); // 블렌뎅 상태 설정, 기본블렌딩 상태임
-}
-
-
 void FGraphicsDevice::OnResize(HWND hWindow) {
     DeviceContext->OMSetRenderTargets(0, RTVs, 0);
     
@@ -333,9 +316,7 @@ void FGraphicsDevice::OnResize(HWND hWindow) {
     }
 
     ReleaseFrameBuffer();
-
-
-
+    
     if (screenWidth == 0 || screenHeight == 0) {
         MessageBox(hWindow, L"Invalid width or height for ResizeBuffers!", L"Error", MB_ICONERROR | MB_OK);
         return;
@@ -355,9 +336,6 @@ void FGraphicsDevice::OnResize(HWND hWindow) {
 
     CreateFrameBuffer();
     CreateDepthStencilBuffer(hWindow);
-
-
-
 }
 
 

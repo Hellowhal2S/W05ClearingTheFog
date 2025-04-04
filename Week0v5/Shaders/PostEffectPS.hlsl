@@ -31,7 +31,7 @@ float4 TexcoordToView(float2 texcoord)
     // [0, 1]x[0, 1] -> [-1, 1]x[-1, 1]
     posProj.xy = texcoord * 2.0 - 1.0;
     posProj.y *= -1; // 주의: y 방향을 뒤집어줘야 합니다.
-    posProj.z = depthOnlyTex.Sample(linearClampSampler, texcoord).r;
+    posProj.z = depthOnlyTex.Sample(Sampler, texcoord).r;
     posProj.w = 1.0;
 
     // ProjectSpace -> ViewSpace
@@ -54,7 +54,7 @@ float4 main(SamplingPixelShaderInput input) : SV_TARGET
         float fogFactor = exp(-distFog * fogStrength);
         
         float3 fogColor = float3(1, 1, 1);
-        float3 color = renderTex.Sample(linearClampSampler, input.texcoord).rgb;
+        float3 color = renderTex.Sample(Sampler, input.texcoord).rgb;
         color = lerp(fogColor, color, fogFactor);
         return float4(color, 1.0);
         

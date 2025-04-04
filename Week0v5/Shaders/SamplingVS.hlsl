@@ -1,6 +1,6 @@
 struct VS_INPUT
 {
-    float4 position : POSITION;
+    float3 position : POSITION;
     float2 texcoord : TEXCOORD;
 };
 
@@ -15,7 +15,7 @@ VS_OUTPUT mainVS(VS_INPUT input)
 {
     VS_OUTPUT output;
     
-    output.position = float(input.position, 1.0);
+    output.position = float4(input.position, 1.0);
     output.texcoord = input.texcoord;
     return output;
 }

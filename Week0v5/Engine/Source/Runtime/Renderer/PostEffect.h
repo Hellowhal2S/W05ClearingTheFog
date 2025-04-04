@@ -11,7 +11,6 @@ struct FPostEffectConstant
 
 namespace PostEffect
 {
-
     // Depth만 담는 Texture
     extern ID3D11RenderTargetView* DepthOnlyRTV;
     extern ID3D11Texture2D* DepthOnlyTexture;
