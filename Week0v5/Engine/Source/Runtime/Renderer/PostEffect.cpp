@@ -165,13 +165,14 @@ void PostEffect::Render(ID3D11DeviceContext*& DeviceContext, ID3D11ShaderResourc
     // SRV
     // Draw
     // Sampler
+    //ClearCommBreak
     DeviceContext->VSSetShader(PostEffectVS, nullptr, 0);
     DeviceContext->PSSetShader(PostEffectPS, nullptr, 0);
     DeviceContext->IASetInputLayout(PostEffectInputLayout);
     DeviceContext->PSSetConstantBuffers(0, 1, &PostEffectConstantBuffer);
     DeviceContext->PSSetShaderResources(0, 1, &ColorSRV);
     DeviceContext->PSSetSamplers(0, 1, &PostEffectSampler);
-
+    DeviceContext->Draw(6, 0);
 }
 
 void PostEffect::Release()
