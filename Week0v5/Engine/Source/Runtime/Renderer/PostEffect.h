@@ -3,8 +3,10 @@
 #pragma comment(lib, "d3d11")
 #pragma comment(lib, "d3dcompiler")
 #include <d3d11.h>
+#include "Math/Matrix.h"
 
 class FGraphicsDevice;
+
 struct FPostEffectConstant
 {
     // fog strength, fog color, inverse projection matrix... 등 추가 요망
@@ -12,6 +14,18 @@ struct FPostEffectConstant
 
 namespace PostEffect
 {
+    struct FFogConstants
+    {
+        float heightStart = 0.0f;
+        float heightFalloff = 50.0f;
+        float fogDensity = 5.0f;
+        int mode; // 1: Rendered image, 2: DepthOnly
+        FVector4 fogColor  = { 1.0f,1.0f,1.0f,1.0f};
+    };
+    struct GlobalConstants
+    {
+        FMatrix invProj; // 4x4 행렬, 총 64바이트 (16의 배수)
+    };
     // Depth만 담는 Texture
     extern ID3D11RenderTargetView* DepthOnlyRTV;
     extern ID3D11Texture2D* DepthOnlyTexture;
@@ -33,7 +47,7 @@ namespace PostEffect
     extern ID3D11InputLayout* PostEffectInputLayout;
     extern ID3D11Buffer* FogConstantBuffer;
     extern ID3D11Buffer* GlobalConstantBuffer;
-
+    extern FFogConstants Fog;
     
     void InitCommonStates(FGraphicsDevice*& Graphics);
     void InitBuffers(ID3D11Device*& Device);
@@ -43,7 +57,7 @@ namespace PostEffect
     void InitRenderTargetViews(ID3D11Device*& Device);
     void Render(ID3D11DeviceContext*& DeviceContext, ID3D11ShaderResourceView*& ColorSRV);
     void Release();
-
+    void UpdateFogConstantBuffer(ID3D11DeviceContext*& DeviceContext, FFogConstants newFog);
     void CopyBackBufferToColorSRV(ID3D11DeviceContext*& DeviceContext, ID3D11Texture2D*& ColorTexture, ID3D11Texture2D*& FrameBuffer);
 
     

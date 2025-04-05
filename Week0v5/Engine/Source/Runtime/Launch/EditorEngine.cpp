@@ -39,7 +39,6 @@ int32 UEditorEngine::Init(HWND hwnd)
     UIMgr = new UImGuiManager;
     UIMgr->Initialize(hWnd, graphicDevice.Device, graphicDevice.DeviceContext);
     resourceMgr.Initialize(&renderer, &graphicDevice);
-
     
     FWorldContext EditorContext;
     EditorContext.WorldType = EWorldType::Editor;
