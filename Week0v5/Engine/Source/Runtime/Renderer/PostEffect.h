@@ -4,6 +4,7 @@
 #pragma comment(lib, "d3dcompiler")
 #include <d3d11.h>
 
+class FGraphicsDevice;
 struct FPostEffectConstant
 {
     // fog strength, fog color, inverse projection matrix... 등 추가 요망
@@ -34,10 +35,10 @@ namespace PostEffect
     extern ID3D11Buffer* GlobalConstantBuffer;
 
     
-    void InitCommonStates(ID3D11Device*& Device);
+    void InitCommonStates(FGraphicsDevice*& Graphics);
     void InitBuffers(ID3D11Device*& Device);
     void InitShaders(ID3D11Device*& Device);
-    void InitTextures(ID3D11Device*& Device);
+    void InitTextures(FGraphicsDevice*& Graphics);
     void InitDepthStencilStates(ID3D11Device*& Device);
     void InitRenderTargetViews(ID3D11Device*& Device);
     void Render(ID3D11DeviceContext*& DeviceContext, ID3D11ShaderResourceView*& ColorSRV);

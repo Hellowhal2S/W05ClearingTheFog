@@ -1,5 +1,7 @@
 #include "GraphicDevice.h"
 #include <wchar.h>
+#include "Core/HAL/PlatformType.h"
+
 void FGraphicsDevice::Initialize(HWND hWindow) {
     CreateDeviceAndSwapChain(hWindow);
     CreateFrameBuffer();

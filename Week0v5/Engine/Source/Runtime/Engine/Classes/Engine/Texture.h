@@ -1,5 +1,7 @@
 #pragma once
 #include "D3D11RHI/GraphicDevice.h"
+#include "Core/HAL/PlatformType.h"
+
 struct FTexture
 {
     FTexture(ID3D11ShaderResourceView* SRV, ID3D11Texture2D* Texture2D, ID3D11SamplerState* Sampler, uint32 _width, uint32 _height)

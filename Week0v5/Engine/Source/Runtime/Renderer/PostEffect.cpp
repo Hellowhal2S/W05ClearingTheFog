@@ -2,6 +2,8 @@
 #include <iostream>
 #include <d3dcompiler.h>
 #include "Math/Matrix.h"
+#include "D3D11RHI/GraphicDevice.h"
+
 #define SAFE_RELEASE(x) if (x) { x->Release(); x = nullptr; }
 
 struct FogConstants
@@ -81,13 +83,13 @@ namespace PostEffect
     
 } // namespace PostEffect
 
-void PostEffect::InitCommonStates(ID3D11Device*& Device)
+void PostEffect::InitCommonStates(FGraphicsDevice*& Graphics)
 {
-    InitBuffers(Device);
-    InitShaders(Device);                
-    InitTextures(Device);
+    InitBuffers(Graphics->Device);
+    InitShaders(Graphics->Device);                
+    InitTextures(Graphics);
     //InitDepthStencilStates(Device);
-    InitRenderTargetViews(Device);
+    InitRenderTargetViews(Graphics->Device);
 }
 void PostEffect::InitBuffers(ID3D11Device*& Device)
 {
@@ -162,13 +164,13 @@ void PostEffect::InitDepthStencilStates(ID3D11Device*& Device)
     
 }
 
-void PostEffect::InitTextures(ID3D11Device*& Device)
+void PostEffect::InitTextures(FGraphicsDevice*& Graphics)
 {
     // Depth 전용
     D3D11_TEXTURE2D_DESC desc;
     ZeroMemory(&desc, sizeof(desc));
-    desc.Width = 1920;
-    desc.Height = 1080;
+    desc.Width = Graphics->screenWidth;
+    desc.Height = Graphics->screenHeight;
     desc.MipLevels = 1;
     desc.ArraySize = 1;
     desc.Usage = D3D11_USAGE_DEFAULT;
@@ -181,20 +183,20 @@ void PostEffect::InitTextures(ID3D11Device*& Device)
     desc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;                            // Depth Texture는 SRV로 사용이 가능해야 함
     desc.SampleDesc.Count = 1;
     desc.SampleDesc.Quality = 0;
-    ThrowIfFailed(Device->CreateTexture2D(&desc, NULL, &DepthOnlyTexture));                            // Depth Pass를 수행할 Depth Texture 생성    
+    ThrowIfFailed(Graphics->Device->CreateTexture2D(&desc, NULL, &DepthOnlyTexture));                            // Depth Pass를 수행할 Depth Texture 생성    
 
     D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc;
     ZeroMemory(&dsvDesc, sizeof(dsvDesc));
     dsvDesc.Format = DXGI_FORMAT_D32_FLOAT;
     dsvDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
-    ThrowIfFailed(Device->CreateDepthStencilView(DepthOnlyTexture, &dsvDesc, &DepthOnlyDSV));          // Depth Pass를 수행할 Depth Stencil View 생성
+    ThrowIfFailed(Graphics->Device->CreateDepthStencilView(DepthOnlyTexture, &dsvDesc, &DepthOnlyDSV));          // Depth Pass를 수행할 Depth Stencil View 생성
 
     D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
     ZeroMemory(&srvDesc, sizeof(srvDesc));
     srvDesc.Format = DXGI_FORMAT_R32_FLOAT;
     srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
     srvDesc.Texture2D.MipLevels = 1;
-    ThrowIfFailed(Device->CreateShaderResourceView(DepthOnlyTexture, &srvDesc, &DepthOnlySRV));        // Depth Texture를 셰이더로 보내기 위해 SRV로 제작
+    ThrowIfFailed(Graphics->Device->CreateShaderResourceView(DepthOnlyTexture, &srvDesc, &DepthOnlySRV));        // Depth Texture를 셰이더로 보내기 위해 SRV로 제작
 }
 
 void PostEffect::InitRenderTargetViews(ID3D11Device*& Device)
@@ -212,7 +214,7 @@ void PostEffect::Render(ID3D11DeviceContext*& DeviceContext, ID3D11ShaderResourc
     DeviceContext->VSSetShader(PostEffectVS, nullptr, 0);
     DeviceContext->PSSetShader(PostEffectPS, nullptr, 0);
     DeviceContext->IASetInputLayout(PostEffectInputLayout);
-    DeviceContext->PSSetConstantBuffers(0, 1, &PostEffectConstantBuffer);
+    DeviceContext->PSSetConstantBuffers(0, 1, &FogConstantBuffer);
     DeviceContext->PSSetShaderResources(0, 1, &ColorSRV);
     DeviceContext->PSSetSamplers(0, 1, &PostEffectSampler);
     DeviceContext->Draw(6, 0);
