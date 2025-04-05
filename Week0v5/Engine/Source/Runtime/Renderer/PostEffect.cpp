@@ -219,6 +219,8 @@ void PostEffect::Render(ID3D11DeviceContext*& DeviceContext, ID3D11ShaderResourc
     DeviceContext->PSSetConstantBuffers(1, 1, &FogConstantBuffer);
 
     DeviceContext->PSSetShaderResources(10, 1, &ColorSRV);                   // SRV
+    DeviceContext->PSSetShaderResources(11, 1, &DepthOnlySRV);
+
     DeviceContext->PSSetSamplers(0, 1, &PostEffectSampler);                 // Sampler      
     DeviceContext->Draw(6, 0);
 }
@@ -252,5 +254,9 @@ void PostEffect::CopyBackBufferToColorSRV(ID3D11DeviceContext*& DeviceContext, I
     // 백버퍼가 멀티샘플이 아니므로 CopyResource를 사용하여 SRV로 쓰일 텍스처에 복사 
     DeviceContext->CopyResource(ColorTexture, FrameBuffer);
     //DeviceContext->ResolveSubresource(ColorTexture, 0, FrameBuffer, 0, DXGI_FORMAT_R8G8B8A8_UNORM);
+}
 
+void PostEffect::CopyDepthBufferToDepthOnlySRV(ID3D11DeviceContext*& DeviceContext, ID3D11Texture2D*& SrcDepthTexture)
+{
+    DeviceContext->CopyResource(DepthOnlyTexture, SrcDepthTexture);
 }

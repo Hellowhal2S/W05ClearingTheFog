@@ -44,7 +44,11 @@ namespace PostEffect
     void Render(ID3D11DeviceContext*& DeviceContext, ID3D11ShaderResourceView*& ColorSRV);
     void Release();
 
+    // 백버퍼 텍스처를 컬러 텍스처로 복사
     void CopyBackBufferToColorSRV(ID3D11DeviceContext*& DeviceContext, ID3D11Texture2D*& ColorTexture, ID3D11Texture2D*& FrameBuffer);
+
+    // Depth Stencil Buffer를 Depth Map Texture에 복사
+    void CopyDepthBufferToDepthOnlySRV(ID3D11DeviceContext*& DeviceContext, ID3D11Texture2D*& SrcDepthTexture);
 
     
 }

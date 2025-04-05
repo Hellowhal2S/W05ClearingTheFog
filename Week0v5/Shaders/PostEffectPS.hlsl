@@ -1,7 +1,7 @@
 // 무지성으로 t10에서부터 시작
 
 Texture2D renderTex : register(t10);    // 원본 렌더링 결과
-//Texture2D depthOnlyTex : register(t11); // Depth Map SRV
+Texture2D depthOnlyTex : register(t11); // Depth Map SRV
 //Texture2D worldPosTex : register(t12); // World Position SRV
 
 SamplerState Sampler : register(s0); // Linear Clamp Sampler

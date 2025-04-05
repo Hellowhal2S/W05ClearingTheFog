@@ -59,7 +59,7 @@ void FGraphicsDevice::CreateDepthStencilBuffer(HWND hWindow) {
     descDepth.Height = height; // 텍스처 높이 설정
     descDepth.MipLevels = 1; // 미맵 레벨 수 (1로 설정하여 미맵 없음)
     descDepth.ArraySize = 1; // 텍스처 배열의 크기 (1로 단일 텍스처)
-    descDepth.Format = DXGI_FORMAT_D24_UNORM_S8_UINT; // 24비트 깊이와 8비트 스텐실을 위한 포맷
+    descDepth.Format = DXGI_FORMAT_R32_TYPELESS; // 24비트 깊이와 8비트 스텐실을 위한 포맷
     descDepth.SampleDesc.Count = 1; // 멀티샘플링 설정 (1로 단일 샘플)
     descDepth.SampleDesc.Quality = 0; // 샘플 퀄리티 설정
     descDepth.Usage = D3D11_USAGE_DEFAULT; // 텍스처 사용 방식
@@ -77,7 +77,7 @@ void FGraphicsDevice::CreateDepthStencilBuffer(HWND hWindow) {
 
     D3D11_DEPTH_STENCIL_VIEW_DESC descDSV;
     ZeroMemory(&descDSV, sizeof(descDSV));
-    descDSV.Format = DXGI_FORMAT_D24_UNORM_S8_UINT; // 깊이 스텐실 포맷
+    descDSV.Format = DXGI_FORMAT_D32_FLOAT; // 깊이 스텐실 포맷
     descDSV.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D; // 뷰 타입 설정 (2D 텍스처)
     descDSV.Texture2D.MipSlice = 0; // 사용할 미맵 슬라이스 설정
 
@@ -314,7 +314,7 @@ void FGraphicsDevice::Prepare()
 {
     DeviceContext->ClearRenderTargetView(FrameBufferRTV, ClearColor); // 렌더 타겟 뷰에 저장된 이전 프레임 데이터를 삭제
     DeviceContext->ClearRenderTargetView(UUIDFrameBufferRTV, ClearColor); // 렌더 타겟 뷰에 저장된 이전 프레임 데이터를 삭제
-    DeviceContext->ClearDepthStencilView(DepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0); // 깊이 버퍼 초기화 추가
+    DeviceContext->ClearDepthStencilView(DepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0); // 깊이 버퍼 초기화 추가
 
     DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST); // 정정 연결 방식 설정
 
