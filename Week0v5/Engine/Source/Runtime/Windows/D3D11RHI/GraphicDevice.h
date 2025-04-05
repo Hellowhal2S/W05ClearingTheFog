@@ -8,7 +8,6 @@
 
 #include "EngineBaseTypes.h"
 
-#include "Core/HAL/PlatformType.h"
 #include "Core/Math/Vector4.h"
 
 class FGraphicsDevice {
@@ -59,8 +58,8 @@ public:
     void ChangeRasterizer(EViewModeIndex evi);
     void ChangeDepthStencilState(ID3D11DepthStencilState* newDetptStencil);
 
-    uint32 GetPixelUUID(POINT pt);
-    uint32 DecodeUUIDColor(FVector4 UUIDColor);
+    unsigned int GetPixelUUID(POINT pt);
+    unsigned int DecodeUUIDColor(FVector4 UUIDColor);
 private:
     ID3D11RasterizerState* CurrentRasterizer = nullptr;
 };
