@@ -47,6 +47,7 @@ struct PS_OUTPUT
 {
     float4 color : SV_Target0;
     float4 UUID : SV_Target1;
+    //float4 depth : SV_Target2;
 };
 
 PS_INPUT mainVS(VS_INPUT input)

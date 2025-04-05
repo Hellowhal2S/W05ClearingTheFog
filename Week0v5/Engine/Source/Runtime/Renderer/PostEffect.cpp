@@ -251,5 +251,6 @@ void PostEffect::CopyBackBufferToColorSRV(ID3D11DeviceContext*& DeviceContext, I
 {
     // 백버퍼가 멀티샘플이 아니므로 CopyResource를 사용하여 SRV로 쓰일 텍스처에 복사 
     DeviceContext->CopyResource(ColorTexture, FrameBuffer);
-    auto a = 10;
+    //DeviceContext->ResolveSubresource(ColorTexture, 0, FrameBuffer, 0, DXGI_FORMAT_R8G8B8A8_UNORM);
+
 }

@@ -1,8 +1,8 @@
 // 무지성으로 t10에서부터 시작
 
 Texture2D renderTex : register(t10);    // 원본 렌더링 결과
-Texture2D depthOnlyTex : register(t11); // Depth Map SRV
-Texture2D worldPosTex : register(t12); // World Position SRV
+//Texture2D depthOnlyTex : register(t11); // Depth Map SRV
+//Texture2D worldPosTex : register(t12); // World Position SRV
 
 SamplerState Sampler : register(s0); // Linear Clamp Sampler
 
@@ -26,22 +26,22 @@ struct SamplingPixelShaderInput
     float2 texcoord : TEXCOORD;
 };
 
-float4 TexcoordToView(float2 texcoord)
-{
-    float4 posProj;
+//float4 TexcoordToView(float2 texcoord)
+//{
+//    float4 posProj;
 
-    // [0, 1]x[0, 1] -> [-1, 1]x[-1, 1]
-    posProj.xy = texcoord * 2.0 - 1.0;
-    posProj.y *= -1; // 주의: y 방향을 뒤집어줘야 합니다.
-    posProj.z = depthOnlyTex.Sample(Sampler, texcoord).r;
-    posProj.w = 1.0;
+//    // [0, 1]x[0, 1] -> [-1, 1]x[-1, 1]
+//    posProj.xy = texcoord * 2.0 - 1.0;
+//    posProj.y *= -1; // 주의: y 방향을 뒤집어줘야 합니다.
+//    posProj.z = depthOnlyTex.Sample(Sampler, texcoord).r;
+//    posProj.w = 1.0;
 
-    // ProjectSpace -> ViewSpace
-    float4 posView = mul(posProj, invProj);
-    posView.xyz /= posView.w;
+//    // ProjectSpace -> ViewSpace
+//    float4 posView = mul(posProj, invProj);
+//    posView.xyz /= posView.w;
     
-    return posView;
-}
+//    return posView;
+//}
 
 float4 mainPS(SamplingPixelShaderInput input) : SV_TARGET
 {

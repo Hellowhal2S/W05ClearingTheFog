@@ -181,18 +181,21 @@ void FGraphicsDevice::CreateFrameBuffer()
 
     // 렌더 타겟 뷰 생성
     D3D11_RENDER_TARGET_VIEW_DESC framebufferRTVdesc = {};
-    framebufferRTVdesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM_SRGB; // 색상 포맷
+    framebufferRTVdesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM; // 색상 포맷
     framebufferRTVdesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D; // 2D 텍스처
 
     Device->CreateRenderTargetView(FrameBuffer, &framebufferRTVdesc, &FrameBufferRTV);
 
     // ------------------- Post Process용 텍스처 / SRV 생성 ----------------------
+    D3D11_TEXTURE2D_DESC bbDesc = {};
+    FrameBuffer->GetDesc(&bbDesc);      // 백버퍼의 포맷과 일치시키기 위하여 백버퍼의 텍스처 설명을 가져옴
+
     D3D11_TEXTURE2D_DESC texDesc = {};
     texDesc.Width = screenWidth;
     texDesc.Height = screenHeight;
     texDesc.MipLevels = 1;
     texDesc.ArraySize = 1;
-    texDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;            // 선형 포맷 (sRGB 아님)
+    texDesc.Format = bbDesc.Format;            // 선형 포맷 (sRGB 아님)
     texDesc.SampleDesc.Count = 1;                           // 멀티샘플 아님
     texDesc.Usage = D3D11_USAGE_DEFAULT;
     texDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;  // 원본 컬러 텍스처를 SRV로 사용가능토록 플래그 설정
@@ -226,6 +229,7 @@ void FGraphicsDevice::CreateFrameBuffer()
 
     RTVs[0] = FrameBufferRTV;
     RTVs[1] = UUIDFrameBufferRTV;
+    // Depth [2] = RTV
 }
 
 void FGraphicsDevice::ReleaseFrameBuffer()

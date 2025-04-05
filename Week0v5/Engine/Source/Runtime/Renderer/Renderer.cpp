@@ -32,6 +32,7 @@ void FRenderer::Initialize(FGraphicsDevice* graphics)
     CreateLightingBuffer();
     CreateLitUnlitBuffer();
     UpdateLitUnlitConstant(1);
+
     PostEffect::InitCommonStates(Graphics);
 }
 
