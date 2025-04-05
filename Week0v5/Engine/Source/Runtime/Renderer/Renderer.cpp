@@ -41,6 +41,8 @@ void FRenderer::Release()
     ReleaseTextureShader();
     ReleaseLineShader();
     ReleaseConstantBuffer();
+
+    PostEffect::Release();
 }
 
 void FRenderer::CreateShader()
