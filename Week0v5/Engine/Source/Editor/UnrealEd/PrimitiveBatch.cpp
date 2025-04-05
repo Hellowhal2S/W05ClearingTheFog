@@ -35,28 +35,29 @@ void UPrimitiveBatch::GenerateGrid(float spacing, int gridCount)
 
 void UPrimitiveBatch::RenderBatch(const FMatrix& View, const FMatrix& Projection)
 {
-    UEditorEngine::renderer.PrepareLineShader();
+    // week5 수정중
+    //UEditorEngine::renderer.PrepareLineShader();
 
-    InitializeVertexBuffer();
+    //InitializeVertexBuffer();
 
-    FMatrix Model = FMatrix::Identity;
-    FMatrix MVP = Model * View * Projection;
-    FMatrix NormalMatrix = FMatrix::Transpose(FMatrix::Inverse(Model));
-    UEditorEngine::renderer.UpdateConstant(MVP, NormalMatrix, FVector4(0,0,0,0), false);
-    UEditorEngine::renderer.UpdateGridConstantBuffer(GridParam);
+    //FMatrix Model = FMatrix::Identity;
+    //FMatrix MVP = Model * View * Projection;
+    //FMatrix NormalMatrix = FMatrix::Transpose(FMatrix::Inverse(Model));
+    //UEditorEngine::renderer.UpdateConstantbufferMesh(MVP, NormalMatrix, FVector4(0,0,0,0), false);
+    //UEditorEngine::renderer.UpdateGridConstantBuffer(GridParam);
 
-    UpdateBoundingBoxResources();
-    UpdateConeResources();
-    UpdateOBBResources();
-    int boundingBoxSize = static_cast<int>(BoundingBoxes.Num());
-    int coneSize = static_cast<int>(Cones.Num());
-    int obbSize = static_cast<int>(OrientedBoundingBoxes.Num());
-    UEditorEngine::renderer.UpdateLinePrimitveCountBuffer(boundingBoxSize, coneSize);
-    UEditorEngine::renderer.RenderBatch(GridParam, pVertexBuffer, boundingBoxSize, coneSize, ConeSegmentCount, obbSize);
-    BoundingBoxes.Empty();
-    Cones.Empty();
-    OrientedBoundingBoxes.Empty();
-    UEditorEngine::renderer.PrepareShader();
+    //UpdateBoundingBoxResources();
+    //UpdateConeResources();
+    //UpdateOBBResources();
+    //int boundingBoxSize = static_cast<int>(BoundingBoxes.Num());
+    //int coneSize = static_cast<int>(Cones.Num());
+    //int obbSize = static_cast<int>(OrientedBoundingBoxes.Num());
+    //UEditorEngine::renderer.UpdateLinePrimitveCountBuffer(boundingBoxSize, coneSize);
+    //UEditorEngine::renderer.RenderBatch(GridParam, pVertexBuffer, boundingBoxSize, coneSize, ConeSegmentCount, obbSize);
+    //BoundingBoxes.Empty();
+    //Cones.Empty();
+    //OrientedBoundingBoxes.Empty();
+    //UEditorEngine::renderer.PrepareShader();
 }
 void UPrimitiveBatch::InitializeVertexBuffer()
 {

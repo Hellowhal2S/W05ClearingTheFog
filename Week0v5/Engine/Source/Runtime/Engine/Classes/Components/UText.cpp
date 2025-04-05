@@ -270,27 +270,31 @@ void UText::CreateTextTextureVertexBuffer(const TArray<FVertexTexture>& _vertex,
 }
 
 
-void UText::TextMVPRendering()
-{
-    UEditorEngine::renderer.PrepareTextureShader();
-    //FEngineLoop::renderer.UpdateSubUVConstant(0, 0);
-    //FEngineLoop::renderer.PrepareSubUVConstant();
-    FMatrix Model = CreateBillboardMatrix();
-
-    FMatrix MVP = Model * GetEngine()->GetLevelEditor()->GetActiveViewportClient()->GetViewMatrix() * GetEngine()->GetLevelEditor()->GetActiveViewportClient()->GetProjectionMatrix();
-    FMatrix NormalMatrix = FMatrix::Transpose(FMatrix::Inverse(Model));
-    FVector4 UUIDColor = EncodeUUID() / 255.0f;
-    if (this == GetWorld()->GetPickingGizmo()) {
-        UEditorEngine::renderer.UpdateConstant(MVP, NormalMatrix, UUIDColor, true);
-    }
-    else
-        UEditorEngine::renderer.UpdateConstant(MVP, NormalMatrix, UUIDColor, false);
-
-    if (ShowFlags::GetInstance().currentFlags & static_cast<uint64>(EEngineShowFlags::SF_BillboardText)) {
-        UEditorEngine::renderer.RenderTextPrimitive(vertexTextBuffer, numTextVertices,
-            Texture->TextureSRV, Texture->SamplerState);
-    }
-    //Super::Render();
-
-    UEditorEngine::renderer.PrepareShader();
-}
+//void UText::TextMVPRendering()
+//{
+//    UEditorEngine::renderer.PrepareTextureShader();
+//    //FEngineLoop::renderer.UpdateSubUVConstant(0, 0);
+//    //FEngineLoop::renderer.PrepareSubUVConstant();
+//    FMatrix Model = CreateBillboardMatrix();
+//
+//    FMatrix ModelInvProjMatrix = FMatrix::Transpose(FMatrix::Inverse(Model));
+//    FVector4 UUIDColor = EncodeUUID() / 255.0f;
+//    FConstantBufferMesh buf = 
+//    {
+//        Model, ModelInvProjMatrix, 
+//    }
+//
+//    if (this == GetWorld()->GetPickingGizmo()) {
+//        UEditorEngine::renderer.UpdateConstantbufferMesh(Model, ModelInvProjMatrix, UUIDColor, true);
+//    }
+//    else
+//        UEditorEngine::renderer.UpdateConstantbufferMesh(MVP, ModelInvProjMatrix, UUIDColor, false);
+//
+//    if (ShowFlags::GetInstance().currentFlags & static_cast<uint64>(EEngineShowFlags::SF_BillboardText)) {
+//        UEditorEngine::renderer.RenderTextPrimitive(vertexTextBuffer, numTextVertices,
+//            Texture->TextureSRV, Texture->SamplerState);
+//    }
+//    //Super::Render();
+//
+//    UEditorEngine::renderer.PrepareShader();
+//}

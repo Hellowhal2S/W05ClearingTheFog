@@ -419,6 +419,7 @@
     <ClInclude Include="Engine\Source\Runtime\Engine\UnrealEngine.h" />
     <ClInclude Include="Engine\Source\Runtime\Launch\EditorEngine.h" />
     <ClInclude Include="Engine\Source\Runtime\Launch\LaunchEngineLoop.h" />
+    <ClInclude Include="Engine\Source\Runtime\Renderer\ShaderConstants.h" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine\Source\ThirdParty\DirectXTK\Include\DDSTextureLoader.h" />
@@ -504,7 +505,7 @@
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
-    <Natvis Include="Week0v2.natvis" />
+    <Natvis Include="Week0v5.natvis" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="UEditorStateManager.cpp" />
@@ -514,5 +515,10 @@
     <ClCompile Include="Engine\Source\Runtime\Engine\UnrealEngine.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Launch\LaunchEngineLoop.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Launch\EditorEngine.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shaders\ShaderConstants.hlsli">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>
