@@ -11,7 +11,7 @@ cbuffer GlobalConstants : register(b0)
     float4x4 invProj; // Projection matrix의 역행렬
 };
 
-cbuffer FogConstants : register(b3)
+cbuffer FogConstants : register(b1)
 {
     float heightStart;
     float heightFalloff;

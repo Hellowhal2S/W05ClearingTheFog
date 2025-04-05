@@ -100,9 +100,9 @@ void PostEffect::InitBuffers(ID3D11Device*& Device)
     D3D11_BUFFER_DESC cbfogDesc;
     ZeroMemory(&cbfogDesc, sizeof(cbfogDesc));
     cbfogDesc.ByteWidth = sizeof(FogConstants);
-    cbfogDesc.Usage = D3D11_USAGE_DEFAULT;
+    cbfogDesc.Usage = D3D11_USAGE_DYNAMIC;
     cbfogDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-    cbfogDesc.CPUAccessFlags = 0;
+    cbfogDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
     cbfogDesc.MiscFlags = 0;
     
     HRESULT hr = Device->CreateBuffer(&cbfogDesc, nullptr, &FogConstantBuffer);
@@ -114,9 +114,9 @@ void PostEffect::InitBuffers(ID3D11Device*& Device)
     D3D11_BUFFER_DESC cbGlobalDesc;
     ZeroMemory(&cbGlobalDesc, sizeof(cbGlobalDesc));
     cbGlobalDesc.ByteWidth = sizeof(GlobalConstants); // 64바이트
-    cbGlobalDesc.Usage = D3D11_USAGE_DEFAULT;
+    cbGlobalDesc.Usage = D3D11_USAGE_DYNAMIC;
     cbGlobalDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-    cbGlobalDesc.CPUAccessFlags = 0;
+    cbGlobalDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
     cbGlobalDesc.MiscFlags = 0;
     
     hr = Device->CreateBuffer(&cbGlobalDesc, nullptr, &GlobalConstantBuffer);
@@ -214,9 +214,12 @@ void PostEffect::Render(ID3D11DeviceContext*& DeviceContext, ID3D11ShaderResourc
     DeviceContext->VSSetShader(PostEffectVS, nullptr, 0);
     DeviceContext->PSSetShader(PostEffectPS, nullptr, 0);
     DeviceContext->IASetInputLayout(PostEffectInputLayout);
-    DeviceContext->PSSetConstantBuffers(0, 1, &FogConstantBuffer);
-    DeviceContext->PSSetShaderResources(0, 1, &ColorSRV);
-    DeviceContext->PSSetSamplers(0, 1, &PostEffectSampler);
+    
+    DeviceContext->PSSetConstantBuffers(0, 1, &GlobalConstantBuffer);       // 상수 버퍼
+    DeviceContext->PSSetConstantBuffers(1, 1, &FogConstantBuffer);
+
+    DeviceContext->PSSetShaderResources(0, 1, &ColorSRV);                   // SRV
+    DeviceContext->PSSetSamplers(0, 1, &PostEffectSampler);                 // Sampler      
     DeviceContext->Draw(6, 0);
 }
 
@@ -233,9 +236,9 @@ void PostEffect::Release()
 
     SAFE_RELEASE(PostEffectSRV);                    // 원본 Color SRV
 
-    SAFE_RELEASE(PostEffectInputLayout);// IL
-    SAFE_RELEASE(FogConstantBuffer);  // Vertex Buffer
-    SAFE_RELEASE(GlobalConstantBuffer);  // Constant Buffer
+    SAFE_RELEASE(PostEffectInputLayout);            // Input Layout
+    SAFE_RELEASE(FogConstantBuffer);                // Vertex Buffer
+    SAFE_RELEASE(GlobalConstantBuffer);             // 역투영 등의 Constant Buffer
 
     
     SAFE_RELEASE(PostEffectSampler);                // Sampler
