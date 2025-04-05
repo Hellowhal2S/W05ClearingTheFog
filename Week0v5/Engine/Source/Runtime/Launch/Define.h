@@ -139,8 +139,8 @@ struct FVertexTexture
 struct FGridParameters
 {
 	float gridSpacing;
-	int   numGridLines;
 	FVector gridOrigin;
+	int   numGridLines;
 	float pad;
 };
 struct FSimpleVertex

@@ -408,6 +408,16 @@ void FRenderer::CreateConstantBuffers()
     ConstantBufferDesc.ByteWidth = sizeof(FConstantBufferCamera);
     Graphics->Device->CreateBuffer(&ConstantBufferDesc, nullptr, &ConstantBuffers.Camera00);
 
+    // grid line 용
+    ConstantBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+    ConstantBufferDesc.ByteWidth = sizeof(FGridParameters) + 0xf & 0xfffffff0;
+    Graphics->Device->CreateBuffer(&ConstantBufferDesc, nullptr, &GridConstantBuffer);
+
+    ConstantBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+    ConstantBufferDesc.ByteWidth = sizeof(FPrimitiveCounts) + 0xf & 0xfffffff0;
+    Graphics->Device->CreateBuffer(&ConstantBufferDesc, nullptr, &LinePrimitiveBuffer);
+
+
 }
 
 void FRenderer::ReleaseConstantBuffers()
@@ -1070,7 +1080,7 @@ void FRenderer::Render(UWorld* World, std::shared_ptr<FEditorViewportClient> Act
         buf.ProjMatrix = ActiveViewport->GetProjectionMatrix();
         UpdateConstantbufferCamera(buf);
     }
-    //UPrimitiveBatch::GetInstance().RenderBatch(ActiveViewport->GetViewMatrix(), ActiveViewport->GetProjectionMatrix());
+    UPrimitiveBatch::GetInstance().RenderBatch(ActiveViewport->GetViewMatrix(), ActiveViewport->GetProjectionMatrix());
 
     if (ActiveViewport->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::SF_Primitives))
         RenderStaticMeshes(World, ActiveViewport);
