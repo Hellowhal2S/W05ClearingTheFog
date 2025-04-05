@@ -66,7 +66,7 @@ UTransformGizmo::UTransformGizmo()
     CircleArr.Add(CircleX);
 
     UGizmoCircleComponent* CircleY = AddComponent<UGizmoCircleComponent>();
-    CircleY->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"gizmo_rot_y.obj"));
+    CircleY->SetStaticMesh( FManagerOBJ::GetStaticMesh(L"gizmo_rot_y.obj"));
     CircleY->SetupAttachment(RootComponent);
     CircleY->SetGizmoType(UGizmoBaseComponent::CircleY);
     CircleArr.Add(CircleY);

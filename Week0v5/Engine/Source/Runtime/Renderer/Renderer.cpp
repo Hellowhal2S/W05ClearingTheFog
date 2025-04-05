@@ -1079,10 +1079,14 @@ void FRenderer::Render(UWorld* World, std::shared_ptr<FEditorViewportClient> Act
     UPrimitiveBatch::GetInstance().RenderBatch(ActiveViewport->GetViewMatrix(), ActiveViewport->GetProjectionMatrix());
 
     if (ActiveViewport->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::SF_Primitives))
+    {
         RenderStaticMeshes(World, ActiveViewport);
-    if (ActiveViewport->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::SF_BillboardText))
-        RenderBillboards(World, ActiveViewport);
+    }
     RenderGizmos(World, ActiveViewport);
+    if (ActiveViewport->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::SF_BillboardText))
+    {
+        RenderBillboards(World, ActiveViewport);
+    }
     RenderLight(World, ActiveViewport);
     
     ClearRenderArr();
@@ -1184,11 +1188,21 @@ void FRenderer::RenderGizmos(const UWorld* World, const std::shared_ptr<FEditorV
             buf.UUID = GizmoComp->EncodeUUID() / 255.0f;
             UpdateConstantbufferActor(buf);
         }
+        {
+            FConstantBufferMesh buf;
+            buf.ModelMatrix = Model;
+            if (GizmoComp == World->GetPickingGizmo())
+            {
+                buf.IsSelectedMesh = 1;
+            }
+            else
+            {
+                buf.IsSelectedMesh = 0;
+            }
+            UpdateConstantbufferMesh(buf);
+        }
         // TODO: 기즈모 선택효과 안보임
-        //if (GizmoComp == World->GetPickingGizmo())
-        //    UpdateConstantbufferMesh(MVP, NormalMatrix, UUIDColor, true);
-        //else
-        //    UpdateConstantbufferMesh(MVP, NormalMatrix, UUIDColor, false);
+        // 현재 RenderPrimitive()에서 다시 SelectedMesh를 갱신하는데, 안에서 기즈모를 인식시킬 수 없음.
 
         if (!GizmoComp->GetStaticMesh()) continue;
 
@@ -1231,13 +1245,6 @@ void FRenderer::RenderBillboards(UWorld* World, std::shared_ptr<FEditorViewportC
             }
             UpdateConstantbufferMesh(buf);
         }
-        //{
-        //    FConstantBufferTexture buf;
-        //    buf.UVOffset = 
-        //    UpdateConstantbufferTexture()
-
-        //}
-
 
         if (UParticleSubUVComp* SubUVParticle = Cast<UParticleSubUVComp>(BillboardComp))
         {
@@ -1263,7 +1270,6 @@ void FRenderer::RenderBillboards(UWorld* World, std::shared_ptr<FEditorViewportC
             );
         }
     }
-    PrepareShader();
 }
 
 void FRenderer::RenderLight(UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport)
