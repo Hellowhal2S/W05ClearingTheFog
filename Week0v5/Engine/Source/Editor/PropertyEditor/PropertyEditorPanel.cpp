@@ -5,6 +5,8 @@
 #include "Components/LightComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/UText.h"
+#include "Components/FireballComponent.h"
+#include "Components/ProjectileMovementComponent.h"
 #include "Engine/FLoaderOBJ.h"
 #include "Math/MathUtility.h"
 #include "UnrealEd/ImGuiWidget.h"
@@ -109,12 +111,48 @@ void PropertyEditorPanel::Render()
                     UCubeComp* CubeComponent = PickedActor->AddComponent<UCubeComp>();
                     PickedComponent = CubeComponent;
                 }
-
+                if (ImGui::Selectable("FireballComponent"))
+                {
+                    UFireBallComponent* FireballComponent = PickedActor->AddComponent<UFireBallComponent>();
+                    PickedComponent = FireballComponent;
+                }
+                if (ImGui::Selectable("ProjectileMovementComponent"))
+                {
+                    UProjectileMovementComponent* ProjectileMovementComponent = PickedActor->AddComponent<UProjectileMovementComponent>();
+                    ProjectileMovementComponent->SetUpdatedComponent(PickedActor->GetRootComponent());
+                    PickedComponent = ProjectileMovementComponent;
+                }
                 ImGui::EndPopup();
             }
             ImGui::TreePop();
         }
     }
+
+    //if (PickedActor && PickedComponent && PickedComponent->IsA<UProjectileMovementComponent>())
+    //{
+    //    ImGui::SetItemDefaultFocus();
+    //    ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
+    //    if (PickedComponent != LastComponent)
+    //    {
+    //        LastComponent = PickedComponent;
+    //        bFirstFrame = true;
+    //    }
+    //    if (UProjectileMovementComponent* ProjectileComp = Cast<UProjectileMovementComponent>(PickedComponent))
+    //    {
+    //        float InitialSpeed = ProjectileComp->InitialSpeed;
+    //        ImGui::InputFloat("Initial Speed", &InitialSpeed);
+    //        ProjectileComp->InitialSpeed = InitialSpeed;
+
+    //        float MaxSpeed = ProjectileComp->MaxSpeed;
+    //        ImGui::InputFloat("Max Speed", &MaxSpeed);
+    //        ProjectileComp->MaxSpeed = MaxSpeed;
+
+    //        FVector Velocity = ProjectileComp->Velocity;
+    //        ImGui::InputFloat3("Velocity", &Velocity.x);
+    //        ProjectileComp->Velocity = Velocity;
+    //    }
+    //    ImGui::PopStyleColor();
+    //}
 
     // TODO: 추후에 RTTI를 이용해서 프로퍼티 출력하기
     if (PickedActor && PickedComponent && PickedComponent->IsA<USceneComponent>())
@@ -157,7 +195,7 @@ void PropertyEditorPanel::Render()
                 coordiButtonLabel = "World";
             else if (player->GetCoordiMode() == CoordiMode::CDM_LOCAL)
                 coordiButtonLabel = "Local";
-            
+
             if (ImGui::Button(coordiButtonLabel.c_str(), ImVec2(ImGui::GetWindowContentRegionMax().x * 0.9f, 32)))
             {
                 player->AddCoordiMode();

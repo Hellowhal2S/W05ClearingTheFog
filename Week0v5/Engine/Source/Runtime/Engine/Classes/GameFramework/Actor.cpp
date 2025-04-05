@@ -1,4 +1,4 @@
-﻿#include "Actor.h"
+#include "Actor.h"
 
 #include "Engine/World.h"
 
@@ -202,7 +202,6 @@ void AActor::DuplicateSubObjects(const UObject* SourceObj)
         UActorComponent* dupComponent = static_cast<UActorComponent*>(Component->Duplicate());
         dupComponent->Owner = this;
         OwnedComponents.Add(dupComponent);
-        RootComponent = Cast<USceneComponent>(dupComponent);
         if (const USceneComponent* OldScene = Cast<USceneComponent>(Component))
         {
             if (USceneComponent* NewScene = Cast<USceneComponent>(dupComponent))
