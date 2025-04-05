@@ -1047,7 +1047,8 @@ void FRenderer::Render(UWorld* World, std::shared_ptr<FEditorViewportClient> Act
     RenderGizmos(World, ActiveViewport);
     if (ActiveViewport->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::SF_BillboardText))
         RenderBillboards(World, ActiveViewport);
-    RenderLight(World, ActiveViewport);
+    if (LightObjs.Num() > 0)
+        RenderLight(World, ActiveViewport);
     
     ClearRenderArr();
 }

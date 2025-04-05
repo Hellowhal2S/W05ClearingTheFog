@@ -45,7 +45,7 @@ float4 TexcoordToView(float2 texcoord)
 
 float4 mainPS(SamplingPixelShaderInput input) : SV_TARGET
 {
-    return float4(depthOnlyTex.Sample(Sampler, input.texcoord).xxx, 1.0f);
+    return float4(renderTex.Sample(Sampler, input.texcoord).xxx, 1.0f);
     //if (mode == 1)
     //{
     //    float4 posView = TexcoordToView(input.texcoord);
