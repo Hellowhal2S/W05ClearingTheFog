@@ -3,18 +3,6 @@
 Texture2D Textures : register(t0);
 SamplerState Sampler : register(s0);
 
-struct FMaterial
-{
-    float3 DiffuseColor;
-    float TransparencyScalar;
-    float3 AmbientColor;
-    float DensityScalar;
-    float3 SpecularColor;
-    float SpecularScalar;
-    float3 EmissiveColor;
-    float MaterialPad0;
-};
-
 struct PS_INPUT
 {
     float4 position : SV_POSITION; // 변환된 화면 좌표
@@ -90,7 +78,7 @@ PS_OUTPUT mainPS(PS_INPUT input)
         if (input.normalFlag > 0.5)
         {
             float3 N = normalize(input.normal);
-            float3 L = normalize(DirLights[0].Direction);
+            float3 L = -normalize(DirLights[0].Direction); // point to lightsource
             
             // 기본 디퓨즈 계산
             float diffuse = saturate(dot(N, L));
@@ -126,5 +114,6 @@ PS_OUTPUT mainPS(PS_INPUT input)
         output.color.a = Material.TransparencyScalar;
             
         return output;
+        
     }
 }

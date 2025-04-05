@@ -162,25 +162,18 @@ void FRenderer::SetPixelShader(const FWString& filename, const FString& funcname
     pixelshaderCSO->Release();
 }
 
-void FRenderer::ChangeViewMode(EViewModeIndex evi) const
+void FRenderer::ChangeViewMode(EViewModeIndex evi)
 {
+    //static EViewModeIndex prev = evi;
+    //if (prev == evi) return;
     switch (evi)
     {
     case EViewModeIndex::VMI_Lit:
-    {
-        FConstantBufferLights buf;
-        buf.isLit = 1;
-        UpdateConstantbufferLights(buf);
-    }
+        litFlag = 1;
         break;
     case EViewModeIndex::VMI_Wireframe:
     case EViewModeIndex::VMI_Unlit:
-    {
-        FConstantBufferLights buf;
-        buf.isLit = 0;
-        UpdateConstantbufferLights(buf);
-        break;
-    }
+        litFlag = 0;
     }
 }
 
@@ -407,7 +400,7 @@ void FRenderer::CreateConstantBuffers()
     ConstantBufferDesc.ByteWidth = sizeof(FConstantBufferActor);
     Graphics->Device->CreateBuffer(&ConstantBufferDesc, nullptr, &ConstantBuffers.Actor03);
 
-    ConstantBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+    ConstantBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
     ConstantBufferDesc.ByteWidth = sizeof(FConstantBufferLights);
     Graphics->Device->CreateBuffer(&ConstantBufferDesc, nullptr, &ConstantBuffers.Light01);
     
@@ -433,7 +426,10 @@ void FRenderer::UpdateLightBuffer() const
     buf.DirLights[0].Color.Ambient = FVector(1.0f, 1.0f, 1.0f) * 0.06f;
     buf.DirLights[0].Color.Diffuse = FVector(1.0f, 1.0f, 1.0f);
     buf.DirLights[0].Color.Specular = FVector(1.0f, 1.0f, 1.0f);
-    buf.DirLights[0].Direction = FVector(1.0f, 1.0f, 1.0f);
+    static float time = 0;
+    time += 0.1;
+    buf.DirLights[0].Direction = FVector(sin(time), cos(time), -10.0f).Normalize();
+    buf.isLit = litFlag;
 
     UpdateConstantbufferLights(buf);
 }
@@ -1066,7 +1062,6 @@ void FRenderer::Render(UWorld* World, std::shared_ptr<FEditorViewportClient> Act
 {
     Graphics->DeviceContext->RSSetViewports(1, &ActiveViewport->GetD3DViewport());
     Graphics->ChangeRasterizer(ActiveViewport->GetViewMode());
-    ChangeViewMode(ActiveViewport->GetViewMode());
     UpdateLightBuffer();
     // Scene Update
     {

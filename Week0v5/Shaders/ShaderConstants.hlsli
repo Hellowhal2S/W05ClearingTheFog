@@ -26,17 +26,19 @@ struct FConstantBufferLightDir
 {
     FConstantLightColor Color;
     float3 Direction;
+    float _pad0;
 };
 
 struct FConstantBufferLightPoint
 {
     FConstantLightColor Color;
     float3 Position;
-    float _pad;
+    float _pad0;
     
     float Intensity;
     float Radius;
     float RadiusFallOff;
+    float _pad1;
 };
 
 struct FConstantBufferLightSpot
@@ -45,10 +47,12 @@ struct FConstantBufferLightSpot
     float ConstantTerm;
     float Linear;
     float Quadratic;
-    float _pad;
+    float _pad0;
     
     float CutOff;
     float OuterCutOff;
+    float _pad1;
+    float _pad2;
 };
 
 

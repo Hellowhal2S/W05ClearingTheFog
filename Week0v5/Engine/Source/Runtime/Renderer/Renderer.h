@@ -24,7 +24,7 @@ class FRenderer
 {
 
 private:
-    float litFlag = 0;
+    float litFlag =1;
 public:
     FGraphicsDevice* Graphics;
     ID3D11VertexShader* VertexShader = nullptr;
@@ -40,7 +40,6 @@ public:
     //ID3D11Buffer* SubUVConstantBuffer = nullptr;
 
     uint32 Stride;
-    uint32 Stride2;
 
 public:
     void Initialize(FGraphicsDevice* graphics);
@@ -66,7 +65,7 @@ public:
     void SetVertexShader(const FWString& filename, const FString& funcname, const FString& version);
     void SetPixelShader(const FWString& filename, const FString& funcname, const FString& version);
     
-    void ChangeViewMode(EViewModeIndex evi) const;
+    void ChangeViewMode(EViewModeIndex evi);
     
     // CreateBuffer
     void CreateConstantBuffers();

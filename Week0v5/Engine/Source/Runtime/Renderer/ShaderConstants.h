@@ -7,15 +7,20 @@
 
 
 // 아래의 두개 다 수정하기
-constexpr unsigned FCONSTANT_NUM_DIRLIGHT = 1;
-constexpr unsigned FCONSTANT_NUM_POINTLIGHT = 1;
-constexpr unsigned FCONSTANT_NUM_SPOTLIGHT = 1;
+#define MACRO_FCONSTANT_NUM_DIRLIGHT 1
+#define MACRO_FCONSTANT_NUM_POINTLIGHT 1
+#define MACRO_FCONSTANT_NUM_SPOTLIGHT 1
+
+// 숫자 값을 문자열로 변환하는 매크로 정의
+#define FCONSTANT_STRINGIFY(x) #x
+#define FCONSTANT_TOSTRING(x) FCONSTANT_STRINGIFY(x)
+
 
 const D3D_SHADER_MACRO defines[] =
 {
-    "FCONSTANT_NUM_DIRLIGHT", "1",
-    "FCONSTANT_NUM_POINTLIGHT", "1",
-    "FCONSTANT_NUM_SPOTLIGHT", "1",
+    "FCONSTANT_NUM_DIRLIGHT", FCONSTANT_TOSTRING(MACRO_FCONSTANT_NUM_DIRLIGHT),
+    "FCONSTANT_NUM_POINTLIGHT", FCONSTANT_TOSTRING(MACRO_FCONSTANT_NUM_POINTLIGHT),
+    "FCONSTANT_NUM_SPOTLIGHT", FCONSTANT_TOSTRING(MACRO_FCONSTANT_NUM_SPOTLIGHT),
     NULL, NULL
 };
 
@@ -33,13 +38,13 @@ struct FConstantBuffers
 
 
 struct FMaterialConstants {
-    FVector DiffuseColor;
-    float TransparencyScalar;
-    FVector AmbientColor;
-    float DensityScalar;
-    FVector SpecularColor;
-    float SpecularScalar;
-    FVector EmmisiveColor;
+    FVector DiffuseColor = { 0,0,0 };
+    float TransparencyScalar = 0;
+    FVector AmbientColor = {0,0,0};
+    float DensityScalar = 0;
+    FVector SpecularColor = {0,0,0};
+    float SpecularScalar = 0;
+    FVector EmmisiveColor = {0,0,0};
     float MaterialPad0;
 };
 
@@ -47,40 +52,48 @@ struct FMaterialConstants {
 // LIGHTS
 struct alignas(16) FConstantBufferLightColor
 {
-    alignas(16) FVector Specular;
+    alignas(16) FVector Specular = { 0,0,0 };
 
-    alignas(16) FVector Diffuse;
+    alignas(16) FVector Diffuse = {0,0,0};
 
-    alignas(16) FVector Ambient;
+    alignas(16) FVector Ambient = {0,0,0};
 };
 
 struct alignas(16) FConstantBufferLightDir
 {
     FConstantBufferLightColor Color;
 
-    alignas(16) FVector Direction;
+    alignas(16) FVector Direction = { 0,0,0 };
+    float pad0 =0;
 };
 
 struct alignas(16) FConstantBufferLightPoint
 {
     FConstantBufferLightColor Color;
 
-    alignas(16) FVector Position;
+    alignas(16) FVector Position = { 0,0,0 };
+    float pad0 = 0;
 
-    alignas(16) float Intensity;
-    float Radius;
-    float RadiusFallOff;
+    alignas(16) float Intensity = 0;
+    float Radius = 0;
+    float RadiusFallOff = 0;
+    float pad1 = 0;
+
 };
 
 struct alignas(16) FConstantBufferLightSpot
 {
     FConstantBufferLightColor Color;
-    alignas(16) float ConstantTerm;
-    float Linear;
-    float Quadratic;
+    alignas(16) float ConstantTerm = 0;
+    float Linear = 0;
+    float Quadratic = 0;
+    float pad0 = 0;
 
-    alignas(16) float CutOff;
-    float OuterCutOff;
+    alignas(16) float CutOff = 0;
+    float OuterCutOff = 0;
+    float pad1 = 0;
+    float pad2 = 0;
+
 };
 
 
@@ -94,7 +107,7 @@ struct alignas(16) FConstantBufferMesh
 
     FMaterialConstants Material;
 
-    alignas(16) UINT IsSelectedMesh;
+    alignas(16) UINT IsSelectedMesh = 0;
     //FMatrix MVP;      // 모델
     //FMatrix ModelMatrixInverseTranspose; // normal 변환을 위한 행렬
     //FVector4 UUIDColor;
@@ -107,7 +120,7 @@ struct alignas(16) FConstantBufferMesh
 /// </summary>
 struct alignas(16) FConstantBufferTexture
 {
-    FVector2D UVOffset;
+    FVector2D UVOffset = { 0,0 };
 };
 
 /// <summary>
@@ -116,7 +129,7 @@ struct alignas(16) FConstantBufferTexture
 struct alignas(16) FConstantBufferActor
 {
     FVector4 UUID; // 임시
-    UINT IsSelectedActor;
+    UINT IsSelectedActor = 0;
 };
 
 /// <summary>
@@ -124,10 +137,10 @@ struct alignas(16) FConstantBufferActor
 /// </summary>
 struct alignas(16) FConstantBufferLights
 {
-    FConstantBufferLightDir DirLights[FCONSTANT_NUM_DIRLIGHT];
-    FConstantBufferLightPoint PointLights[FCONSTANT_NUM_POINTLIGHT];
-    FConstantBufferLightSpot SpotLights[FCONSTANT_NUM_SPOTLIGHT];
-    alignas(16) UINT isLit;
+    FConstantBufferLightDir DirLights[MACRO_FCONSTANT_NUM_DIRLIGHT];
+    FConstantBufferLightPoint PointLights[MACRO_FCONSTANT_NUM_POINTLIGHT];
+    FConstantBufferLightSpot SpotLights[MACRO_FCONSTANT_NUM_SPOTLIGHT];
+    alignas(16) UINT isLit = 1;
 };
 
 /// <summary>
