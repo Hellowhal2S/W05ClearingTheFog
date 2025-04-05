@@ -109,14 +109,6 @@ FMatrix USceneComponent::GetRelativeTransform() const
 
 FVector USceneComponent::GetComponentLocation() const
 {
-<<<<<<< Updated upstream
-	if (AttachParent)
-	{
-		return FVector(AttachParent->GetWorldScale() + GetLocalScale());
-	}
-	else
-		return GetLocalScale();
-=======
     if (AttachParent)
     {
         FVector4 CompLoc = AttachParent->GetComponentTransform().TransformFVector4(FVector4(RelativeLocation, 1.0f));
@@ -126,21 +118,11 @@ FVector USceneComponent::GetComponentLocation() const
     {
         return GetRelativeLocation();
     }
->>>>>>> Stashed changes
 }
 
 FVector USceneComponent::GetComponentRotation() const
 {
-<<<<<<< Updated upstream
-	if (AttachParent)
-	{
-		return FVector(AttachParent->GetWorldLocation() + GetLocalLocation());
-	}
-	else
-		return GetLocalLocation();
-=======
-    JungleMath::QuaternionToEuler(GetComponentQuat());
->>>>>>> Stashed changes
+    return JungleMath::QuaternionToEuler(GetComponentQuat());
 }
 
 FQuat USceneComponent::GetComponentQuat() const

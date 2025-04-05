@@ -129,9 +129,9 @@ void PropertyEditorPanel::Render()
             {
                 LastComponent = PickedComponent;
                 bFirstFrame = true;
-                Location = SceneComp->GetWorldLocation();
-                Rotation = SceneComp->GetWorldRotation();
-                Scale = SceneComp->GetWorldScale();
+                Location = SceneComp->GetRelativeLocation();
+                Rotation = SceneComp->GetRelativeRotation();
+                Scale = SceneComp->GetRelativeScale();
             }
 
             bool bChanged = false;

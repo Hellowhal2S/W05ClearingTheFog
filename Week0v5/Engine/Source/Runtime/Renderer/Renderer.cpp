@@ -1116,16 +1116,12 @@ void FRenderer::RenderStaticMeshes(UWorld* World, std::shared_ptr<FEditorViewpor
             UpdateConstantbufferTexture({ {0,0} });
         }
 
+        FMatrix Model = StaticMeshComp->GetComponentTransform();
         if (ActiveViewport->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::SF_AABB))
         {
-            FMatrix Model = JungleMath::CreateModelMatrix(
-                StaticMeshComp->GetWorldLocation(),
-                StaticMeshComp->GetWorldRotation(),
-                StaticMeshComp->GetWorldScale()
-            );
             UPrimitiveBatch::GetInstance().RenderAABB(
                 StaticMeshComp->GetBoundingBox(),
-                StaticMeshComp->GetWorldLocation(),
+                StaticMeshComp->GetComponentLocation(),
                 Model);
         }
         
@@ -1133,12 +1129,6 @@ void FRenderer::RenderStaticMeshes(UWorld* World, std::shared_ptr<FEditorViewpor
 
         OBJ::FStaticMeshRenderData* renderData = StaticMeshComp->GetStaticMesh()->GetRenderData();
         if (renderData == nullptr) continue;
-
-        FMatrix Model = JungleMath::CreateModelMatrix(
-            StaticMeshComp->GetWorldLocation(),
-            StaticMeshComp->GetWorldRotation(),
-            StaticMeshComp->GetWorldScale()
-        );
 
         RenderPrimitive(Model, renderData, StaticMeshComp->GetStaticMesh()->GetMaterials(), StaticMeshComp->GetOverrideMaterials(), StaticMeshComp->GetselectedSubMeshIndex());
     }
@@ -1177,11 +1167,7 @@ void FRenderer::RenderGizmos(const UWorld* World, const std::shared_ptr<FEditorV
             GizmoComp->GetGizmoType()==UGizmoBaseComponent::CircleZ)
             && World->GetEditorPlayer()->GetControlMode() != CM_ROTATION)
             continue;
-        FMatrix Model = JungleMath::CreateModelMatrix(GizmoComp->GetWorldLocation(),
-            GizmoComp->GetWorldRotation(),
-            GizmoComp->GetWorldScale()
-        );
-
+        FMatrix Model = GizmoComp->GetComponentTransform();
         {
             FConstantBufferActor buf;
             buf.IsSelectedActor = 0;
@@ -1276,8 +1262,8 @@ void FRenderer::RenderLight(UWorld* World, std::shared_ptr<FEditorViewportClient
 {
     for (auto Light : LightObjs)
     {
-        FMatrix Model = JungleMath::CreateModelMatrix(Light->GetWorldLocation(), Light->GetWorldRotation(), {1, 1, 1});
-        UPrimitiveBatch::GetInstance().AddCone(Light->GetWorldLocation(), Light->GetRadius(), 15, 140, Light->GetColor(), Model);
-        UPrimitiveBatch::GetInstance().RenderOBB(Light->GetBoundingBox(), Light->GetWorldLocation(), Model);
+        FMatrix Model = JungleMath::CreateModelMatrix(Light->GetComponentLocation(), Light->GetComponentRotation(), {1, 1, 1});
+        UPrimitiveBatch::GetInstance().AddCone(Light->GetComponentLocation(), Light->GetRadius(), 15, 140, Light->GetColor(), Model);
+        UPrimitiveBatch::GetInstance().RenderOBB(Light->GetBoundingBox(), Light->GetComponentLocation(), Model);
     }
 }
