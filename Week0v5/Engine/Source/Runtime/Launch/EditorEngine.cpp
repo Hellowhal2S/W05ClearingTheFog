@@ -88,7 +88,9 @@ void UEditorEngine::Render()
 
 
     // 화면에 그려진 백버퍼의 내용을 SRV로 쓰기 위해 ColorTexture에 복사
+    graphicDevice.DeviceContext->ClearRenderTargetView(graphicDevice.FrameBufferRTV, graphicDevice.ClearColor);
     PostEffect::CopyBackBufferToColorSRV(graphicDevice.DeviceContext, graphicDevice.ColorTexture, graphicDevice.FrameBuffer);
+    PostEffect::Render(graphicDevice.DeviceContext, PostEffect::PostEffectSRV);
     // PostEffect::Render(ColorSRV, DepthOnlySRV, WorldPosSRV)
 }
 
