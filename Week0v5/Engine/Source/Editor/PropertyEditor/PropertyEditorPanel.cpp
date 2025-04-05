@@ -50,15 +50,29 @@ void PropertyEditorPanel::Render()
     {
         if (ImGui::TreeNodeEx("Components", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_OpenOnArrow))
         {
+            DrawSceneComponentTree(PickedActor->GetRootComponent(), PickedComponent);
             const TSet<UActorComponent*>& AllComponents = PickedActor->GetComponents();
             for (UActorComponent* Component : AllComponents)
             {
-                if (USceneComponent* SceneComp = Cast<USceneComponent>(Component))
+                if (!Component->IsA<USceneComponent>())
                 {
-                    if (SceneComp->GetAttachParent() == nullptr)
+                    FString Label = *Component->GetName();
+                    bool bSelected = (PickedComponent == Component);
+
+                    // 리프 노드 플래그 추가
+                    ImGuiTreeNodeFlags nodeFlags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_Leaf;
+                    if (bSelected)
+                        nodeFlags |= ImGuiTreeNodeFlags_Selected;
+
+                    // 노드 생성 (bOpened는 항상 false)
+                    bool bOpened = ImGui::TreeNodeEx(*Label, nodeFlags);
+
+                    // 클릭 이벤트 처리
+                    if (ImGui::IsItemClicked())
                     {
-                        DrawSceneComponentTree(SceneComp, PickedComponent);
+                        PickedComponent = Component;
                     }
+                    ImGui::TreePop();
                 }
             }
 
@@ -128,31 +142,31 @@ void PropertyEditorPanel::Render()
         }
     }
 
-    //if (PickedActor && PickedComponent && PickedComponent->IsA<UProjectileMovementComponent>())
-    //{
-    //    ImGui::SetItemDefaultFocus();
-    //    ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
-    //    if (PickedComponent != LastComponent)
-    //    {
-    //        LastComponent = PickedComponent;
-    //        bFirstFrame = true;
-    //    }
-    //    if (UProjectileMovementComponent* ProjectileComp = Cast<UProjectileMovementComponent>(PickedComponent))
-    //    {
-    //        float InitialSpeed = ProjectileComp->InitialSpeed;
-    //        ImGui::InputFloat("Initial Speed", &InitialSpeed);
-    //        ProjectileComp->InitialSpeed = InitialSpeed;
+    if (PickedActor && PickedComponent && PickedComponent->IsA<UProjectileMovementComponent>())
+    {
+        ImGui::SetItemDefaultFocus();
+        ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
+        if (PickedComponent != LastComponent)
+        {
+            LastComponent = PickedComponent;
+            bFirstFrame = true;
+        }
+        if (UProjectileMovementComponent* ProjectileComp = Cast<UProjectileMovementComponent>(PickedComponent))
+        {
+            float InitialSpeed = ProjectileComp->InitialSpeed;
+            ImGui::InputFloat("Initial Speed", &InitialSpeed);
+            ProjectileComp->InitialSpeed = InitialSpeed;
 
-    //        float MaxSpeed = ProjectileComp->MaxSpeed;
-    //        ImGui::InputFloat("Max Speed", &MaxSpeed);
-    //        ProjectileComp->MaxSpeed = MaxSpeed;
+            float MaxSpeed = ProjectileComp->MaxSpeed;
+            ImGui::InputFloat("Max Speed", &MaxSpeed);
+            ProjectileComp->MaxSpeed = MaxSpeed;
 
-    //        FVector Velocity = ProjectileComp->Velocity;
-    //        ImGui::InputFloat3("Velocity", &Velocity.x);
-    //        ProjectileComp->Velocity = Velocity;
-    //    }
-    //    ImGui::PopStyleColor();
-    //}
+            FVector Velocity = ProjectileComp->Velocity;
+            ImGui::InputFloat3("Velocity", &Velocity.x);
+            ProjectileComp->Velocity = Velocity;
+        }
+        ImGui::PopStyleColor();
+    }
 
     // TODO: 추후에 RTTI를 이용해서 프로퍼티 출력하기
     if (PickedActor && PickedComponent && PickedComponent->IsA<USceneComponent>())

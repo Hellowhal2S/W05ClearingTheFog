@@ -1,6 +1,8 @@
 #include "MovementComponent.h"
 
 #include "UObject/ObjectFactory.h"
+#include "UObject/Casts.h"
+#include "Components/SceneComponent.h"
 
 UMovementComponent::UMovementComponent()
 {
@@ -8,9 +10,9 @@ UMovementComponent::UMovementComponent()
 
 UMovementComponent::UMovementComponent(const UMovementComponent& other)
     : UActorComponent(other),
-    Velocity(other.Velocity),
-    UpdatedComponent(other.UpdatedComponent)
+    Velocity(other.Velocity)
 {
+    UpdatedComponent = Cast<USceneComponent>(other.UpdatedComponent->Duplicate());
 }
 
 UMovementComponent::~UMovementComponent()
@@ -30,9 +32,15 @@ UObject* UMovementComponent::Duplicate() const
     return ClonedActor;
 }
 
-void UMovementComponent::DuplicateSubObjects(const UObject* Source)
+void UMovementComponent::DuplicateSubObjects(const UObject* SourceObj)
 {
-    UActorComponent::DuplicateSubObjects(Source);
+    const UMovementComponent* Source = Cast<UMovementComponent>(SourceObj);
+    
+    if (Source)
+    {
+        UpdatedComponent = Source->UpdatedComponent;
+        Velocity = Source->Velocity;
+    }
 }
 
 void UMovementComponent::PostDuplicate()

@@ -1,6 +1,7 @@
 #include "Actor.h"
 
 #include "Engine/World.h"
+#include "Components/SceneComponent.h"
 
 AActor::AActor(const AActor& Other)
     : UObject(Other),
@@ -122,8 +123,6 @@ bool AActor::SetRootComponent(USceneComponent* NewRootComponent)
         {
             USceneComponent* OldRootComponent = RootComponent;
             RootComponent = NewRootComponent;
-
-            OldRootComponent->SetupAttachment(RootComponent);
         }
         return true;
     }
@@ -180,7 +179,6 @@ void AActor::AddComponent(UActorComponent* Component)
     Component->InitializeComponent();
 }
 
-
 UObject* AActor::Duplicate() const
 {
     AActor* ClonedActor = FObjectFactory::ConstructObjectFrom<AActor>(this);
@@ -188,10 +186,9 @@ UObject* AActor::Duplicate() const
     ClonedActor->PostDuplicate();
     return ClonedActor;
 }
+
 void AActor::DuplicateSubObjects(const UObject* SourceObj)
 {
-    UObject::DuplicateSubObjects(SourceObj);
-
     const AActor* Source = Cast<AActor>(SourceObj);
     if (!Source) return;
 

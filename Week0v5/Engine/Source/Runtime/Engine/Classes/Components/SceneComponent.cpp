@@ -94,7 +94,7 @@ FVector USceneComponent::GetWorldScale()
 
 FVector USceneComponent::GetWorldLocation()
 {
-		return GetLocalLocation();
+    return GetLocalLocation();
 }
 
 FVector USceneComponent::GetLocalRotation()
@@ -145,8 +145,6 @@ UObject* USceneComponent::Duplicate() const
 
 void USceneComponent::DuplicateSubObjects(const UObject* Source)
 {
-    UActorComponent::DuplicateSubObjects(Source);
-    // AttachParent는 AActor::DuplicateSubObjects에서 복원
 }
 
 void USceneComponent::PostDuplicate() {}
