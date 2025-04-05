@@ -230,6 +230,9 @@ void PostEffect::Render(ID3D11DeviceContext*& DeviceContext, ID3D11ShaderResourc
     // Draw
     // Sampler
     //ClearCommBreak
+    FLOAT ClearColor[4] = { 0.025f, 0.025f, 0.025f, 1.0f };
+    DeviceContext->ClearRenderTargetView(finalRTV, ClearColor); // Clear Color
+
     DeviceContext->VSSetShader(PostEffectVS, nullptr, 0);
     DeviceContext->PSSetShader(PostEffectPS, nullptr, 0);
     DeviceContext->IASetInputLayout(PostEffectInputLayout);
@@ -239,7 +242,7 @@ void PostEffect::Render(ID3D11DeviceContext*& DeviceContext, ID3D11ShaderResourc
     DeviceContext->PSSetConstantBuffers(1, 1, &FogConstantBuffer);
 
     DeviceContext->PSSetShaderResources(10, 1, &ColorSRV);                   // SRV
-    DeviceContext->PSSetShaderResources(11, 1, &DepthOnlySRV);
+    DeviceContext->PSSetShaderResources(11, 1, &DepthOnlySRV);  
 
     UpdateFogConstantBuffer(DeviceContext, Fog);
     DeviceContext->OMSetRenderTargets(1, &finalRTV, nullptr);

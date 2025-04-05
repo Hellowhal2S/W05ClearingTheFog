@@ -92,6 +92,8 @@ void UEditorEngine::Render()
     //graphicDevice.DeviceContext->ClearRenderTargetView(graphicDevice.FrameBufferRTV, graphicDevice.ClearColor);
     PostEffect::CopyBackBufferToColorSRV(graphicDevice.DeviceContext, graphicDevice.ColorTexture, graphicDevice.FrameBuffer);
     PostEffect::CopyDepthBufferToDepthOnlySRV(graphicDevice.DeviceContext, graphicDevice.DepthStencilBuffer);
+
+    //graphicDevice.DeviceContext->ClearRenderTargetView(graphicDevice.FrameBufferRTV, graphicDevice.ClearColor);
     PostEffect::Render(graphicDevice.DeviceContext, graphicDevice.ColorSRV);
     // PostEffect::Render(ColorSRV, DepthOnlySRV, WorldPosSRV)
 }
