@@ -10,7 +10,8 @@ UMovementComponent::UMovementComponent()
 
 UMovementComponent::UMovementComponent(const UMovementComponent& other)
     : UActorComponent(other),
-    Velocity(other.Velocity)
+    Velocity(other.Velocity),
+    UpdatedComponent(other.UpdatedComponent)
 {
     UpdatedComponent = Cast<USceneComponent>(other.UpdatedComponent->Duplicate());
 }
@@ -32,15 +33,9 @@ UObject* UMovementComponent::Duplicate() const
     return ClonedActor;
 }
 
-void UMovementComponent::DuplicateSubObjects(const UObject* SourceObj)
+void UMovementComponent::DuplicateSubObjects(const UObject* Source)
 {
-    const UMovementComponent* Source = Cast<UMovementComponent>(SourceObj);
-    
-    if (Source)
-    {
-        UpdatedComponent = Source->UpdatedComponent;
-        Velocity = Source->Velocity;
-    }
+    UActorComponent::DuplicateSubObjects(Source);
 }
 
 void UMovementComponent::PostDuplicate()
@@ -53,6 +48,6 @@ bool UMovementComponent::MoveUpdatedComponent(FVector Delta, FQuat& NewRotation)
         return false;
 
     UpdatedComponent->AddLocation(Delta);
-    UpdatedComponent->SetRotation(NewRotation);
+    UpdatedComponent->SetRelativeQuat(NewRotation);
     return true;
 }

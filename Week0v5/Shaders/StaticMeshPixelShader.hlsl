@@ -1,59 +1,7 @@
+#include "ShaderConstants.hlsli"
+
 Texture2D Textures : register(t0);
 SamplerState Sampler : register(s0);
-
-cbuffer MatrixConstants : register(b0)
-{
-    row_major float4x4 MVP;
-    row_major float4x4 MInverseTranspose;
-    float4 UUID;
-    bool isSelected;
-    float3 MatrixPad0;
-};
-
-struct FMaterial
-{
-    float3 DiffuseColor;
-    float TransparencyScalar;
-    float3 AmbientColor;
-    float DensityScalar;
-    float3 SpecularColor;
-    float SpecularScalar;
-    float3 EmissiveColor;
-    float MaterialPad0;
-};
-
-cbuffer MaterialConstants : register(b1)
-{
-    FMaterial Material;
-}
-
-cbuffer LightingConstants : register(b2)
-{
-    float3 LightDirection; // 조명 방향 (단위 벡터; 빛이 들어오는 방향의 반대 사용)
-    float LightPad0; // 16바이트 정렬용 패딩
-    float3 LightColor; // 조명 색상 (예: (1, 1, 1))
-    float LightPad1; // 16바이트 정렬용 패딩
-    float AmbientFactor; // ambient 계수 (예: 0.1)
-    float3 LightPad2; // 16바이트 정렬 맞춤 추가 패딩
-};
-
-cbuffer FlagConstants : register(b3)
-{
-    bool IsLit;
-    float3 flagPad0;
-}
-
-cbuffer SubMeshConstants : register(b4)
-{
-    bool IsSelectedSubMesh;
-    float3 SubMeshPad0;
-}
-
-cbuffer TextureConstants : register(b5)
-{
-    float2 UVOffset;
-    float2 TexturePad0;
-}
 
 struct PS_INPUT
 {
@@ -116,21 +64,21 @@ PS_OUTPUT mainPS(PS_INPUT input)
         color = texColor + Material.DiffuseColor;
     }
     
-    if (isSelected)
+    if (IsSelectedActor)
     {
         color += float3(0.2f, 0.2f, 0.0f); // 노란색 틴트로 하이라이트
-        if (IsSelectedSubMesh)
+        if (IsSelectedMesh)
             color = float3(1, 1, 1);
     }
     
     // 발광 색상 추가
 
-    if (IsLit == 1) // 조명이 적용되는 경우
+    if (isLit == 1) // 조명이 적용되는 경우
     {
         if (input.normalFlag > 0.5)
         {
             float3 N = normalize(input.normal);
-            float3 L = normalize(LightDirection);
+            float3 L = -normalize(DirLights[0].Direction); // point to lightsource
             
             // 기본 디퓨즈 계산
             float diffuse = saturate(dot(N, L));
@@ -141,15 +89,15 @@ PS_OUTPUT mainPS(PS_INPUT input)
             float specular = pow(saturate(dot(N, H)), Material.SpecularScalar * 32) * Material.SpecularScalar;
             
             // 최종 라이팅 계산
-            float3 ambient = Material.AmbientColor * AmbientFactor;
-            float3 diffuseLight = diffuse * LightColor;
-            float3 specularLight = specular * Material.SpecularColor * LightColor;
+            float3 ambient = Material.AmbientColor * DirLights[0].Color.Ambient;
+            float3 diffuseLight = diffuse * DirLights[0].Color.Diffuse;
+            float3 specularLight = specular * Material.SpecularColor * DirLights[0].Color.Specular;
             
             color = ambient + (diffuseLight * color) + specularLight;
         }
         
         // 투명도 적용
-        color += Material.EmissiveColor;
+        color += Material.EmmisiveColor;
         output.color = float4(color, Material.TransparencyScalar);
         return output;
     }
@@ -166,5 +114,6 @@ PS_OUTPUT mainPS(PS_INPUT input)
         output.color.a = Material.TransparencyScalar;
             
         return output;
+        
     }
 }

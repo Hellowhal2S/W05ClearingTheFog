@@ -34,6 +34,10 @@ void AActor::Tick(float DeltaTime)
         if (Comp && Comp->IsComponentTickEnabled())
             Comp->TickComponent(DeltaTime);
     }
+    /*static float timer = 0;
+    timer += 0.1;
+
+    SetActorLocation(FVector(sin(timer), cos(timer), 0.f));*/
     // SetActorLocation(GetActorLocation() + FVector(1.0f, 0.0f, 0.0f));
 }
 
@@ -133,7 +137,7 @@ bool AActor::SetActorLocation(const FVector& NewLocation)
 {
     if (RootComponent)
     {
-        RootComponent->SetLocation(NewLocation);
+        RootComponent->SetRelativeLocation(NewLocation);
         return true;
     }
     return false;
@@ -143,7 +147,7 @@ bool AActor::SetActorRotation(const FVector& NewRotation)
 {
     if (RootComponent)
     {
-        RootComponent->SetRotation(NewRotation);
+        RootComponent->SetRelativeRotation(NewRotation);
         return true;
     }
     return false;
@@ -153,7 +157,7 @@ bool AActor::SetActorScale(const FVector& NewScale)
 {
     if (RootComponent)
     {
-        RootComponent->SetScale(NewScale);
+        RootComponent->SetRelativeScale(NewScale);
         return true;
     }
     return false;

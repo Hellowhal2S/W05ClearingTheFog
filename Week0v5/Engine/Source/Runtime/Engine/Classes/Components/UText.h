@@ -40,5 +40,5 @@ protected:
     void setStartUV(wchar_t hangul, float& outStartU, float& outStartV);
     void CreateTextTextureVertexBuffer(const TArray<FVertexTexture>& _vertex, UINT byteWidth);
 
-    void TextMVPRendering();
+    //void TextMVPRendering();
 };

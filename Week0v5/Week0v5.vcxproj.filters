@@ -419,6 +419,7 @@
     <ClInclude Include="Engine\Source\Runtime\Engine\UnrealEngine.h" />
     <ClInclude Include="Engine\Source\Runtime\Launch\EditorEngine.h" />
     <ClInclude Include="Engine\Source\Runtime\Launch\LaunchEngineLoop.h" />
+    <ClInclude Include="Engine\Source\Runtime\Renderer\ShaderConstants.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\PostEffect.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\PostEffect.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\FireballComponent.h" />
@@ -528,5 +529,10 @@
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\FireballComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\MovementComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\ProjectileMovementComponent.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shaders\ShaderConstants.hlsli">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

@@ -12,6 +12,6 @@ FLinearColor::FLinearColor(const FVector4& Vector) :
     R(Vector.x),
     G(Vector.y),
     B(Vector.z),
-    A(Vector.a)
+    A(Vector.w)
 {
 }

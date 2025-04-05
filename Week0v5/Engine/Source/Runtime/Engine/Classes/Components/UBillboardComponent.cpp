@@ -93,11 +93,9 @@ FMatrix UBillboardComponent::CreateBillboardMatrix()
 	CameraView.M[2][2] = -CameraView.M[2][2];
 	FMatrix LookAtCamera = FMatrix::Transpose(CameraView);
 	
-	FVector worldLocation = GetWorldLocation();
-	FVector worldScale = RelativeScale3D;
-	FMatrix S = FMatrix::CreateScale(worldScale.x, worldScale.y, worldScale.z);
+    FMatrix S = GetComponentScaleMatrix();
 	FMatrix R = LookAtCamera;
-	FMatrix T = FMatrix::CreateTranslationMatrix(worldLocation);
+    FMatrix T = GetComponentTranslateMatrix();
 	FMatrix M = S * R * T;
 
 	return M;
@@ -172,7 +170,7 @@ bool UBillboardComponent::CheckPickingOnNDC(const TArray<FVector>& checkQuad, fl
 		FVector4 v = FVector4(checkQuad[i].x, checkQuad[i].y, checkQuad[i].z, 1.0f);
 		FVector4 clipPos = FMatrix::TransformVector(v, MVP);
 		
-		if (clipPos.a != 0)	clipPos = clipPos/clipPos.a;
+		if (clipPos.w != 0)	clipPos = clipPos/clipPos.w;
 
 		minX = FMath::Min(minX, clipPos.x);
 		maxX = FMath::Max(maxX, clipPos.x);

@@ -1,3 +1,5 @@
+#include "ShaderConstants.hlsli"
+
 struct VSInput {
     float3 position : POSITION;
     float2 texCoord : TEXCOORD;
@@ -8,17 +10,11 @@ struct PSInput {
     float2 texCoord : TEXCOORD;
 };
 
-cbuffer constants : register(b0)
-{
-    row_major float4x4 MVP;
-    float Flag;
-}
-
 PSInput main(VSInput input) {
-
-
     PSInput output;
-    output.position = mul(float4(input.position, 1.0f), MVP);
+    output.position = mul(float4(input.position, 1.0f), ModelMatrix);
+    output.position = mul(output.position, ViewMatrix);
+    output.position = mul(output.position, ProjMatrix);
     
     output.texCoord = input.texCoord;
     

@@ -25,7 +25,7 @@ void UProjectileMovementComponent::TickComponent(float DeltaTime)
         return;
 
     FVector MoveDelta = Velocity * DeltaTime;
-    FQuat Rotation = UpdatedComponent->GetQuat();
+    FQuat Rotation = UpdatedComponent->GetRelativeQuat();
 
     MoveUpdatedComponent(MoveDelta, Rotation);
 }
