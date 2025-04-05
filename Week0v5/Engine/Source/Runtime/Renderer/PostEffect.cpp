@@ -216,7 +216,7 @@ void PostEffect::Render(ID3D11DeviceContext*& DeviceContext, ID3D11ShaderResourc
     DeviceContext->PSSetConstantBuffers(0, 1, &GlobalConstantBuffer);       // 상수 버퍼
     DeviceContext->PSSetConstantBuffers(1, 1, &FogConstantBuffer);
 
-    DeviceContext->PSSetShaderResources(0, 1, &ColorSRV);                   // SRV
+    DeviceContext->PSSetShaderResources(10, 1, &ColorSRV);                   // SRV
     DeviceContext->PSSetSamplers(0, 1, &PostEffectSampler);                 // Sampler      
     DeviceContext->Draw(6, 0);
 }
