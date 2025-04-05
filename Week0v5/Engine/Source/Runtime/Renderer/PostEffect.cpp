@@ -13,6 +13,41 @@ namespace PostEffect
             throw std::exception();
         }
     }
+    template <typename T_DATA>
+    static void UpdateBuffer(ID3D11Device*& Device, ID3D11DeviceContext*& DeviceContext, const T_DATA& bufferData, ID3D11Buffer*& Buffer)
+    {
+        if (!Buffer) {
+            UE_LOG(LogLevel::Display, "UpdateBuffer(): buffer was not initialized");
+        }
+
+        D3D11_MAPPED_SUBRESOURCE ms;
+        context->Map(buffer.Get(), NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
+        memcpy(ms.pData, &bufferData, sizeof(bufferData));
+        context->Unmap(buffer.Get(), NULL);
+    }
+
+    template <typename T_CONSTANT>
+    static void CreateConstBuffer(ID3D11Device*& Device, const T_CONSTANT& ConstantBufferData, ID3D11Buffer*& ConstantBuffer) {
+
+        static_assert((sizeof(T_CONSTANT) % 16) == 0, "Constant Buffer size must be 16-byte aligned");
+
+        D3D11_BUFFER_DESC desc;
+        ZeroMemory(&desc, sizeof(desc));
+        desc.ByteWidth = sizeof(ConstantBufferData);
+        desc.Usage = D3D11_USAGE_DYNAMIC;
+        desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+        desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+        desc.MiscFlags = 0;
+        desc.StructureByteStride = 0;
+
+        D3D11_SUBRESOURCE_DATA initData;
+        ZeroMemory(&initData, sizeof(initData));
+        initData.pSysMem = &ConstantBufferData;
+        initData.SysMemPitch = 0;
+        initData.SysMemSlicePitch = 0;
+
+        ThrowIfFailed(Device->CreateBuffer(&desc, &initData, &ConstantBuffer);
+    }
 
     ID3D11RenderTargetView* DepthOnlyRTV;
     ID3D11Texture2D* DepthOnlyTexture;

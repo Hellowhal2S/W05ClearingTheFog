@@ -41,4 +41,6 @@ namespace PostEffect
     void InitDepthStencilStates(ID3D11Device*& Device);
     void InitRenderTargetViews(ID3D11Device*& Device);
     void Release();
+
+    
 }
