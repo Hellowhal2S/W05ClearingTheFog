@@ -42,5 +42,7 @@ namespace PostEffect
     void InitRenderTargetViews(ID3D11Device*& Device);
     void Release();
 
+    void CopyBackBufferToColorSRV(ID3D11DeviceContext*& DeviceContext, ID3D11Texture2D*& ColorTexture, ID3D11Texture2D*& FrameBuffer);
+
     
 }

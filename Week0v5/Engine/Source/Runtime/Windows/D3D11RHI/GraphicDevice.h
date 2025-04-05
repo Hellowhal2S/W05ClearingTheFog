@@ -25,6 +25,10 @@ public:
     ID3D11RasterizerState* RasterizerStateWIREFRAME = nullptr;
     DXGI_SWAP_CHAIN_DESC SwapchainDesc;
 
+    // Post Process 관련
+    ID3D11Texture2D* ColorTexture;          // 백버퍼를 복사하기 위한 텍스처 (백버퍼는 직접 SRV로 사용할 수 없음)
+    ID3D11ShaderResourceView* ColorSRV;     // 백버퍼를 복사한 원본 컬러의 SRV
+
     
     UINT screenWidth = 0;
     UINT screenHeight = 0;

@@ -183,6 +183,26 @@ void FGraphicsDevice::CreateFrameBuffer()
     framebufferRTVdesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D; // 2D 텍스처
 
     Device->CreateRenderTargetView(FrameBuffer, &framebufferRTVdesc, &FrameBufferRTV);
+
+    // ------------------- Post Process용 텍스처 / SRV 생성 ----------------------
+    D3D11_TEXTURE2D_DESC texDesc = {};
+    texDesc.Width = screenWidth;
+    texDesc.Height = screenHeight;
+    texDesc.MipLevels = 1;
+    texDesc.ArraySize = 1;
+    texDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;            // 선형 포맷 (sRGB 아님)
+    texDesc.SampleDesc.Count = 1;                           // 멀티샘플 아님
+    texDesc.Usage = D3D11_USAGE_DEFAULT;
+    texDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;  // 원본 컬러 텍스처를 SRV로 사용가능토록 플래그 설정
+    Device->CreateTexture2D(&texDesc, nullptr, &ColorTexture);
+
+    D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+    srvDesc.Format = texDesc.Format;
+    srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+    srvDesc.Texture2D.MostDetailedMip = 0;
+    srvDesc.Texture2D.MipLevels = 1;
+    Device->CreateShaderResourceView(ColorTexture, &srvDesc, &ColorSRV);
+    // ------------------- Post Process용 텍스처 / SRV 생성 END ----------------------
     
     D3D11_TEXTURE2D_DESC textureDesc = {};
     textureDesc.Width = screenWidth;

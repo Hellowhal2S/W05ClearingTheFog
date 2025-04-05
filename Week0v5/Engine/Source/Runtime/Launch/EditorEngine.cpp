@@ -11,6 +11,8 @@
 #include "LevelEditor/SLevelEditor.h"
 #include "UnrealEd/SceneMgr.h"
 
+#include "Renderer/PostEffect.h" // 후처리용 : FrameBuffer 안의 내용을 ColorSRV로 복사 후, PostEffect::Render 호출
+
 
 class ULevel;
 
@@ -83,6 +85,11 @@ void UEditorEngine::Render()
         renderer.PrepareRender();
         renderer.Render(GWorld,LevelEditor->GetActiveViewportClient());
     }
+
+
+    // 화면에 그려진 백버퍼의 내용을 SRV로 쓰기 위해 ColorTexture에 복사
+    PostEffect::CopyBackBufferToColorSRV(graphicDevice.DeviceContext, graphicDevice.ColorTexture, graphicDevice.FrameBuffer);
+    // PostEffect::Render(ColorSRV, DepthOnlySRV, WorldPosSRV)
 }
 
 void UEditorEngine::Tick(float deltaSeconds)

@@ -17,13 +17,13 @@ namespace PostEffect
     static void UpdateBuffer(ID3D11Device*& Device, ID3D11DeviceContext*& DeviceContext, const T_DATA& bufferData, ID3D11Buffer*& Buffer)
     {
         if (!Buffer) {
-            UE_LOG(LogLevel::Display, "UpdateBuffer(): buffer was not initialized");
+            //UE_LOG(LogLevel::Display, "UpdateBuffer(): buffer was not initialized");
         }
 
         D3D11_MAPPED_SUBRESOURCE ms;
-        context->Map(buffer.Get(), NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
+        DeviceContext->Map(Buffer, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
         memcpy(ms.pData, &bufferData, sizeof(bufferData));
-        context->Unmap(buffer.Get(), NULL);
+        DeviceContext->Unmap(Buffer, NULL);
     }
 
     template <typename T_CONSTANT>
@@ -46,7 +46,7 @@ namespace PostEffect
         initData.SysMemPitch = 0;
         initData.SysMemSlicePitch = 0;
 
-        ThrowIfFailed(Device->CreateBuffer(&desc, &initData, &ConstantBuffer);
+        ThrowIfFailed(Device->CreateBuffer(&desc, &initData, &ConstantBuffer));
     }
 
     ID3D11RenderTargetView* DepthOnlyRTV;
@@ -167,4 +167,12 @@ void PostEffect::Release()
     SAFE_RELEASE(PostEffectSampler);                // Sampler
     SAFE_RELEASE(PostEffectPS);                     // Pixel Shader
     SAFE_RELEASE(PostEffectVS);                     // Vertex Shader     
+}
+
+
+void PostEffect::CopyBackBufferToColorSRV(ID3D11DeviceContext*& DeviceContext, ID3D11Texture2D*& ColorTexture, ID3D11Texture2D*& FrameBuffer)
+{
+    // 백버퍼가 멀티샘플이 아니므로 CopyResource를 사용하여 SRV로 쓰일 텍스처에 복사 
+    DeviceContext->CopyResource(ColorTexture, FrameBuffer);
+    auto a = 10;
 }
