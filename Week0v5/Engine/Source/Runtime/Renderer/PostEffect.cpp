@@ -27,6 +27,41 @@ namespace PostEffect
             throw std::exception();
         }
     }
+    template <typename T_DATA>
+    static void UpdateBuffer(ID3D11Device*& Device, ID3D11DeviceContext*& DeviceContext, const T_DATA& bufferData, ID3D11Buffer*& Buffer)
+    {
+        if (!Buffer) {
+            //UE_LOG(LogLevel::Display, "UpdateBuffer(): buffer was not initialized");
+        }
+
+        D3D11_MAPPED_SUBRESOURCE ms;
+        DeviceContext->Map(Buffer, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
+        memcpy(ms.pData, &bufferData, sizeof(bufferData));
+        DeviceContext->Unmap(Buffer, NULL);
+    }
+
+    template <typename T_CONSTANT>
+    static void CreateConstBuffer(ID3D11Device*& Device, const T_CONSTANT& ConstantBufferData, ID3D11Buffer*& ConstantBuffer) {
+
+        static_assert((sizeof(T_CONSTANT) % 16) == 0, "Constant Buffer size must be 16-byte aligned");
+
+        D3D11_BUFFER_DESC desc;
+        ZeroMemory(&desc, sizeof(desc));
+        desc.ByteWidth = sizeof(ConstantBufferData);
+        desc.Usage = D3D11_USAGE_DYNAMIC;
+        desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+        desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+        desc.MiscFlags = 0;
+        desc.StructureByteStride = 0;
+
+        D3D11_SUBRESOURCE_DATA initData;
+        ZeroMemory(&initData, sizeof(initData));
+        initData.pSysMem = &ConstantBufferData;
+        initData.SysMemPitch = 0;
+        initData.SysMemSlicePitch = 0;
+
+        ThrowIfFailed(Device->CreateBuffer(&desc, &initData, &ConstantBuffer));
+    }
 
     ID3D11RenderTargetView* DepthOnlyRTV;
     ID3D11Texture2D* DepthOnlyTexture;
@@ -49,7 +84,7 @@ namespace PostEffect
 void PostEffect::InitCommonStates(ID3D11Device*& Device)
 {
     InitBuffers(Device);
-    InitShaders(Device);
+    InitShaders(Device);                
     InitTextures(Device);
     //InitDepthStencilStates(Device);
     InitRenderTargetViews(Device);
@@ -157,23 +192,31 @@ void PostEffect::InitRenderTargetViews(ID3D11Device*& Device)
 
 void PostEffect::Release()
 {
-    SAFE_RELEASE(DepthOnlyRTV);
-    SAFE_RELEASE(DepthOnlyTexture);
-    SAFE_RELEASE(DepthOnlySRV);
-    SAFE_RELEASE(DepthOnlyDSV);
+    SAFE_RELEASE(DepthOnlyRTV);                     // Depth Texture RTV    
+    SAFE_RELEASE(DepthOnlyTexture);                 // Depth Texture
+    SAFE_RELEASE(DepthOnlySRV);                     // Depth Only Texture
+    SAFE_RELEASE(DepthOnlyDSV);                     // Depth Only Stencil View
     
-    SAFE_RELEASE(WorldPosRTV);
-    SAFE_RELEASE(WorldPosSRV);
-    SAFE_RELEASE(WorldPosTexture);  
+    SAFE_RELEASE(WorldPosRTV);                      // World Position RTV     
+    SAFE_RELEASE(WorldPosSRV);                      // World Position SRV
+    SAFE_RELEASE(WorldPosTexture);                  // World Position Texture
 
-    SAFE_RELEASE(PostEffectSRV);
+    SAFE_RELEASE(PostEffectSRV);                    // 원본 Color SRV
 
-    SAFE_RELEASE(PostEffectInputLayout);
-    SAFE_RELEASE(FogConstantBuffer);
-    SAFE_RELEASE(GlobalConstantBuffer);
+    SAFE_RELEASE(PostEffectInputLayout);// IL
+    SAFE_RELEASE(FogConstantBuffer);  // Vertex Buffer
+    SAFE_RELEASE(GlobalConstantBuffer);  // Constant Buffer
 
     
-    SAFE_RELEASE(PostEffectSampler);
-    SAFE_RELEASE(PostEffectPS);
-    SAFE_RELEASE(PostEffectVS);
+    SAFE_RELEASE(PostEffectSampler);                // Sampler
+    SAFE_RELEASE(PostEffectPS);                     // Pixel Shader
+    SAFE_RELEASE(PostEffectVS);                     // Vertex Shader     
+}
+
+
+void PostEffect::CopyBackBufferToColorSRV(ID3D11DeviceContext*& DeviceContext, ID3D11Texture2D*& ColorTexture, ID3D11Texture2D*& FrameBuffer)
+{
+    // 백버퍼가 멀티샘플이 아니므로 CopyResource를 사용하여 SRV로 쓰일 텍스처에 복사 
+    DeviceContext->CopyResource(ColorTexture, FrameBuffer);
+    auto a = 10;
 }

@@ -11,7 +11,6 @@ struct FPostEffectConstant
 
 namespace PostEffect
 {
-
     // Depth만 담는 Texture
     extern ID3D11RenderTargetView* DepthOnlyRTV;
     extern ID3D11Texture2D* DepthOnlyTexture;
@@ -42,4 +41,8 @@ namespace PostEffect
     void InitDepthStencilStates(ID3D11Device*& Device);
     void InitRenderTargetViews(ID3D11Device*& Device);
     void Release();
+
+    void CopyBackBufferToColorSRV(ID3D11DeviceContext*& DeviceContext, ID3D11Texture2D*& ColorTexture, ID3D11Texture2D*& FrameBuffer);
+
+    
 }
