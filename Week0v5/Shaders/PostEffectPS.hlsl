@@ -41,7 +41,7 @@ float4 TexcoordToView(float2 texcoord)
     return posView;
 }
 
-float4 main(SamplingPixelShaderInput input) : SV_TARGET
+float4 mainPS(SamplingPixelShaderInput input) : SV_TARGET
 {
     if (mode == 1)
     {

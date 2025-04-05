@@ -42,7 +42,8 @@ void PostEffect::InitCommonStates(ID3D11Device*& Device)
 }
 void PostEffect::InitBuffers(ID3D11Device*& Device)
 {
-    // Vertex Buffer / Constant Buffer 초기화 및 생성 
+    // Vertex Buffer / Constant Buffer 초기화 및 생성
+    
 }
 void PostEffect::InitShaders(ID3D11Device*& Device)
 {
@@ -84,8 +85,8 @@ void PostEffect::InitTextures(ID3D11Device*& Device)
     desc.Usage = D3D11_USAGE_DEFAULT;
     desc.CPUAccessFlags = 0;
     desc.MiscFlags = 0;
-    desc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-    Device->CreateDepthStencilView(DepthOnlyTexture, NULL, &DepthOnlyDSV);
+    // desc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+    // Device->CreateDepthStencilView(DepthOnlyTexture, NULL, &DepthOnlyDSV);
 
     desc.Format = DXGI_FORMAT_R32_TYPELESS;
     desc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;                            // Depth Texture는 SRV로 사용이 가능해야 함
