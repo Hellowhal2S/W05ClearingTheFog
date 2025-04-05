@@ -71,7 +71,7 @@ namespace PostEffect
 void PostEffect::InitCommonStates(ID3D11Device*& Device)
 {
     InitBuffers(Device);
-    InitShaders(Device);
+    InitShaders(Device);                
     InitTextures(Device);
     //InitDepthStencilStates(Device);
     InitRenderTargetViews(Device);
@@ -149,22 +149,22 @@ void PostEffect::InitRenderTargetViews(ID3D11Device*& Device)
 
 void PostEffect::Release()
 {
-    SAFE_RELEASE(DepthOnlyRTV);
-    SAFE_RELEASE(DepthOnlyTexture);
-    SAFE_RELEASE(DepthOnlySRV);
-    SAFE_RELEASE(DepthOnlyDSV);
+    SAFE_RELEASE(DepthOnlyRTV);                     // Depth Texture RTV    
+    SAFE_RELEASE(DepthOnlyTexture);                 // Depth Texture
+    SAFE_RELEASE(DepthOnlySRV);                     // Depth Only Texture
+    SAFE_RELEASE(DepthOnlyDSV);                     // Depth Only Stencil View
     
-    SAFE_RELEASE(WorldPosRTV);
-    SAFE_RELEASE(WorldPosSRV);
-    SAFE_RELEASE(WorldPosTexture);  
+    SAFE_RELEASE(WorldPosRTV);                      // World Position RTV     
+    SAFE_RELEASE(WorldPosSRV);                      // World Position SRV
+    SAFE_RELEASE(WorldPosTexture);                  // World Position Texture
 
-    SAFE_RELEASE(PostEffectSRV);
+    SAFE_RELEASE(PostEffectSRV);                    // 원본 Color SRV
 
-    SAFE_RELEASE(PostEffectInputLayout);
-    SAFE_RELEASE(VertexBuffer);
-    SAFE_RELEASE(PostEffectConstantBuffer);
+    SAFE_RELEASE(PostEffectInputLayout);            // IL
+    SAFE_RELEASE(VertexBuffer);                     // Vertex Buffer
+    SAFE_RELEASE(PostEffectConstantBuffer);         // Constant Buffer
     
-    SAFE_RELEASE(PostEffectSampler);
-    SAFE_RELEASE(PostEffectPS);
-    SAFE_RELEASE(PostEffectVS);
+    SAFE_RELEASE(PostEffectSampler);                // Sampler
+    SAFE_RELEASE(PostEffectPS);                     // Pixel Shader
+    SAFE_RELEASE(PostEffectVS);                     // Vertex Shader     
 }
