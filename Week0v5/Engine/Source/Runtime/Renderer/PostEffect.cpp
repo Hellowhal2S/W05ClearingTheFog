@@ -66,6 +66,9 @@ namespace PostEffect
     ID3D11Buffer* FogConstantBuffer = nullptr;
     ID3D11Buffer* GlobalConstantBuffer = nullptr;
 
+
+    ID3D11RenderTargetView* finalRTV;
+    ID3D11Texture2D* finalTexture;
     FFogConstants Fog;
 } // namespace PostEffect
 
@@ -75,7 +78,7 @@ void PostEffect::InitCommonStates(FGraphicsDevice*& Graphics)
     InitShaders(Graphics->Device);                
     InitTextures(Graphics);
     //InitDepthStencilStates(Device);
-    InitRenderTargetViews(Graphics->Device);
+    InitRenderTargetViews(Graphics);
 }
 void PostEffect::InitBuffers(ID3D11Device*& Device)
 {
@@ -185,8 +188,38 @@ void PostEffect::InitTextures(FGraphicsDevice*& Graphics)
     ThrowIfFailed(Graphics->Device->CreateShaderResourceView(DepthOnlyTexture, &srvDesc, &DepthOnlySRV));        // Depth Texture를 셰이더로 보내기 위해 SRV로 제작
 }
 
-void PostEffect::InitRenderTargetViews(ID3D11Device*& Device)
+void PostEffect::InitRenderTargetViews(FGraphicsDevice*& Graphics)
 {
+    D3D11_TEXTURE2D_DESC texDesc = {};
+    texDesc.Width = Graphics->screenWidth;
+    texDesc.Height = Graphics->screenHeight;
+    texDesc.MipLevels = 1;
+    texDesc.ArraySize = 1;
+    texDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;
+    texDesc.SampleDesc.Count = 1;
+    texDesc.Usage = D3D11_USAGE_DEFAULT;
+    texDesc.BindFlags = D3D11_BIND_RENDER_TARGET;
+    
+    HRESULT hr =Graphics->Device->CreateTexture2D(&texDesc, nullptr, &finalTexture);
+    if (FAILED(hr))
+    {
+        OutputDebugString(L"Failed to create finalTexture in InitRenderTargetViews\n");
+        return;
+    }
+    
+    D3D11_RENDER_TARGET_VIEW_DESC rtvDesc = {};
+    rtvDesc.Format = texDesc.Format;
+    rtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+    
+    hr = Graphics->Device->CreateRenderTargetView(finalTexture, &rtvDesc, &finalRTV);
+    if (FAILED(hr))
+    {
+        OutputDebugString(L"Failed to create finalRTV in InitRenderTargetViews\n");
+        // 실패시 생성한 텍스처 릴리즈 필요
+        finalTexture->Release();
+        finalTexture = nullptr;
+        return;
+    }
 }
 
 void PostEffect::Render(ID3D11DeviceContext*& DeviceContext, ID3D11ShaderResourceView*& ColorSRV)
@@ -209,6 +242,7 @@ void PostEffect::Render(ID3D11DeviceContext*& DeviceContext, ID3D11ShaderResourc
     DeviceContext->PSSetShaderResources(11, 1, &DepthOnlySRV);
 
     UpdateFogConstantBuffer(DeviceContext, Fog);
+    DeviceContext->OMSetRenderTargets(1, &finalRTV, nullptr);
     DeviceContext->PSSetSamplers(0, 1, &PostEffectSampler);                 // Sampler      
     DeviceContext->Draw(6, 0);
 }
