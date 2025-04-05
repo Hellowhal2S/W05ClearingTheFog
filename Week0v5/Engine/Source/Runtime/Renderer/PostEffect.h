@@ -40,6 +40,7 @@ namespace PostEffect
     void InitTextures(ID3D11Device*& Device);
     void InitDepthStencilStates(ID3D11Device*& Device);
     void InitRenderTargetViews(ID3D11Device*& Device);
+    void Render(ID3D11DeviceContext*& DeviceContext, ID3D11ShaderResourceView*& ColorSRV);
     void Release();
 
     void CopyBackBufferToColorSRV(ID3D11DeviceContext*& DeviceContext, ID3D11Texture2D*& ColorTexture, ID3D11Texture2D*& FrameBuffer);

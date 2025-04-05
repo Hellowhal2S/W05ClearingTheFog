@@ -102,6 +102,17 @@ void PostEffect::InitShaders(ID3D11Device*& Device)
     D3DCompileFromFile(L"Shaders/PostEffectPS.hlsl", nullptr, nullptr, "mainPS", "ps_5_0", shaderFlags, 0, &blob, nullptr);
     Device->CreatePixelShader(blob->GetBufferPointer(), blob->GetBufferSize(), nullptr, &PostEffectPS);
     blob->Release();
+
+    D3D11_SAMPLER_DESC samplerDesc = {};
+    samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+    samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+    samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+    samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+    samplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+    samplerDesc.MinLOD = 0;
+    samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+
+    Device->CreateSamplerState(&samplerDesc, &PostEffectSampler);
 }
 void PostEffect::InitDepthStencilStates(ID3D11Device*& Device)
 {
@@ -145,6 +156,22 @@ void PostEffect::InitTextures(ID3D11Device*& Device)
 
 void PostEffect::InitRenderTargetViews(ID3D11Device*& Device)
 {
+}
+
+void PostEffect::Render(ID3D11DeviceContext*& DeviceContext, ID3D11ShaderResourceView*& ColorSRV)
+{
+    // VS
+    // PS
+    // SRV
+    // Draw
+    // Sampler
+    DeviceContext->VSSetShader(PostEffectVS, nullptr, 0);
+    DeviceContext->PSSetShader(PostEffectPS, nullptr, 0);
+    DeviceContext->IASetInputLayout(PostEffectInputLayout);
+    DeviceContext->PSSetConstantBuffers(0, 1, &PostEffectConstantBuffer);
+    DeviceContext->PSSetShaderResources(0, 1, &ColorSRV);
+    DeviceContext->PSSetSamplers(0, 1, &PostEffectSampler);
+
 }
 
 void PostEffect::Release()
