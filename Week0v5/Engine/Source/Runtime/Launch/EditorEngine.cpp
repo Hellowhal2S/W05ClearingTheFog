@@ -78,7 +78,7 @@ void UEditorEngine::Render()
             renderer.Render(GWorld,LevelEditor->GetActiveViewportClient());
         }
         GetLevelEditor()->SetViewportClient(viewportClient);
-    }
+    }   
     else
     {
         renderer.PrepareRender();
