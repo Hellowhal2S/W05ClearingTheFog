@@ -45,7 +45,7 @@ struct SamplingPixelShaderInput
 
 float4 mainPS(SamplingPixelShaderInput input) : SV_TARGET
 {
-    return renderTex.Sample(Sampler, input.texcoord);
+    return depthOnlyTex.Sample(Sampler, input.texcoord);
     //if (mode == 1)
     //{
     //    float4 posView = TexcoordToView(input.texcoord);
