@@ -31,8 +31,8 @@ namespace PostEffect
     extern ID3D11VertexShader* PostEffectVS;
     extern ID3D11PixelShader* PostEffectPS;
     extern ID3D11InputLayout* PostEffectInputLayout;
-    extern ID3D11Buffer* PostEffectConstantBuffer;
-    extern ID3D11Buffer* VertexBuffer;
+    extern ID3D11Buffer* FogConstantBuffer;
+    extern ID3D11Buffer* GlobalConstantBuffer;
 
     
     void InitCommonStates(ID3D11Device*& Device);

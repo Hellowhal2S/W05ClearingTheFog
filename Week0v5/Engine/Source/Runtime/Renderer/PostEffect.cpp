@@ -1,8 +1,22 @@
 #include "PostEffect.h"
 #include <iostream>
 #include <d3dcompiler.h>
-
+#include "Math/Matrix.h"
 #define SAFE_RELEASE(x) if (x) { x->Release(); x = nullptr; }
+
+struct FogConstants
+{
+    float heightStart;
+    float heightFalloff;
+    float fogDensity;
+    int mode; // 1: Rendered image, 2: DepthOnly
+    float fogColor[4];
+};
+struct GlobalConstants
+{
+    FMatrix invProj; // 4x4 행렬, 총 64바이트 (16의 배수)
+};
+
 
 namespace PostEffect
 {
@@ -27,9 +41,9 @@ namespace PostEffect
     ID3D11SamplerState* PostEffectSampler;
     ID3D11VertexShader* PostEffectVS;
     ID3D11PixelShader* PostEffectPS;
-    ID3D11Buffer* PostEffectConstantBuffer;
-    ID3D11Buffer* VertexBuffer;
-
+    ID3D11Buffer* FogConstantBuffer = nullptr;
+    ID3D11Buffer* GlobalConstantBuffer = nullptr;
+    
 } // namespace PostEffect
 
 void PostEffect::InitCommonStates(ID3D11Device*& Device)
@@ -43,7 +57,36 @@ void PostEffect::InitCommonStates(ID3D11Device*& Device)
 void PostEffect::InitBuffers(ID3D11Device*& Device)
 {
     // Vertex Buffer / Constant Buffer 초기화 및 생성
+    // Vertex Buffer는 Vertex Shader에서 초기화
+
+    // PostEffectsConstants에 대한 constant buffer 생성
+    D3D11_BUFFER_DESC cbfogDesc;
+    ZeroMemory(&cbfogDesc, sizeof(cbfogDesc));
+    cbfogDesc.ByteWidth = sizeof(FogConstants);
+    cbfogDesc.Usage = D3D11_USAGE_DEFAULT;
+    cbfogDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    cbfogDesc.CPUAccessFlags = 0;
+    cbfogDesc.MiscFlags = 0;
     
+    HRESULT hr = Device->CreateBuffer(&cbfogDesc, nullptr, &FogConstantBuffer);
+    if (FAILED(hr))
+    {
+        OutputDebugString(L"Failed to create PostEffectsConstantBuffer\n");
+    }
+    
+    D3D11_BUFFER_DESC cbGlobalDesc;
+    ZeroMemory(&cbGlobalDesc, sizeof(cbGlobalDesc));
+    cbGlobalDesc.ByteWidth = sizeof(GlobalConstants); // 64바이트
+    cbGlobalDesc.Usage = D3D11_USAGE_DEFAULT;
+    cbGlobalDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    cbGlobalDesc.CPUAccessFlags = 0;
+    cbGlobalDesc.MiscFlags = 0;
+    
+    hr = Device->CreateBuffer(&cbGlobalDesc, nullptr, &GlobalConstantBuffer);
+    if (FAILED(hr))
+    {
+        OutputDebugString(L"Failed to create GlobalConstantBuffer\n");
+    }
 }
 void PostEffect::InitShaders(ID3D11Device*& Device)
 {
@@ -126,8 +169,9 @@ void PostEffect::Release()
     SAFE_RELEASE(PostEffectSRV);
 
     SAFE_RELEASE(PostEffectInputLayout);
-    SAFE_RELEASE(VertexBuffer);
-    SAFE_RELEASE(PostEffectConstantBuffer);
+    SAFE_RELEASE(FogConstantBuffer);
+    SAFE_RELEASE(GlobalConstantBuffer);
+
     
     SAFE_RELEASE(PostEffectSampler);
     SAFE_RELEASE(PostEffectPS);

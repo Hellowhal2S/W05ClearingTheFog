@@ -52,6 +52,7 @@ typedef WIDECHAR TCHAR;
 typedef ANSICHAR TCHAR;
 #endif
 
+
 // 임시로 사용
 #include <string>
 using FWString = std::wstring;

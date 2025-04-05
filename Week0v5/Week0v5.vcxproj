@@ -185,6 +185,7 @@
     <ClCompile Include="Engine\Source\Runtime\Core\EngineStatics.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Core\HAL\PlatformMemory.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Core\Math\JungleMath.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Core\Math\Matrix.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Core\Math\Vector.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\ActorEditor.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\Player.cpp" />

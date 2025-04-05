@@ -11,11 +11,13 @@ cbuffer GlobalConstants : register(b0)
     float4x4 invProj; // Projection matrix의 역행렬
 };
 
-cbuffer PostEffectsConstants : register(b3)
+cbuffer FogConstants : register(b3)
 {
+    float heightStart;
+    float heightFalloff;
+    float fogDensity;
     int mode; // 1: Rendered image, 2: DepthOnly
-    float depthScale;
-    float fogStrength;
+    float4 fogColor;
 };
 
 struct SamplingPixelShaderInput
@@ -51,7 +53,7 @@ float4 mainPS(SamplingPixelShaderInput input) : SV_TARGET
         
         float dist = length(posView.xyz); // 눈의 위치가 원점인 좌표계
         float distFog = saturate((dist - fogMin) / (fogMax - fogMin));
-        float fogFactor = exp(-distFog * fogStrength);
+        float fogFactor = exp(-distFog * fogDensity);
         
         float3 fogColor = float3(1, 1, 1);
         float3 color = renderTex.Sample(Sampler, input.texcoord).rgb;
@@ -62,7 +64,7 @@ float4 mainPS(SamplingPixelShaderInput input) : SV_TARGET
     }
     else // if (mode == 2)
     {
-        float z = TexcoordToView(input.texcoord).z * depthScale;
+        float z = TexcoordToView(input.texcoord).z /* TODO  : 수정 필요 -> 원본 (* depthScale) */;
         return float4(z, z, z, 1);
     }
 }
