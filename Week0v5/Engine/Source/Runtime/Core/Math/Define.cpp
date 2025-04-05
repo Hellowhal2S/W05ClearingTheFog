@@ -206,10 +206,10 @@ FVector FMatrix::TransformVector(const FVector& v, const FMatrix& m)
 FVector4 FMatrix::TransformVector(const FVector4& v, const FMatrix& m)
 {
     FVector4 result;
-    result.x = v.x * m.M[0][0] + v.y * m.M[1][0] + v.z * m.M[2][0] + v.a * m.M[3][0];
-    result.y = v.x * m.M[0][1] + v.y * m.M[1][1] + v.z * m.M[2][1] + v.a * m.M[3][1];
-    result.z = v.x * m.M[0][2] + v.y * m.M[1][2] + v.z * m.M[2][2] + v.a * m.M[3][2];
-    result.a = v.x * m.M[0][3] + v.y * m.M[1][3] + v.z * m.M[2][3] + v.a * m.M[3][3];
+    result.x = v.x * m.M[0][0] + v.y * m.M[1][0] + v.z * m.M[2][0] + v.w * m.M[3][0];
+    result.y = v.x * m.M[0][1] + v.y * m.M[1][1] + v.z * m.M[2][1] + v.w * m.M[3][1];
+    result.z = v.x * m.M[0][2] + v.y * m.M[1][2] + v.z * m.M[2][2] + v.w * m.M[3][2];
+    result.w = v.x * m.M[0][3] + v.y * m.M[1][3] + v.z * m.M[2][3] + v.w * m.M[3][3];
     return result;
 }
 
