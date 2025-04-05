@@ -587,7 +587,7 @@ void FRenderer::CreateTextureShader()
     ID3DBlob* pixeltextureshaderCSO;
 
     HRESULT hr;
-    hr = D3DCompileFromFile(L"Shaders/VertexTextureShader.hlsl", nullptr, nullptr, "main", "vs_5_0", 0, 0, &vertextextureshaderCSO, nullptr);
+    hr = D3DCompileFromFile(L"Shaders/VertexTextureShader.hlsl", defines, D3D_COMPILE_STANDARD_FILE_INCLUDE, "main", "vs_5_0", 0, 0, &vertextextureshaderCSO, nullptr);
     if (FAILED(hr))
     {
         Console::GetInstance().AddLog(LogLevel::Warning, "VertexShader Error");
@@ -596,7 +596,7 @@ void FRenderer::CreateTextureShader()
         vertextextureshaderCSO->GetBufferPointer(), vertextextureshaderCSO->GetBufferSize(), nullptr, &VertexTextureShader
     );
 
-    hr = D3DCompileFromFile(L"Shaders/PixelTextureShader.hlsl", nullptr, nullptr, "main", "ps_5_0", 0, 0, &pixeltextureshaderCSO, nullptr);
+    hr = D3DCompileFromFile(L"Shaders/PixelTextureShader.hlsl", defines, D3D_COMPILE_STANDARD_FILE_INCLUDE, "main", "ps_5_0", 0, 0, &pixeltextureshaderCSO, nullptr);
     if (FAILED(hr))
     {
         Console::GetInstance().AddLog(LogLevel::Warning, "PixelShader Error");
@@ -645,12 +645,6 @@ void FRenderer::PrepareTextureShader() const
     Graphics->DeviceContext->VSSetShader(VertexTextureShader, nullptr, 0);
     Graphics->DeviceContext->PSSetShader(PixelTextureShader, nullptr, 0);
     Graphics->DeviceContext->IASetInputLayout(TextureInputLayout);
-
-    //�ؽ��Ŀ� ConstantBuffer �߰��ʿ��Ҽ���
-    if (ConstantBuffers.Texture05)
-    {
-        Graphics->DeviceContext->VSSetConstantBuffers(0, 1, &ConstantBuffers.Texture05);
-    }
 }
 
 ID3D11Buffer* FRenderer::CreateVertexTextureBuffer(FVertexTexture* vertices, UINT byteWidth) const
@@ -772,8 +766,8 @@ void FRenderer::PrepareSubUVConstant() const
 {
     if (ConstantBuffers.Texture05)
     {
-        Graphics->DeviceContext->VSSetConstantBuffers(1, 1, &ConstantBuffers.Texture05);
-        Graphics->DeviceContext->PSSetConstantBuffers(1, 1, &ConstantBuffers.Texture05);
+        //Graphics->DeviceContext->VSSetConstantBuffers(5, 1, &ConstantBuffers.Texture05);
+        Graphics->DeviceContext->PSSetConstantBuffers(5, 1, &ConstantBuffers.Texture05);
     }
 }
 
@@ -804,14 +798,14 @@ void FRenderer::CreateLineShader()
     ID3DBlob* PixelShaderLine;
 
     HRESULT hr;
-    hr = D3DCompileFromFile(L"Shaders/ShaderLine.hlsl", nullptr, nullptr, "mainVS", "vs_5_0", 0, 0, &VertexShaderLine, nullptr);
+    hr = D3DCompileFromFile(L"Shaders/ShaderLine.hlsl", defines, D3D_COMPILE_STANDARD_FILE_INCLUDE, "mainVS", "vs_5_0", 0, 0, &VertexShaderLine, nullptr);
     if (FAILED(hr))
     {
         Console::GetInstance().AddLog(LogLevel::Warning, "VertexShader Error");
     }
     Graphics->Device->CreateVertexShader(VertexShaderLine->GetBufferPointer(), VertexShaderLine->GetBufferSize(), nullptr, &VertexLineShader);
 
-    hr = D3DCompileFromFile(L"Shaders/ShaderLine.hlsl", nullptr, nullptr, "mainPS", "ps_5_0", 0, 0, &PixelShaderLine, nullptr);
+    hr = D3DCompileFromFile(L"Shaders/ShaderLine.hlsl", defines, D3D_COMPILE_STANDARD_FILE_INCLUDE, "mainPS", "ps_5_0", 0, 0, &PixelShaderLine, nullptr);
     if (FAILED(hr))
     {
         Console::GetInstance().AddLog(LogLevel::Warning, "PixelShader Error");
@@ -1070,6 +1064,8 @@ void FRenderer::ClearRenderArr()
 
 void FRenderer::Render(UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport)
 {
+    PrepareShader();
+
     Graphics->DeviceContext->RSSetViewports(1, &ActiveViewport->GetD3DViewport());
     Graphics->ChangeRasterizer(ActiveViewport->GetViewMode());
     UpdateLightBuffer();
@@ -1084,9 +1080,9 @@ void FRenderer::Render(UWorld* World, std::shared_ptr<FEditorViewportClient> Act
 
     if (ActiveViewport->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::SF_Primitives))
         RenderStaticMeshes(World, ActiveViewport);
-    RenderGizmos(World, ActiveViewport);
     if (ActiveViewport->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::SF_BillboardText))
         RenderBillboards(World, ActiveViewport);
+    RenderGizmos(World, ActiveViewport);
     RenderLight(World, ActiveViewport);
     
     ClearRenderArr();
@@ -1094,7 +1090,6 @@ void FRenderer::Render(UWorld* World, std::shared_ptr<FEditorViewportClient> Act
 
 void FRenderer::RenderStaticMeshes(UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport)
 {
-    PrepareShader();
     for (UStaticMeshComponent* StaticMeshComp : StaticMeshObjs)
     {
         // Actor별 constantbuffer
@@ -1213,46 +1208,62 @@ void FRenderer::RenderGizmos(const UWorld* World, const std::shared_ptr<FEditorV
 
 void FRenderer::RenderBillboards(UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport)
 {
-    //PrepareTextureShader();
-    //PrepareSubUVConstant();
-    //for (auto BillboardComp : BillboardObjs)
-    //{
-    //    UpdateSubUVConstant(BillboardComp->finalIndexU, BillboardComp->finalIndexV);
+    PrepareTextureShader();
+    PrepareSubUVConstant();
+    for (auto BillboardComp : BillboardObjs)
+    {
+        UpdateSubUVConstant(BillboardComp->finalIndexU, BillboardComp->finalIndexV);
+        
+        {
+            FMatrix Model = BillboardComp->CreateBillboardMatrix();
+            FMatrix NormalMatrix = FMatrix::Transpose(FMatrix::Inverse(Model));
+            FVector4 UUIDColor = BillboardComp->EncodeUUID() / 255.0f;
+            FConstantBufferMesh buf;
+            buf.ModelMatrix = Model;
+            buf.ModelInvTransMatrix = NormalMatrix;
+            if (BillboardComp == World->GetPickingGizmo())
+            {
+                buf.IsSelectedMesh = true;
+            }
+            else
+            {
+                buf.IsSelectedMesh = false;
+            }
+            UpdateConstantbufferMesh(buf);
+        }
+        //{
+        //    FConstantBufferTexture buf;
+        //    buf.UVOffset = 
+        //    UpdateConstantbufferTexture()
 
-    //    FMatrix Model = BillboardComp->CreateBillboardMatrix();
+        //}
 
-    //    // 최종 MVP 행렬
-    //    FMatrix MVP = Model * ActiveViewport->GetViewMatrix() * ActiveViewport->GetProjectionMatrix();
-    //    FMatrix NormalMatrix = FMatrix::Transpose(FMatrix::Inverse(Model));
-    //    FVector4 UUIDColor = BillboardComp->EncodeUUID() / 255.0f;
-    //    if (BillboardComp == World->GetPickingGizmo())
-    //        UpdateConstantbufferMesh(MVP, NormalMatrix, UUIDColor, true);
-    //    else
-    //        UpdateConstantbufferMesh(MVP, NormalMatrix, UUIDColor, false);
 
-    //    if (UParticleSubUVComp* SubUVParticle = Cast<UParticleSubUVComp>(BillboardComp))
-    //    {
-    //        RenderTexturePrimitive(
-    //            SubUVParticle->vertexSubUVBuffer, SubUVParticle->numTextVertices,
-    //            SubUVParticle->indexTextureBuffer, SubUVParticle->numIndices, SubUVParticle->Texture->TextureSRV, SubUVParticle->Texture->SamplerState
-    //        );
-    //    }
-    //    else if (UText* Text = Cast<UText>(BillboardComp))
-    //    {
-    //        UEditorEngine::renderer.RenderTextPrimitive(
-    //            Text->vertexTextBuffer, Text->numTextVertices,
-    //            Text->Texture->TextureSRV, Text->Texture->SamplerState
-    //        );
-    //    }
-    //    else
-    //    {
-    //        RenderTexturePrimitive(
-    //            BillboardComp->vertexTextureBuffer, BillboardComp->numVertices,
-    //            BillboardComp->indexTextureBuffer, BillboardComp->numIndices, BillboardComp->Texture->TextureSRV, BillboardComp->Texture->SamplerState
-    //        );
-    //    }
-    //}
-    //PrepareShader();
+        if (UParticleSubUVComp* SubUVParticle = Cast<UParticleSubUVComp>(BillboardComp))
+        {
+            RenderTexturePrimitive(
+                SubUVParticle->vertexSubUVBuffer, SubUVParticle->numTextVertices,
+                SubUVParticle->indexTextureBuffer, SubUVParticle->numIndices,
+                SubUVParticle->Texture->TextureSRV, SubUVParticle->Texture->SamplerState
+            );
+        }
+        else if (UText* Text = Cast<UText>(BillboardComp))
+        {
+            UEditorEngine::renderer.RenderTextPrimitive(
+                Text->vertexTextBuffer, Text->numTextVertices,
+                Text->Texture->TextureSRV, Text->Texture->SamplerState
+            );
+        }
+        else
+        {
+            RenderTexturePrimitive(
+                BillboardComp->vertexTextureBuffer, BillboardComp->numVertices,
+                BillboardComp->indexTextureBuffer, BillboardComp->numIndices,
+                BillboardComp->Texture->TextureSRV, BillboardComp->Texture->SamplerState
+            );
+        }
+    }
+    PrepareShader();
 }
 
 void FRenderer::RenderLight(UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport)

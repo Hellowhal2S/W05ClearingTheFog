@@ -1,16 +1,8 @@
+#include "ShaderConstants.hlsli"
+
 Texture2D gTexture : register(t0);
 SamplerState gSampler : register(s0);
 
-cbuffer SubUVConstant : register(b1)
-{
-    float indexU;
-    float indexV;
-}
-
-cbuffer UUIDConstant : register(b2)
-{
-    float4 UUID;
-}
 
 struct PSInput {
     float4 position : SV_POSITION;
@@ -26,7 +18,7 @@ struct PSOutput
 float4 main(PSInput input) : SV_TARGET {
     PSOutput output;
     
-    float2 uv = input.texCoord + float2(indexU, indexV);
+    float2 uv = input.texCoord + UVOffset;
     //float4 col = gTexture.Sample(gSampler, input.texCoord);
     float4 col = gTexture.Sample(gSampler, uv);
     float threshold = 0.05; // 필요한 경우 임계값을 조정
