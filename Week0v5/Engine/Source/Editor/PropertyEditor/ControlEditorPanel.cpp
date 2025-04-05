@@ -16,6 +16,7 @@
 #include "PropertyEditor/ShowFlags.h"
 #include "UnrealEd/SceneMgr.h"
 #include "UEditorStateManager.h"
+#include "Renderer/PostEffect.h"
 
 void ControlEditorPanel::Render()
 {
@@ -235,7 +236,33 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
         {
             GEngine->GetLevelEditor()->GetActiveViewportClient()->SetCameraSpeedScalar(CameraSpeed);
         }
-        
+        ImGui::Spacing();
+
+        ImGui::Text("Fog Start");
+        FogStart = PostEffect::Fog.heightStart;
+        ImGui::SetNextItemWidth(120.0f);
+        if (ImGui::DragFloat("##FogStart", &FogStart, 0.1f, 0.0f, 10.0f, "%.1f"))
+        {
+            PostEffect::Fog.heightStart = FogStart;
+        }
+        ImGui::Spacing();
+
+        ImGui::Text("Fog Falloff");
+        FogFalloff = PostEffect::Fog.heightFalloff;
+        ImGui::SetNextItemWidth(120.0f);
+        if (ImGui::DragFloat("##FogFalloff", &FogFalloff, .1f, 10.0f, 100.0f, "%.1f"))
+        {
+            PostEffect::Fog.heightFalloff = FogFalloff;
+        }
+        ImGui::Spacing();
+
+        ImGui::Text("Fog Density");
+        FogDensity = PostEffect::Fog.fogDensity;
+        ImGui::SetNextItemWidth(120.0f);
+        if (ImGui::DragFloat("##FogDensity", &FogDensity, 0.1f, 5.0f, 100.0f, "%.1f"))
+        {
+            GEngine->GetLevelEditor()->GetActiveViewportClient()->SetCameraSpeedScalar(FogDensity);
+        }
         ImGui::EndPopup();
     }
 

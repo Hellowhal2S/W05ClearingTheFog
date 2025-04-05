@@ -1,24 +1,9 @@
 #include "PostEffect.h"
 #include <iostream>
 #include <d3dcompiler.h>
-#include "Math/Matrix.h"
 #include "D3D11RHI/GraphicDevice.h"
 
 #define SAFE_RELEASE(x) if (x) { x->Release(); x = nullptr; }
-
-struct FogConstants
-{
-    float heightStart;
-    float heightFalloff;
-    float fogDensity;
-    int mode; // 1: Rendered image, 2: DepthOnly
-    float fogColor[4];
-};
-struct GlobalConstants
-{
-    FMatrix invProj; // 4x4 행렬, 총 64바이트 (16의 배수)
-};
-
 
 namespace PostEffect
 {
@@ -72,7 +57,7 @@ namespace PostEffect
     ID3D11RenderTargetView* WorldPosRTV;
     ID3D11Texture2D* WorldPosTexture;
     ID3D11ShaderResourceView* WorldPosSRV;
-
+    
     ID3D11InputLayout* PostEffectInputLayout;
     ID3D11ShaderResourceView* PostEffectSRV;
     ID3D11SamplerState* PostEffectSampler;
@@ -80,7 +65,8 @@ namespace PostEffect
     ID3D11PixelShader* PostEffectPS;
     ID3D11Buffer* FogConstantBuffer = nullptr;
     ID3D11Buffer* GlobalConstantBuffer = nullptr;
-    
+
+    FFogConstants Fog;
 } // namespace PostEffect
 
 void PostEffect::InitCommonStates(FGraphicsDevice*& Graphics)
@@ -99,7 +85,7 @@ void PostEffect::InitBuffers(ID3D11Device*& Device)
     // PostEffectsConstants에 대한 constant buffer 생성
     D3D11_BUFFER_DESC cbfogDesc;
     ZeroMemory(&cbfogDesc, sizeof(cbfogDesc));
-    cbfogDesc.ByteWidth = sizeof(FogConstants);
+    cbfogDesc.ByteWidth = sizeof(FFogConstants);
     cbfogDesc.Usage = D3D11_USAGE_DYNAMIC;
     cbfogDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
     cbfogDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
@@ -214,6 +200,7 @@ void PostEffect::Render(ID3D11DeviceContext*& DeviceContext, ID3D11ShaderResourc
     DeviceContext->VSSetShader(PostEffectVS, nullptr, 0);
     DeviceContext->PSSetShader(PostEffectPS, nullptr, 0);
     DeviceContext->IASetInputLayout(PostEffectInputLayout);
+
     
     DeviceContext->PSSetConstantBuffers(0, 1, &GlobalConstantBuffer);       // 상수 버퍼
     DeviceContext->PSSetConstantBuffers(1, 1, &FogConstantBuffer);
@@ -221,6 +208,7 @@ void PostEffect::Render(ID3D11DeviceContext*& DeviceContext, ID3D11ShaderResourc
     DeviceContext->PSSetShaderResources(10, 1, &ColorSRV);                   // SRV
     DeviceContext->PSSetShaderResources(11, 1, &DepthOnlySRV);
 
+    UpdateFogConstantBuffer(DeviceContext, Fog);
     DeviceContext->PSSetSamplers(0, 1, &PostEffectSampler);                 // Sampler      
     DeviceContext->Draw(6, 0);
 }
@@ -246,6 +234,22 @@ void PostEffect::Release()
     SAFE_RELEASE(PostEffectSampler);                // Sampler
     SAFE_RELEASE(PostEffectPS);                     // Pixel Shader
     SAFE_RELEASE(PostEffectVS);                     // Vertex Shader     
+}
+
+void PostEffect::UpdateFogConstantBuffer(ID3D11DeviceContext*& DeviceContext, FFogConstants newFog)
+{
+    if (!FogConstantBuffer) return;
+    D3D11_MAPPED_SUBRESOURCE mappedResource;
+    DeviceContext->Map(FogConstantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+    {
+        FFogConstants* constants = static_cast<FFogConstants*>(mappedResource.pData);
+        constants->heightStart = newFog.heightStart;
+        constants->heightFalloff = newFog.heightFalloff;
+        constants->fogDensity = newFog.fogDensity;
+        constants->mode = newFog.mode;
+        constants->fogColor = newFog.fogColor;
+    }
+    DeviceContext->Unmap(FogConstantBuffer, 0);
 }
 
 
