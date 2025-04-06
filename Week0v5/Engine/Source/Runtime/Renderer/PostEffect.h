@@ -21,6 +21,7 @@ namespace PostEffect
         float fogDensity = 5.0f;
         int mode; // 1: Rendered image, 2: DepthOnly
         FVector4 fogColor  = { 1.0f,1.0f,1.0f,1.0f};
+        float depthScale = 1.0f;
     };
     struct GlobalConstants
     {

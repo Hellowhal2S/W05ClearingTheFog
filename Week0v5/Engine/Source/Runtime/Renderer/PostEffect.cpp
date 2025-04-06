@@ -278,6 +278,7 @@ void PostEffect::UpdateFogConstantBuffer(ID3D11DeviceContext*& DeviceContext, FF
         constants->fogDensity = newFog.fogDensity;
         constants->mode = newFog.mode;
         constants->fogColor = newFog.fogColor;
+        constants->depthScale = newFog.depthScale;
     }
     DeviceContext->Unmap(FogConstantBuffer, 0);
 }

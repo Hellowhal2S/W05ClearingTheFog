@@ -261,11 +261,27 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
         ImGui::SetNextItemWidth(120.0f);
         if (ImGui::DragFloat("##FogDensity", &FogDensity, 0.1f, 5.0f, 100.0f, "%.1f"))
         {
-            GEngine->GetLevelEditor()->GetActiveViewportClient()->SetCameraSpeedScalar(FogDensity);
+            PostEffect::Fog.fogDensity = FogDensity;
+        }
+        ImGui::Spacing();
+
+        ImGui::Text("Depth Scale");
+        DepthScale = PostEffect::Fog.depthScale;
+        ImGui::SetNextItemWidth(120.0f);
+        if (ImGui::DragFloat("##DepthScale", &DepthScale, 0.1f, 5.0f, 100.0f, "%.1f"))
+        {
+            PostEffect::Fog.depthScale = DepthScale;
+        }
+        ImGui::Spacing();
+        const char* fogModes[] = { "Normal", "Scene Depth" };
+        ImGui::Text("Fog Mode");
+        ImGui::SetNextItemWidth(120.0f);
+        if (ImGui::Combo("##FogModeCombo", &FogMode, fogModes, IM_ARRAYSIZE(fogModes)))
+        {
+            PostEffect::Fog.mode = FogMode;
         }
         ImGui::EndPopup();
     }
-
     ImGui::SameLine();
     
     ImGui::PushFont(IconFont);

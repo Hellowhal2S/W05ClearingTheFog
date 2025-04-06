@@ -46,27 +46,27 @@ float4 TexcoordToView(float2 texcoord)
 float4 mainPS(SamplingPixelShaderInput input) : SV_TARGET
 {
     //return float4(1.0f, 0.0f, 0.0f, 1.0f); // TODO: 수정 필요)
-    return renderTex.Sample(Sampler, input.texcoord);
-    //if (mode == 1)
-    //{
-    //    float4 posView = TexcoordToView(input.texcoord);
-    //    float fogMin = 1.0;
-    //    float fogMax = 10.0;
+    return float4(depthOnlyTex.Sample(Sampler, input.texcoord).rrr,1.0f);
+    if (mode == 1)
+    {
+        float4 posView = TexcoordToView(input.texcoord);
+        float fogMin = 1.0;
+        float fogMax = 10.0;
         
-    //    float dist = length(posView.xyz); // 눈의 위치가 원점인 좌표계
-    //    float distFog = saturate((dist - fogMin) / (fogMax - fogMin));
-    //    float fogFactor = exp(-distFog * fogDensity);
+        float dist = length(posView.xyz); // 눈의 위치가 원점인 좌표계
+        float distFog = saturate((dist - fogMin) / (fogMax - fogMin));
+        float fogFactor = exp(-distFog * fogDensity);
         
-    //    float3 fogColor = float3(1, 1, 1);
-    //    float3 color = renderTex.Sample(Sampler, input.texcoord).rgb;
-    //    color = lerp(fogColor, color, fogFactor);
-    //    return float4(color, 1.0);
+        float3 fogColor = float3(1, 1, 1);
+        float3 color = renderTex.Sample(Sampler, input.texcoord).rgb;
+        color = lerp(fogColor, color, fogFactor);
+        return float4(color, 1.0);
         
-    //    // TODO: Fog
-    //}
-    //else // if (mode == 2)
-    //{
-    //    float z = TexcoordToView(input.texcoord).z /* TODO  : 수정 필요 -> 원본 (* depthScale) */;
-    //    return float4(z, z, z, 1);
-    //}
+        // TODO: Fog
+    }
+    else // if (mode == 2)
+    {
+        float z = TexcoordToView(input.texcoord).z /* TODO  : 수정 필요 -> 원본 (* depthScale) */;
+        return float4(z, z, z, 1);
+    }
 }
