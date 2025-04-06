@@ -256,6 +256,8 @@ void PostEffect::Release()
     SAFE_RELEASE(PostEffectSampler);                // Sampler
     SAFE_RELEASE(PostEffectPS);                     // Pixel Shader
     SAFE_RELEASE(PostEffectVS);                     // Vertex Shader     
+
+    ReleaseFinalRTV();
 }
 
 void PostEffect::ReleaseFinalRTV()
