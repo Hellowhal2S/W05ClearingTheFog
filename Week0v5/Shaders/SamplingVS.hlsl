@@ -12,7 +12,7 @@ struct VS_OUTPUT
 const static float2 QuadPos[6] =
 {
     float2(-1, -1), float2(-1, 1), float2(1, -1),   // 좌하단, 좌상단, 우하단
-    float2(-1, 1), float2(1, 1), float2(1, -1)      // 좌상단, 우상단, 우하단
+    float2(-1,  1), float2(1,  1), float2(1, -1)    // 좌상단, 우상단, 우하단
 };
 const static float2 QuadTex[6] =
 {
