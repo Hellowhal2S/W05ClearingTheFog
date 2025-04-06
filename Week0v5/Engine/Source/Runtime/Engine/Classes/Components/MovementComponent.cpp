@@ -3,6 +3,7 @@
 #include "UObject/ObjectFactory.h"
 #include "UObject/Casts.h"
 #include "Components/SceneComponent.h"
+#include "GameFramework/Actor.h"
 
 UMovementComponent::UMovementComponent()
 {
@@ -10,10 +11,8 @@ UMovementComponent::UMovementComponent()
 
 UMovementComponent::UMovementComponent(const UMovementComponent& other)
     : UActorComponent(other),
-    Velocity(other.Velocity),
-    UpdatedComponent(other.UpdatedComponent)
+    Velocity(other.Velocity)
 {
-    UpdatedComponent = Cast<USceneComponent>(other.UpdatedComponent->Duplicate());
 }
 
 UMovementComponent::~UMovementComponent()
@@ -27,15 +26,14 @@ void UMovementComponent::TickComponent(float DeltaTime)
 
 UObject* UMovementComponent::Duplicate() const
 {
-    UMovementComponent* ClonedActor = FObjectFactory::ConstructObjectFrom<UMovementComponent>(this);
-    ClonedActor->DuplicateSubObjects(this);
-    ClonedActor->PostDuplicate();
-    return ClonedActor;
+    UMovementComponent* ClonedComponent = FObjectFactory::ConstructObjectFrom<UMovementComponent>(this);
+    ClonedComponent->DuplicateSubObjects(this);
+    ClonedComponent->PostDuplicate();
+    return ClonedComponent;
 }
 
 void UMovementComponent::DuplicateSubObjects(const UObject* Source)
 {
-    UActorComponent::DuplicateSubObjects(Source);
 }
 
 void UMovementComponent::PostDuplicate()

@@ -134,6 +134,7 @@ void PropertyEditorPanel::Render()
                 {
                     UProjectileMovementComponent* ProjectileMovementComponent = PickedActor->AddComponent<UProjectileMovementComponent>();
                     ProjectileMovementComponent->SetUpdatedComponent(PickedActor->GetRootComponent());
+                    ProjectileMovementComponent->SetOwner(PickedActor);
                     PickedComponent = ProjectileMovementComponent;
                 }
                 ImGui::EndPopup();

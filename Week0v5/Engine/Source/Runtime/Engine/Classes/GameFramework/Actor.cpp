@@ -2,16 +2,15 @@
 
 #include "Engine/World.h"
 #include "Components/SceneComponent.h"
+#include "Components/MovementComponent.h"
 
 AActor::AActor(const AActor& Other)
     : UObject(Other),
       RootComponent(nullptr),
       bTickInEditor(Other.bTickInEditor),
       bActorIsBeingDestroyed(Other.bActorIsBeingDestroyed),
-      ActorLabel(Other.ActorLabel),
-    OwnedComponents(Other.OwnedComponents)
+      ActorLabel(Other.ActorLabel)
 {
-    OwnedComponents.Empty();
 }
 void AActor::BeginPlay()
 {
@@ -231,6 +230,14 @@ void AActor::DuplicateSubObjects(const UObject* SourceObj)
         if (USceneComponent** Found = SceneCloneMap.Find(Source->RootComponent))
         {
             SetRootComponent(*Found);
+        }
+    }
+
+    for (UActorComponent* Component : OwnedComponents)
+    {
+        if (UMovementComponent* Movement = Cast<UMovementComponent>(Component))
+        {
+            Movement->UpdatedComponent = RootComponent;
         }
     }
 }
