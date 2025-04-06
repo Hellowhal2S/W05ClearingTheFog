@@ -2,15 +2,16 @@ Texture2D Texture : register(t0);
 SamplerState Sampler : register(s0);
 
 // MatrixBuffer: 변환 행렬 관리
-cbuffer MatrixBuffer : register(b0)
+cbuffer MatrixConstants : register(b0)
 {
-    row_major float4x4 MVP;
+    row_major float4x4 Model;
+    row_major float4x4 View;
+    row_major float4x4 Projection;
     row_major float4x4 MInverseTranspose;
     float4 UUID;
     bool isSelected;
     float3 MatrixPad0;
 };
-
 // LightingBuffer: 조명 관련 파라미터 관리
 cbuffer LightingBuffer : register(b1)
 {
@@ -41,12 +42,15 @@ struct PS_INPUT
     float3 normal : NORMAL; // 정규화된 노멀 벡터
     float normalFlag : TEXCOORD0; // 노멀 유효성 플래그 (1.0: 유효, 0.0: 무효)
     float2 texcoord : TEXCOORD1;
+    float3 worldPos : TEXCOORD2; // 월드 좌표
 };
 
 struct PS_OUTPUT
 {
     float4 color : SV_Target0;
     float4 UUID : SV_Target1;
+    float4 worldPos : SV_Target2;
+    float4 worldNormal : SV_Target3;
     //float4 depth : SV_Target2;
 };
 
@@ -55,7 +59,14 @@ PS_INPUT mainVS(VS_INPUT input)
     PS_INPUT output;
     
     // 위치 변환
-    output.position = mul(input.position, MVP);
+    float4 pos;
+    pos = mul(input.position, Model);
+    output.worldPos = pos;
+    
+    pos = mul(pos, View);
+    pos = mul(pos, Projection);
+    output.position = pos;
+    
     output.color = input.color;
     if (isSelected)
         output.color *= 0.5;
@@ -151,6 +162,8 @@ PS_OUTPUT mainPS(PS_INPUT input) : SV_Target
     }
     
     output.color = float4(color, 1.0);
+    output.worldPos = input.worldPos;
+    output.worldNormal = float4(input.normal, 1.0);
     
     return output;
 }

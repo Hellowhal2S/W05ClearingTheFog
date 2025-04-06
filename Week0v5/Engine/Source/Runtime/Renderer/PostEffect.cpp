@@ -266,6 +266,42 @@ void PostEffect::InitRenderTargetViews(FGraphicsDevice* Graphics)
         return;
     }
 #pragma endregion
+
+#pragma region World Normal Texture
+    D3D11_TEXTURE2D_DESC worldNormalTexDesc = {};
+    worldNormalTexDesc.Width = Graphics->screenWidth;
+    worldNormalTexDesc.Height = Graphics->screenHeight;
+    worldNormalTexDesc.MipLevels = 1;
+    worldNormalTexDesc.ArraySize = 1;
+    worldNormalTexDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT; // World normal: float4
+    worldNormalTexDesc.SampleDesc.Count = 1;
+    worldNormalTexDesc.Usage = D3D11_USAGE_DEFAULT;
+    worldNormalTexDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+    hr = Graphics->Device->CreateTexture2D(&worldNormalTexDesc, nullptr, &WorldNormalTexture);
+    if (FAILED(hr))
+    {
+        OutputDebugString(L"Failed to create WorldNormalTexture in InitWorldPosRenderTarget\n");
+        return;
+    }
+    // World Normal RTV 생성
+    D3D11_RENDER_TARGET_VIEW_DESC worldNormalRTVDesc = {};
+    worldNormalRTVDesc.Format = worldNormalTexDesc.Format;
+    worldNormalRTVDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+    hr = Graphics->Device->CreateRenderTargetView(WorldNormalTexture, &worldNormalRTVDesc, &WorldNormalRTV);
+    if (FAILED(hr))
+    {
+        OutputDebugString(L"Failed to create WorldNormalRTV in InitWorldPosRenderTarget\n");
+        WorldNormalTexture->Release();
+        WorldNormalTexture = nullptr;
+        return;
+    }
+    // World Normal SRV 생성
+    D3D11_SHADER_RESOURCE_VIEW_DESC worldNormalSRVDesc = {};
+    worldNormalSRVDesc.Format = worldNormalTexDesc.Format;
+    worldNormalSRVDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+    worldNormalSRVDesc.Texture2D.MostDetailedMip = 0;
+    worldNormalSRVDesc.Texture2D.MipLevels = worldNormalTexDesc.MipLevels;
+    hr = Graphics->Device->CreateShaderResourceView(WorldNormalTexture, &worldNormalSRVDesc, &WorldNormalSRV);
 }
 
 void PostEffect::Render(ID3D11DeviceContext*& DeviceContext, ID3D11ShaderResourceView*& ColorSRV)
@@ -366,7 +402,7 @@ void PostEffect::UpdateCameraConstantBuffer(ID3D11DeviceContext*& DeviceContext)
         constants->camNear = EditorViewport->nearPlane;
         constants->camFar = EditorViewport->farPlane;
     }
-    DeviceContext->Unmap(FogConstantBuffer, 0);
+    DeviceContext->Unmap(CameraConstantBuffer, 0);
 }
 
 

@@ -1,7 +1,9 @@
 // MatrixBuffer: 변환 행렬 관리
 cbuffer MatrixConstants : register(b0)
 {
-    row_major float4x4 MVP;
+    row_major float4x4 Model;
+    row_major float4x4 View;
+    row_major float4x4 Projection;
     row_major float4x4 MInverseTranspose;
     float4 UUID;
     bool isSelected;
@@ -25,6 +27,7 @@ struct PS_INPUT
     bool normalFlag : TEXCOORD0; // 노멀 유효성 플래그 (1.0: 유효, 0.0: 무효)
     float2 texcoord : TEXCOORD1;
     int materialIndex : MATERIAL_INDEX;
+    float4 worldPos : TEXCOORD2; // 월드 좌표
 };
 
 PS_INPUT mainVS(VS_INPUT input)
@@ -34,7 +37,14 @@ PS_INPUT mainVS(VS_INPUT input)
     output.materialIndex = input.materialIndex;
     
     // 위치 변환
-    output.position = mul(input.position, MVP);
+    float4 pos;
+    pos = mul(input.position, Model);
+    output.worldPos = pos;
+    
+    pos = mul(pos, View);
+    pos = mul(pos, Projection);
+    output.position = pos;
+
     output.color = input.color;
     if (isSelected)
         output.color *= 0.5;

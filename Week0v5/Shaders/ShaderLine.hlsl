@@ -1,8 +1,15 @@
 
 cbuffer MatrixBuffer : register(b0)
 {
-    row_major float4x4 MVP;
+    row_major float4x4 Model;
+    row_major float4x4 View;
+    row_major float4x4 Projection;
+    row_major float4x4 MInverseTranspose;
+    float4 UUID;
+    bool isSelected;
+    float3 MatrixPad0;
 };
+
 
 cbuffer GridParametersData : register(b1)
 {
@@ -71,6 +78,7 @@ struct PS_INPUT
 {
     float4 Position : SV_Position;
     float4 Color : COLOR;
+    float4 worldPos : TEXCOORD0;
 };
 
 /////////////////////////////////////////////////////////////////////////
@@ -306,12 +314,30 @@ PS_INPUT mainVS(VS_INPUT input)
     }
 
     // 출력 변환
-    output.Position = mul(float4(pos, 1.0), MVP);
+    float4 outPos = float4(pos, 1.0);
+    outPos = mul(outPos, Model);
+    output.worldPos = outPos;
+    
+    outPos = mul(outPos, View);
+    outPos = mul(outPos, Projection);
+    
+    output.Position = outPos;
+    
+    
     output.Color = color;
     return output;
 }
 
-float4 mainPS(PS_INPUT input) : SV_Target
+struct PS_OUTPUT
 {
-    return input.Color;
+    float4 color : SV_Target0;
+    float4 worldPos : SV_Target2;
+};
+
+PS_OUTPUT mainPS(PS_INPUT input)
+{
+    PS_OUTPUT output;
+    output.color = input.Color;
+    output.worldPos = input.worldPos;
+    return output;
 }

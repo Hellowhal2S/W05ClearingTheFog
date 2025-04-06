@@ -8,17 +8,27 @@ struct PSInput {
     float2 texCoord : TEXCOORD;
 };
 
-cbuffer constants : register(b0)
+cbuffer Constants : register(b0)
 {
-    row_major float4x4 MVP;
-    float Flag;
-}
+    row_major float4x4 Model;
+    row_major float4x4 View;
+    row_major float4x4 Projection;
+    row_major float4x4 MInverseTranspose;
+    float4 UUID;
+    bool isSelected;
+    float3 MatrixPad0;
+};
 
 PSInput main(VSInput input) {
 
 
     PSInput output;
-    output.position = mul(float4(input.position, 1.0f), MVP);
+    
+    float4 pos;
+    pos = mul(float4(input.position, 1.0f), Model);
+    pos = mul(pos, View);
+    pos = mul(pos, Projection);
+    output.position = pos;
     
     output.texCoord = input.texCoord;
     
