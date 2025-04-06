@@ -6,9 +6,14 @@ Texture2D depthOnlyTex : register(t11); // Depth Map SRV
 
 SamplerState Sampler : register(s0); // Linear Clamp Sampler
 
-cbuffer GlobalConstants : register(b0)
+cbuffer CameraConstants : register(b0)
 {
     float4x4 invProj; // Projection matrix의 역행렬
+    float4x4 invView;
+    float3 eyeWorld;
+    float camNear;
+    float camFar;
+    float3 Camerapadding;
 };
 
 cbuffer FogConstants : register(b1)
@@ -21,6 +26,7 @@ cbuffer FogConstants : register(b1)
     float depthScale;
     float3 padding;
 };
+
 
 struct SamplingPixelShaderInput
 {
@@ -66,19 +72,22 @@ float4 mainPS(SamplingPixelShaderInput input) : SV_TARGET
         return float4(depth.rrr, 1.0f);
         // TODO: Fog
     }
-    else // if (mode == 2)
+    else // 모드 1: 렌더링 이미지에 안개 효과 적용
     {
+        // 뷰 공간 좌표 계산
         float4 posView = TexcoordToView(input.texcoord);
-        float fogMin = 1.0;
-        float fogMax = 10.0;
-        
-        float dist = length(posView.xyz); // 눈의 위치가 원점인 좌표계
-        float distFog = saturate((dist - fogMin) / (fogMax - fogMin));
-        float fogFactor = exp(-distFog * fogDensity);
-        
-        float3 fogColor = float3(1, 1, 1);
-        float3 color = renderTex.Sample(Sampler, input.texcoord).rgb;
-        color = lerp(fogColor, color, fogFactor);
-        return float4(color, 1.0);
+        float dist = length(posView.xyz); // 카메라(원점)로부터의 거리
+
+        // 기본 지수 안개 계산: 거리에 따른 안개 양
+        float fogAmount = saturate(1.0 - exp(-fogDensity * dist * depthScale));
+
+        // (선택 사항) 높이 기반 안개 감쇠 추가:
+        // float heightFactor = saturate((posView.y - heightStart) / heightFalloff);
+        // fogAmount *= heightFactor;
+
+        float3 sceneColor = renderTex.Sample(Sampler, input.texcoord).rgb;
+        // 안개 색상은 상수 버퍼의 fogColor 사용
+        float3 finalColor = lerp(sceneColor, fogColor.rgb, fogAmount);
+        return float4(finalColor, 1.0f);
     }
 }

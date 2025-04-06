@@ -3,6 +3,8 @@
 #pragma comment(lib, "d3d11")
 #pragma comment(lib, "d3dcompiler")
 #include <d3d11.h>
+
+#include "HAL/PlatformType.h"
 #include "Math/Matrix.h"
 
 class FGraphicsDevice;
@@ -24,9 +26,25 @@ namespace PostEffect
         float depthScale = 1.0f;
         FVector padding;
     };
-    struct GlobalConstants
+    struct FCameraConstants
     {
         FMatrix invProj; // 4x4 행렬, 총 64바이트 (16의 배수)
+        FMatrix invView;
+        FVector eyeWorld;
+        float camNear = 10.0f;
+        float camFar = 50.0f;
+        FVector padding;
+    };
+    struct FLightConstants
+    {
+        FVector radiance; // Strength
+        float fallOffStart;
+        FVector direction;
+        float fallOffEnd;
+        FVector position;
+        float spotPower;
+        uint32 type;
+        FVector dummy;
     };
     // Depth만 담는 Texture
     extern ID3D11RenderTargetView* DepthOnlyRTV;
@@ -48,7 +66,7 @@ namespace PostEffect
     extern ID3D11PixelShader* PostEffectPS;
     extern ID3D11InputLayout* PostEffectInputLayout;
     extern ID3D11Buffer* FogConstantBuffer;
-    extern ID3D11Buffer* GlobalConstantBuffer;
+    extern ID3D11Buffer* CameraConstantBuffer;
 
     extern ID3D11RenderTargetView* finalRTV;
     extern ID3D11Texture2D* finalTexture;
@@ -66,6 +84,7 @@ namespace PostEffect
     void Release();
     void ReleaseRTVDepth();
     void UpdateFogConstantBuffer(ID3D11DeviceContext*& DeviceContext, FFogConstants newFog);
+    void UpdateCameraConstantBuffer(ID3D11DeviceContext*& DeviceContext);
     void CopyBackBufferToColorSRV(ID3D11DeviceContext*& DeviceContext, ID3D11Texture2D*& ColorTexture, ID3D11Texture2D*& FrameBuffer);
 
     // Depth Stencil Buffer를 Depth Map Texture에 복사

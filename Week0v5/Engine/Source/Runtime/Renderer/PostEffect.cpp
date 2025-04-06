@@ -1,9 +1,17 @@
+#define _TCHAR_DEFINED  // TCHAR 재정의 에러 때문
+
 #include "PostEffect.h"
 #include <iostream>
 #include <d3dcompiler.h>
+
+#include "EditorEngine.h"
 #include "D3D11RHI/GraphicDevice.h"
+#include "LevelEditor/SLevelEditor.h"
+#include "UnrealEd/EditorViewportClient.h"
 
 #define SAFE_RELEASE(x) if (x) { x->Release(); x = nullptr; }
+
+extern UEditorEngine* GEngine;
 
 namespace PostEffect
 {
@@ -64,7 +72,7 @@ namespace PostEffect
     ID3D11VertexShader* PostEffectVS;
     ID3D11PixelShader* PostEffectPS;
     ID3D11Buffer* FogConstantBuffer = nullptr;
-    ID3D11Buffer* GlobalConstantBuffer = nullptr;
+    ID3D11Buffer* CameraConstantBuffer = nullptr;
 
 
     ID3D11RenderTargetView* finalRTV;
@@ -103,13 +111,13 @@ void PostEffect::InitBuffers(ID3D11Device*& Device)
     
     D3D11_BUFFER_DESC cbGlobalDesc;
     ZeroMemory(&cbGlobalDesc, sizeof(cbGlobalDesc));
-    cbGlobalDesc.ByteWidth = sizeof(GlobalConstants); // 64바이트
+    cbGlobalDesc.ByteWidth = sizeof(FCameraConstants); // 64바이트
     cbGlobalDesc.Usage = D3D11_USAGE_DYNAMIC;
     cbGlobalDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
     cbGlobalDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
     cbGlobalDesc.MiscFlags = 0;
     
-    hr = Device->CreateBuffer(&cbGlobalDesc, nullptr, &GlobalConstantBuffer);
+    hr = Device->CreateBuffer(&cbGlobalDesc, nullptr, &CameraConstantBuffer);
     if (FAILED(hr))
     {
         OutputDebugString(L"Failed to create GlobalConstantBuffer\n");
@@ -227,11 +235,12 @@ void PostEffect::Render(ID3D11DeviceContext*& DeviceContext, ID3D11ShaderResourc
     DeviceContext->PSSetShaderResources(10, 1, &ColorSRV);                   // SRV
     DeviceContext->PSSetShaderResources(11, 1, &DepthOnlySRV);  
     
-    DeviceContext->PSSetConstantBuffers(0, 1, &GlobalConstantBuffer);       // 상수 버퍼
+    DeviceContext->PSSetConstantBuffers(0, 1, &CameraConstantBuffer);       // 상수 버퍼
     DeviceContext->PSSetConstantBuffers(1, 1, &FogConstantBuffer);
 
 
     UpdateFogConstantBuffer(DeviceContext, Fog);
+    UpdateCameraConstantBuffer(DeviceContext);
     DeviceContext->PSSetSamplers(0, 1, &PostEffectSampler);                 // Sampler      
     DeviceContext->Draw(6, 0);
 }
@@ -251,7 +260,7 @@ void PostEffect::Release()
 
     SAFE_RELEASE(PostEffectInputLayout);            // Input Layout
     SAFE_RELEASE(FogConstantBuffer);                // Vertex Buffer
-    SAFE_RELEASE(GlobalConstantBuffer);             // 역투영 등의 Constant Buffer
+    SAFE_RELEASE(CameraConstantBuffer);             // 역투영 등의 Constant Buffer
 
     
     SAFE_RELEASE(PostEffectSampler);                // Sampler
@@ -285,6 +294,23 @@ void PostEffect::UpdateFogConstantBuffer(ID3D11DeviceContext*& DeviceContext, FF
         constants->mode = newFog.mode;
         constants->fogColor = newFog.fogColor;
         constants->depthScale = newFog.depthScale;
+    }
+    DeviceContext->Unmap(FogConstantBuffer, 0);
+}
+
+void PostEffect::UpdateCameraConstantBuffer(ID3D11DeviceContext*& DeviceContext)
+{
+    if (!CameraConstantBuffer) return;
+    std::shared_ptr<FEditorViewportClient> EditorViewport = GEngine->GetLevelEditor()->GetActiveViewportClient();
+    D3D11_MAPPED_SUBRESOURCE mappedResource;
+    DeviceContext->Map(CameraConstantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+    {
+        FCameraConstants* constants = static_cast<FCameraConstants*>(mappedResource.pData);
+        constants->invProj = FMatrix::Transpose(FMatrix::Inverse(EditorViewport->GetProjectionMatrix()));
+        constants->invView = FMatrix::Transpose(FMatrix::Inverse(EditorViewport->GetViewMatrix()));
+        constants->eyeWorld = EditorViewport->ViewTransformPerspective.GetLocation();
+        constants->camNear = EditorViewport->nearPlane;
+        constants->camFar = EditorViewport->farPlane;
     }
     DeviceContext->Unmap(FogConstantBuffer, 0);
 }
