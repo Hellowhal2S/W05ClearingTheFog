@@ -33,7 +33,7 @@ void PropertyEditorPanel::Render()
     /* Panel Position */
     ImGui::SetNextWindowPos(ImVec2(PanelPosX, PanelPosY), ImGuiCond_Always);
 
-    /* Panel Size */
+    /* Panel Size */    
     ImGui::SetNextWindowSize(ImVec2(PanelWidth, PanelHeight), ImGuiCond_Always);
 
     /* Panel Flags */
@@ -44,6 +44,13 @@ void PropertyEditorPanel::Render()
     
     AEditorPlayer* player = GEngine->GetWorld()->GetEditorPlayer();
     AActor* PickedActor = GEngine->GetWorld()->GetSelectedActor();
+
+    if (PickedActor && PickedActor != LastActor)
+    {
+        PickedComponent = PickedActor->GetRootComponent();
+    }
+
+    LastActor = PickedActor;
 
     // TODO: 추후에 RTTI를 이용해서 프로퍼티 출력하기
     if (PickedActor)
