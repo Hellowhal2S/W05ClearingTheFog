@@ -8,7 +8,6 @@
 
 #include "EngineBaseTypes.h"
 
-#include "Core/HAL/PlatformType.h"
 #include "Core/Math/Vector4.h"
 
 class FGraphicsDevice {
@@ -18,12 +17,16 @@ public:
     IDXGISwapChain* SwapChain = nullptr;
     ID3D11Texture2D* FrameBuffer = nullptr;
     ID3D11Texture2D* UUIDFrameBuffer = nullptr;
-    ID3D11RenderTargetView* RTVs[2];
+    ID3D11RenderTargetView* RTVs[4];
     ID3D11RenderTargetView* FrameBufferRTV = nullptr;
     ID3D11RenderTargetView* UUIDFrameBufferRTV = nullptr;
     ID3D11RasterizerState* RasterizerStateSOLID = nullptr;
     ID3D11RasterizerState* RasterizerStateWIREFRAME = nullptr;
     DXGI_SWAP_CHAIN_DESC SwapchainDesc;
+
+    // Post Process 관련
+    ID3D11Texture2D* ColorTexture;          // 백버퍼를 복사하기 위한 텍스처 (백버퍼는 직접 SRV로 사용할 수 없음)
+    ID3D11ShaderResourceView* ColorSRV;     // 백버퍼를 복사한 원본 컬러의 SRV
 
     
     UINT screenWidth = 0;
@@ -49,14 +52,14 @@ public:
     void Release();
     void SwapBuffer();
     void Prepare();
-    void Prepare(D3D11_VIEWPORT* viewport);
+
     void OnResize(HWND hWindow);
     ID3D11RasterizerState* GetCurrentRasterizer() { return CurrentRasterizer; }
     void ChangeRasterizer(EViewModeIndex evi);
     void ChangeDepthStencilState(ID3D11DepthStencilState* newDetptStencil);
 
-    uint32 GetPixelUUID(POINT pt);
-    uint32 DecodeUUIDColor(FVector4 UUIDColor);
+    unsigned int GetPixelUUID(POINT pt);
+    unsigned int DecodeUUIDColor(FVector4 UUIDColor);
 private:
     ID3D11RasterizerState* CurrentRasterizer = nullptr;
 };

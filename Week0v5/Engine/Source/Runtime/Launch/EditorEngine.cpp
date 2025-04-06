@@ -11,6 +11,8 @@
 #include "LevelEditor/SLevelEditor.h"
 #include "UnrealEd/SceneMgr.h"
 
+#include "Renderer/PostEffect.h" // 후처리용 : FrameBuffer 안의 내용을 ColorSRV로 복사 후, PostEffect::Render 호출
+
 
 class ULevel;
 
@@ -37,7 +39,6 @@ int32 UEditorEngine::Init(HWND hwnd)
     UIMgr = new UImGuiManager;
     UIMgr->Initialize(hWnd, graphicDevice.Device, graphicDevice.DeviceContext);
     resourceMgr.Initialize(&renderer, &graphicDevice);
-
     
     FWorldContext EditorContext;
     EditorContext.WorldType = EWorldType::Editor;
@@ -77,12 +78,27 @@ void UEditorEngine::Render()
             renderer.Render(GWorld,LevelEditor->GetActiveViewportClient());
         }
         GetLevelEditor()->SetViewportClient(viewportClient);
-    }
+    }   
     else
     {
         renderer.PrepareRender();
         renderer.Render(GWorld,LevelEditor->GetActiveViewportClient());
     }
+
+    // OMSEtrender - depth용 pass
+
+
+    // 화면에 그려진 백버퍼의 내용을 SRV로 쓰기 위해 ColorTexture에 복사
+    //graphicDevice.DeviceContext->ClearRenderTargetView(graphicDevice.FrameBufferRTV, graphicDevice.ClearColor);
+    PostEffect::CopyBackBufferToColorSRV(graphicDevice.DeviceContext, graphicDevice.ColorTexture, graphicDevice.FrameBuffer);
+    PostEffect::CopyDepthBufferToDepthOnlySRV(graphicDevice.DeviceContext, graphicDevice.DepthStencilBuffer);
+        
+    //graphicDevice.DeviceContext->ClearRenderTargetView(graphicDevice.FrameBufferRTV, graphicDevice.ClearColor); // 비동기이므로 위험함
+    PostEffect::Render(graphicDevice.DeviceContext, graphicDevice.ColorSRV);
+
+    //graphicDevice.DeviceContext->OMSetRenderTargets(1, &graphicDevice.FrameBufferRTV, nullptr);
+    //graphicDevice.DeviceContext->CopyResource(graphicDevice.FrameBuffer, PostEffect::finalTexture);
+    // PostEffect::Render(ColorSRV, DepthOnlySRV, WorldPosSRV)
 }
 
 void UEditorEngine::Tick(float deltaSeconds)

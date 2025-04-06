@@ -24,6 +24,12 @@ private:
 
     float* FOV = nullptr;
     float CameraSpeed = 0.0f;
-    float GridScale = 1.0f;  
+    float GridScale = 1.0f;
+    float FogStart = 0.0f;
+    float FogFalloff = 0.0f;
+    float FogDensity = 0.0f;
+    int FogMode = 0;
+    float DepthScale = 1.0f;
+    
 };
 

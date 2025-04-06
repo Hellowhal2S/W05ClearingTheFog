@@ -20,6 +20,7 @@
 #include "PropertyEditor/ShowFlags.h"
 #include "UObject/UObjectIterator.h"
 #include "Components/SkySphereComponent.h"
+#include "PostEffect.h"
 
 void FRenderer::Initialize(FGraphicsDevice* graphics)
 {
@@ -28,6 +29,7 @@ void FRenderer::Initialize(FGraphicsDevice* graphics)
     CreateTextureShader();
     CreateLineShader();
     CreateConstantBuffers();
+    PostEffect::InitCommonStates(Graphics);
 }
 
 void FRenderer::Release()
@@ -36,6 +38,8 @@ void FRenderer::Release()
     ReleaseTextureShader();
     ReleaseLineShader();
     ReleaseConstantBuffers();
+
+    PostEffect::Release();
 }
 
 void FRenderer::CreateShader()
@@ -1086,8 +1090,8 @@ void FRenderer::Render(UWorld* World, std::shared_ptr<FEditorViewportClient> Act
     if (ActiveViewport->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::SF_BillboardText))
     {
         RenderBillboards(World, ActiveViewport);
-    }
-    RenderLight(World, ActiveViewport);
+    if (LightObjs.Num() > 0)
+        RenderLight(World, ActiveViewport);
     
     ClearRenderArr();
 }
@@ -1256,6 +1260,11 @@ void FRenderer::RenderBillboards(UWorld* World, std::shared_ptr<FEditorViewportC
             );
         }
     }
+}
+
+void FRenderer::RenderPostProcess()
+{
+    
 }
 
 void FRenderer::RenderLight(UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport)

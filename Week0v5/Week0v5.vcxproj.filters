@@ -420,6 +420,7 @@
     <ClInclude Include="Engine\Source\Runtime\Launch\EditorEngine.h" />
     <ClInclude Include="Engine\Source\Runtime\Launch\LaunchEngineLoop.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\ShaderConstants.h" />
+    <ClInclude Include="Engine\Source\Runtime\Renderer\PostEffect.h" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine\Source\ThirdParty\DirectXTK\Include\DDSTextureLoader.h" />
@@ -503,6 +504,8 @@
     <FxCompile Include="Shaders\StaticMeshPixelShader.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
+    <FxCompile Include="Shaders\SamplingVS.hlsl" />
+    <FxCompile Include="Shaders\PostEffectPS.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="Week0v5.natvis" />
@@ -515,6 +518,8 @@
     <ClCompile Include="Engine\Source\Runtime\Engine\UnrealEngine.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Launch\LaunchEngineLoop.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Launch\EditorEngine.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Renderer\PostEffect.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Renderer\PostEffect.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\ShaderConstants.hlsli">

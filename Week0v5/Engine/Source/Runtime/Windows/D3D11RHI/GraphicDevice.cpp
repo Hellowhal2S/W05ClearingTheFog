@@ -1,5 +1,8 @@
 #include "GraphicDevice.h"
 #include <wchar.h>
+#include "Core/HAL/PlatformType.h"
+#include "Renderer/PostEffect.h"
+
 void FGraphicsDevice::Initialize(HWND hWindow) {
     CreateDeviceAndSwapChain(hWindow);
     CreateFrameBuffer();
@@ -57,7 +60,7 @@ void FGraphicsDevice::CreateDepthStencilBuffer(HWND hWindow) {
     descDepth.Height = height; // 텍스처 높이 설정
     descDepth.MipLevels = 1; // 미맵 레벨 수 (1로 설정하여 미맵 없음)
     descDepth.ArraySize = 1; // 텍스처 배열의 크기 (1로 단일 텍스처)
-    descDepth.Format = DXGI_FORMAT_D24_UNORM_S8_UINT; // 24비트 깊이와 8비트 스텐실을 위한 포맷
+    descDepth.Format = DXGI_FORMAT_R32_TYPELESS; // 24비트 깊이와 8비트 스텐실을 위한 포맷
     descDepth.SampleDesc.Count = 1; // 멀티샘플링 설정 (1로 단일 샘플)
     descDepth.SampleDesc.Quality = 0; // 샘플 퀄리티 설정
     descDepth.Usage = D3D11_USAGE_DEFAULT; // 텍스처 사용 방식
@@ -75,7 +78,7 @@ void FGraphicsDevice::CreateDepthStencilBuffer(HWND hWindow) {
 
     D3D11_DEPTH_STENCIL_VIEW_DESC descDSV;
     ZeroMemory(&descDSV, sizeof(descDSV));
-    descDSV.Format = DXGI_FORMAT_D24_UNORM_S8_UINT; // 깊이 스텐실 포맷
+    descDSV.Format = DXGI_FORMAT_D32_FLOAT; // 깊이 스텐실 포맷
     descDSV.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D; // 뷰 타입 설정 (2D 텍스처)
     descDSV.Texture2D.MipSlice = 0; // 사용할 미맵 슬라이스 설정
 
@@ -174,15 +177,49 @@ void FGraphicsDevice::ReleaseDeviceAndSwapChain()
 
 void FGraphicsDevice::CreateFrameBuffer()
 {
-    // 스왑 체인으로부터 백 버퍼 텍스처 가져오기
-    SwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&FrameBuffer);
+    // [Deprecated] : 스왑 체인으로부터 백 버퍼 텍스처 가져오기 (앞으로 final 버퍼에서 사용)
+    //SwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&FrameBuffer);
+    D3D11_TEXTURE2D_DESC texDesc = {};
+    texDesc.Width = screenWidth;
+    texDesc.Height = screenHeight;
+    texDesc.MipLevels = 1;
+    texDesc.ArraySize = 1;
+    texDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;
+    texDesc.SampleDesc.Count = 1;
+    texDesc.Usage = D3D11_USAGE_DEFAULT;
+    texDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
 
+    HRESULT hr = Device->CreateTexture2D(&texDesc, nullptr, &FrameBuffer);
+    
     // 렌더 타겟 뷰 생성
     D3D11_RENDER_TARGET_VIEW_DESC framebufferRTVdesc = {};
     framebufferRTVdesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM_SRGB; // 색상 포맷
     framebufferRTVdesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D; // 2D 텍스처
 
     Device->CreateRenderTargetView(FrameBuffer, &framebufferRTVdesc, &FrameBufferRTV);
+
+    // ------------------- Post Process용 텍스처 / SRV 생성 ----------------------
+    D3D11_TEXTURE2D_DESC bbDesc = {};
+    FrameBuffer->GetDesc(&bbDesc);      // 백버퍼의 포맷과 일치시키기 위하여 백버퍼의 텍스처 설명을 가져옴
+
+    //D3D11_TEXTURE2D_DESC texDesc = {};
+    //texDesc.Width = screenWidth;
+    //texDesc.Height = screenHeight;
+    //texDesc.MipLevels = 1;
+    //texDesc.ArraySize = 1;
+    //texDesc.Format = bbDesc.Format;            // 선형 포맷 (sRGB)
+    //texDesc.SampleDesc.Count = 1;                           // 멀티샘플 아님
+    //texDesc.Usage = D3D11_USAGE_DEFAULT;
+    //texDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;  // 원본 컬러 텍스처를 SRV로 사용가능토록 플래그 설정
+    Device->CreateTexture2D(&texDesc, nullptr, &ColorTexture);
+
+    D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+    srvDesc.Format = texDesc.Format;
+    srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+    srvDesc.Texture2D.MostDetailedMip = 0;
+    srvDesc.Texture2D.MipLevels = 1;
+    Device->CreateShaderResourceView(ColorTexture, &srvDesc, &ColorSRV);
+    // ------------------- Post Process용 텍스처 / SRV 생성 END ----------------------
     
     D3D11_TEXTURE2D_DESC textureDesc = {};
     textureDesc.Width = screenWidth;
@@ -202,8 +239,14 @@ void FGraphicsDevice::CreateFrameBuffer()
 
     Device->CreateRenderTargetView(UUIDFrameBuffer, &UUIDFrameBufferRTVDesc, &UUIDFrameBufferRTV);
 
+    // 기존 RTV
     RTVs[0] = FrameBufferRTV;
     RTVs[1] = UUIDFrameBufferRTV;
+    
+    // Post Effect
+    RTVs[2] = PostEffect::WorldPosRTV;
+    RTVs[3] = PostEffect::WorldNormalRTV;
+
 }
 
 void FGraphicsDevice::ReleaseFrameBuffer()
@@ -286,9 +329,12 @@ void FGraphicsDevice::SwapBuffer() {
 }
 void FGraphicsDevice::Prepare()
 {
+    // 후처리용 RTV 클리어
+    //DeviceContext->ClearRenderTargetView(PostEffect::finalRTV, ClearColor);
+
     DeviceContext->ClearRenderTargetView(FrameBufferRTV, ClearColor); // 렌더 타겟 뷰에 저장된 이전 프레임 데이터를 삭제
     DeviceContext->ClearRenderTargetView(UUIDFrameBufferRTV, ClearColor); // 렌더 타겟 뷰에 저장된 이전 프레임 데이터를 삭제
-    DeviceContext->ClearDepthStencilView(DepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0); // 깊이 버퍼 초기화 추가
+    DeviceContext->ClearDepthStencilView(DepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0); // 깊이 버퍼 초기화 추가
 
     DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST); // 정정 연결 방식 설정
 
@@ -297,26 +343,9 @@ void FGraphicsDevice::Prepare()
 
     DeviceContext->OMSetDepthStencilState(DepthStencilState, 0);
 
-    DeviceContext->OMSetRenderTargets(2, RTVs, DepthStencilView); // 렌더 타겟 설정(백버퍼를 가르킴)
+    DeviceContext->OMSetRenderTargets(4, RTVs, DepthStencilView); // 렌더 타겟 설정(백버퍼를 가르킴)
     DeviceContext->OMSetBlendState(nullptr, nullptr, 0xffffffff); // 블렌뎅 상태 설정, 기본블렌딩 상태임
 }
-
-void FGraphicsDevice::Prepare(D3D11_VIEWPORT* viewport)
-{
-    DeviceContext->ClearRenderTargetView(FrameBufferRTV, ClearColor); // 렌더 타겟 뷰에 저장된 이전 프레임 데이터를 삭제
-    DeviceContext->ClearDepthStencilView(DepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0); // 깊이 버퍼 초기화 추가
-
-    DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST); // 정정 연결 방식 설정
-
-    DeviceContext->RSSetViewports(1, viewport); // GPU가 화면을 렌더링할 영역 설정
-    DeviceContext->RSSetState(CurrentRasterizer); //레스터 라이저 상태 설정
-
-    DeviceContext->OMSetDepthStencilState(DepthStencilState, 0);
-
-    DeviceContext->OMSetRenderTargets(1, &FrameBufferRTV, DepthStencilView); // 렌더 타겟 설정(백버퍼를 가르킴)
-    DeviceContext->OMSetBlendState(nullptr, nullptr, 0xffffffff); // 블렌뎅 상태 설정, 기본블렌딩 상태임
-}
-
 
 void FGraphicsDevice::OnResize(HWND hWindow) {
     DeviceContext->OMSetRenderTargets(0, RTVs, 0);
@@ -333,9 +362,8 @@ void FGraphicsDevice::OnResize(HWND hWindow) {
     }
 
     ReleaseFrameBuffer();
-
-
-
+    PostEffect::ReleaseRTVDepth();
+    
     if (screenWidth == 0 || screenHeight == 0) {
         MessageBox(hWindow, L"Invalid width or height for ResizeBuffers!", L"Error", MB_ICONERROR | MB_OK);
         return;
@@ -353,11 +381,10 @@ void FGraphicsDevice::OnResize(HWND hWindow) {
     screenWidth = SwapchainDesc.BufferDesc.Width;
     screenHeight = SwapchainDesc.BufferDesc.Height;
 
+    PostEffect::InitRenderTargetViews(this); // Pass the object as a reference
+    PostEffect::InitDepthTextures(this);
     CreateFrameBuffer();
     CreateDepthStencilBuffer(hWindow);
-
-
-
 }
 
 
