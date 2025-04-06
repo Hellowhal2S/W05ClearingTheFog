@@ -10,8 +10,8 @@ SamplerState Sampler : register(s0); // Linear Clamp Sampler
 
 cbuffer CameraConstants : register(b0)
 {
-    float4x4 invProj; // Projection matrix의 역행렬
-    float4x4 invView;
+    row_major float4x4 invProj; // Projection matrix의 역행렬
+    row_major float4x4 invView;
     float3 eyeWorld;
     float camNear;
     float camFar;

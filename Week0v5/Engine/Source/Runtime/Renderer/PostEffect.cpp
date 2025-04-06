@@ -360,6 +360,8 @@ void PostEffect::UpdateCameraConstantBuffer(ID3D11DeviceContext*& DeviceContext)
         FCameraConstants* constants = static_cast<FCameraConstants*>(mappedResource.pData);
         constants->invProj = FMatrix::Transpose(FMatrix::Inverse(EditorViewport->GetProjectionMatrix()));
         constants->invView = FMatrix::Transpose(FMatrix::Inverse(EditorViewport->GetViewMatrix()));
+        // constants->invProj = FMatrix::Identity;
+        // constants->invView = FMatrix::Identity;
         constants->eyeWorld = EditorViewport->ViewTransformPerspective.GetLocation();
         constants->camNear = EditorViewport->nearPlane;
         constants->camFar = EditorViewport->farPlane;
