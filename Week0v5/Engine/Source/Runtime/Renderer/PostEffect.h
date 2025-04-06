@@ -58,9 +58,10 @@ namespace PostEffect
     void InitShaders(ID3D11Device*& Device);
     void InitTextures(FGraphicsDevice*& Graphics);
     void InitDepthStencilStates(ID3D11Device*& Device);
-    void InitRenderTargetViews(FGraphicsDevice*& Graphics);
+    void InitRenderTargetViews(FGraphicsDevice * Graphics);
     void Render(ID3D11DeviceContext*& DeviceContext, ID3D11ShaderResourceView*& ColorSRV);
     void Release();
+    void ReleaseFinalRTV();
     void UpdateFogConstantBuffer(ID3D11DeviceContext*& DeviceContext, FFogConstants newFog);
     void CopyBackBufferToColorSRV(ID3D11DeviceContext*& DeviceContext, ID3D11Texture2D*& ColorTexture, ID3D11Texture2D*& FrameBuffer);
 

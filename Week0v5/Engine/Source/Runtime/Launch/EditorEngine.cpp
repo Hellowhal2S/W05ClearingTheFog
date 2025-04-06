@@ -92,9 +92,12 @@ void UEditorEngine::Render()
     //graphicDevice.DeviceContext->ClearRenderTargetView(graphicDevice.FrameBufferRTV, graphicDevice.ClearColor);
     PostEffect::CopyBackBufferToColorSRV(graphicDevice.DeviceContext, graphicDevice.ColorTexture, graphicDevice.FrameBuffer);
     PostEffect::CopyDepthBufferToDepthOnlySRV(graphicDevice.DeviceContext, graphicDevice.DepthStencilBuffer);
-
-    //graphicDevice.DeviceContext->ClearRenderTargetView(graphicDevice.FrameBufferRTV, graphicDevice.ClearColor);
+        
+    //graphicDevice.DeviceContext->ClearRenderTargetView(graphicDevice.FrameBufferRTV, graphicDevice.ClearColor); // 비동기이므로 위험함
     PostEffect::Render(graphicDevice.DeviceContext, graphicDevice.ColorSRV);
+
+    //graphicDevice.DeviceContext->OMSetRenderTargets(1, &graphicDevice.FrameBufferRTV, nullptr);
+    //graphicDevice.DeviceContext->CopyResource(graphicDevice.FrameBuffer, PostEffect::finalTexture);
     // PostEffect::Render(ColorSRV, DepthOnlySRV, WorldPosSRV)
 }
 

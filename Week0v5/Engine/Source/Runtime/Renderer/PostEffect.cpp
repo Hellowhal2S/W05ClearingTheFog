@@ -188,30 +188,15 @@ void PostEffect::InitTextures(FGraphicsDevice*& Graphics)
     ThrowIfFailed(Graphics->Device->CreateShaderResourceView(DepthOnlyTexture, &srvDesc, &DepthOnlySRV));        // Depth Texture를 셰이더로 보내기 위해 SRV로 제작
 }
 
-void PostEffect::InitRenderTargetViews(FGraphicsDevice*& Graphics)
+void PostEffect::InitRenderTargetViews(FGraphicsDevice* Graphics)
 {
-    D3D11_TEXTURE2D_DESC texDesc = {};
-    texDesc.Width = Graphics->screenWidth;
-    texDesc.Height = Graphics->screenHeight;
-    texDesc.MipLevels = 1;
-    texDesc.ArraySize = 1;
-    texDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;
-    texDesc.SampleDesc.Count = 1;
-    texDesc.Usage = D3D11_USAGE_DEFAULT;
-    texDesc.BindFlags = D3D11_BIND_RENDER_TARGET;
-    
-    HRESULT hr =Graphics->Device->CreateTexture2D(&texDesc, nullptr, &finalTexture);
-    if (FAILED(hr))
-    {
-        OutputDebugString(L"Failed to create finalTexture in InitRenderTargetViews\n");
-        return;
-    }
+    Graphics->SwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&finalTexture);
     
     D3D11_RENDER_TARGET_VIEW_DESC rtvDesc = {};
-    rtvDesc.Format = texDesc.Format;
+    rtvDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;
     rtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
     
-    hr = Graphics->Device->CreateRenderTargetView(finalTexture, &rtvDesc, &finalRTV);
+    HRESULT hr = Graphics->Device->CreateRenderTargetView(finalTexture, &rtvDesc, &finalRTV);
     if (FAILED(hr))
     {
         OutputDebugString(L"Failed to create finalRTV in InitRenderTargetViews\n");
@@ -230,9 +215,10 @@ void PostEffect::Render(ID3D11DeviceContext*& DeviceContext, ID3D11ShaderResourc
     // Draw
     // Sampler
     //ClearCommBreak
-    FLOAT ClearColor[4] = { 0.025f, 0.025f, 0.025f, 1.0f };
-    DeviceContext->ClearRenderTargetView(finalRTV, ClearColor); // Clear Color
-
+    FLOAT ClearColor[4] = { 1.0f, 0.025f, 0.025f, 1.0f };
+    //DeviceContext->ClearRenderTargetView(finalRTV, ClearColor); // Clear Color
+    DeviceContext->OMSetRenderTargets(1, &finalRTV, nullptr);
+    DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     DeviceContext->VSSetShader(PostEffectVS, nullptr, 0);
     DeviceContext->PSSetShader(PostEffectPS, nullptr, 0);
     DeviceContext->IASetInputLayout(PostEffectInputLayout);
@@ -245,7 +231,6 @@ void PostEffect::Render(ID3D11DeviceContext*& DeviceContext, ID3D11ShaderResourc
     DeviceContext->PSSetShaderResources(11, 1, &DepthOnlySRV);  
 
     UpdateFogConstantBuffer(DeviceContext, Fog);
-    DeviceContext->OMSetRenderTargets(1, &finalRTV, nullptr);
     DeviceContext->PSSetSamplers(0, 1, &PostEffectSampler);                 // Sampler      
     DeviceContext->Draw(6, 0);
 }
@@ -271,6 +256,12 @@ void PostEffect::Release()
     SAFE_RELEASE(PostEffectSampler);                // Sampler
     SAFE_RELEASE(PostEffectPS);                     // Pixel Shader
     SAFE_RELEASE(PostEffectVS);                     // Vertex Shader     
+}
+
+void PostEffect::ReleaseFinalRTV()
+{
+    SAFE_RELEASE(finalRTV);
+    SAFE_RELEASE(finalTexture);
 }
 
 void PostEffect::UpdateFogConstantBuffer(ID3D11DeviceContext*& DeviceContext, FFogConstants newFog)
@@ -301,3 +292,4 @@ void PostEffect::CopyDepthBufferToDepthOnlySRV(ID3D11DeviceContext*& DeviceConte
 {
     DeviceContext->CopyResource(DepthOnlyTexture, SrcDepthTexture);
 }
+
