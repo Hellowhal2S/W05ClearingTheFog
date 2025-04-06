@@ -357,7 +357,7 @@ void FGraphicsDevice::OnResize(HWND hWindow) {
     }
 
     ReleaseFrameBuffer();
-    PostEffect::ReleaseFinalRTV();
+    PostEffect::ReleaseRTVDepth();
     
     if (screenWidth == 0 || screenHeight == 0) {
         MessageBox(hWindow, L"Invalid width or height for ResizeBuffers!", L"Error", MB_ICONERROR | MB_OK);
@@ -377,6 +377,7 @@ void FGraphicsDevice::OnResize(HWND hWindow) {
     screenHeight = SwapchainDesc.BufferDesc.Height;
 
     PostEffect::InitRenderTargetViews(this); // Pass the object as a reference
+    PostEffect::InitDepthTextures(this);
     CreateFrameBuffer();
     CreateDepthStencilBuffer(hWindow);
 }

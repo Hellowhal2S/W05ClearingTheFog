@@ -76,7 +76,8 @@ void PostEffect::InitCommonStates(FGraphicsDevice*& Graphics)
 {
     InitBuffers(Graphics->Device);
     InitShaders(Graphics->Device);                
-    InitTextures(Graphics);
+    //InitTextures(Graphics);
+    InitDepthTextures(Graphics);
     //InitDepthStencilStates(Device);
     InitRenderTargetViews(Graphics);
 }
@@ -148,12 +149,15 @@ void PostEffect::InitShaders(ID3D11Device*& Device)
 
     Device->CreateSamplerState(&samplerDesc, &PostEffectSampler);
 }
+void PostEffect::InitTextures(FGraphicsDevice*& Graphics)
+{
+}
 void PostEffect::InitDepthStencilStates(ID3D11Device*& Device)
 {
     
 }
 
-void PostEffect::InitTextures(FGraphicsDevice*& Graphics)
+void PostEffect::InitDepthTextures(FGraphicsDevice* Graphics)
 {
     // Depth 전용
     D3D11_TEXTURE2D_DESC desc;
@@ -165,9 +169,6 @@ void PostEffect::InitTextures(FGraphicsDevice*& Graphics)
     desc.Usage = D3D11_USAGE_DEFAULT;
     desc.CPUAccessFlags = 0;
     desc.MiscFlags = 0;
-    // desc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-    // Device->CreateDepthStencilView(DepthOnlyTexture, NULL, &DepthOnlyDSV);
-
     desc.Format = DXGI_FORMAT_R32_TYPELESS;
     desc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;                            // Depth Texture는 SRV로 사용이 가능해야 함
     desc.SampleDesc.Count = 1;
@@ -223,12 +224,12 @@ void PostEffect::Render(ID3D11DeviceContext*& DeviceContext, ID3D11ShaderResourc
     DeviceContext->PSSetShader(PostEffectPS, nullptr, 0);
     DeviceContext->IASetInputLayout(PostEffectInputLayout);
 
+    DeviceContext->PSSetShaderResources(10, 1, &ColorSRV);                   // SRV
+    DeviceContext->PSSetShaderResources(11, 1, &DepthOnlySRV);  
     
     DeviceContext->PSSetConstantBuffers(0, 1, &GlobalConstantBuffer);       // 상수 버퍼
     DeviceContext->PSSetConstantBuffers(1, 1, &FogConstantBuffer);
 
-    DeviceContext->PSSetShaderResources(10, 1, &ColorSRV);                   // SRV
-    DeviceContext->PSSetShaderResources(11, 1, &DepthOnlySRV);  
 
     UpdateFogConstantBuffer(DeviceContext, Fog);
     DeviceContext->PSSetSamplers(0, 1, &PostEffectSampler);                 // Sampler      
@@ -257,13 +258,18 @@ void PostEffect::Release()
     SAFE_RELEASE(PostEffectPS);                     // Pixel Shader
     SAFE_RELEASE(PostEffectVS);                     // Vertex Shader     
 
-    ReleaseFinalRTV();
+    ReleaseRTVDepth();
 }
 
-void PostEffect::ReleaseFinalRTV()
+void PostEffect::ReleaseRTVDepth()
 {
     SAFE_RELEASE(finalRTV);
     SAFE_RELEASE(finalTexture);
+    
+    SAFE_RELEASE(DepthOnlyRTV);                     // Depth Texture RTV    
+    SAFE_RELEASE(DepthOnlyTexture);                 // Depth Texture
+    SAFE_RELEASE(DepthOnlySRV);                     // Depth Only Texture
+    SAFE_RELEASE(DepthOnlyDSV);                     // Depth Only Stencil View
 }
 
 void PostEffect::UpdateFogConstantBuffer(ID3D11DeviceContext*& DeviceContext, FFogConstants newFog)

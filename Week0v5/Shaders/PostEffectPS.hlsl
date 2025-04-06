@@ -43,10 +43,23 @@ float4 TexcoordToView(float2 texcoord)
     return posView;
 }
 
+float LinearizeAndNormalizeDepth(float z_buffer, float nearZ, float farZ)
+{
+    float linearizedZ = (nearZ * farZ) / (farZ - z_buffer * (farZ - nearZ));
+    return saturate((linearizedZ - nearZ) / (farZ - nearZ));
+
+}
+
 float4 mainPS(SamplingPixelShaderInput input) : SV_TARGET
 {
     //return float4(1.0f, 0.0f, 0.0f, 1.0f); // TODO: 수정 필요)
-    return float4(depthOnlyTex.Sample(Sampler, input.texcoord).rrr,1.0f);
+    //return float4(renderTex.Sample(Sampler, input.texcoord).rgb,1.0f);
+    float depth = depthOnlyTex.Sample(Sampler, input.texcoord).r;
+    depth = LinearizeAndNormalizeDepth(depth, 0.1f, 100.0f);
+    
+    
+    return float4(depth.rrr, 1.0f);
+    
     if (mode == 1)
     {
         float4 posView = TexcoordToView(input.texcoord);
