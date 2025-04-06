@@ -273,7 +273,7 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
             PostEffect::Fog.depthScale = DepthScale;
         }
         ImGui::Spacing();
-        const char* fogModes[] = { "Normal", "Scene Depth" };
+        const char* fogModes[] = { "None", "Normal", "Scene Depth" };
         ImGui::Text("Fog Mode");
         ImGui::SetNextItemWidth(120.0f);
         if (ImGui::Combo("##FogModeCombo", &FogMode, fogModes, IM_ARRAYSIZE(fogModes)))

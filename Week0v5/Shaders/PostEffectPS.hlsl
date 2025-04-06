@@ -18,6 +18,8 @@ cbuffer FogConstants : register(b1)
     float fogDensity;
     int mode; // 1: Rendered image, 2: DepthOnly
     float4 fogColor;
+    float depthScale;
+    float3 padding;
 };
 
 struct SamplingPixelShaderInput
@@ -54,13 +56,17 @@ float4 mainPS(SamplingPixelShaderInput input) : SV_TARGET
 {
     //return float4(1.0f, 0.0f, 0.0f, 1.0f); // TODO: 수정 필요)
     //return float4(renderTex.Sample(Sampler, input.texcoord).rgb,1.0f);
-    float depth = depthOnlyTex.Sample(Sampler, input.texcoord).r;
-    depth = LinearizeAndNormalizeDepth(depth, 0.1f, 100.0f);
+
     
-    
-    return float4(depth.rrr, 1.0f);
-    
-    if (mode == 1)
+    if (mode == 2)
+    {
+        float depth = depthOnlyTex.Sample(Sampler, input.texcoord).r;
+        depth = LinearizeAndNormalizeDepth(depth, 0.1f, 100.0f);
+        
+        return float4(depth.rrr, 1.0f);
+        // TODO: Fog
+    }
+    else // if (mode == 2)
     {
         float4 posView = TexcoordToView(input.texcoord);
         float fogMin = 1.0;
@@ -74,12 +80,5 @@ float4 mainPS(SamplingPixelShaderInput input) : SV_TARGET
         float3 color = renderTex.Sample(Sampler, input.texcoord).rgb;
         color = lerp(fogColor, color, fogFactor);
         return float4(color, 1.0);
-        
-        // TODO: Fog
-    }
-    else // if (mode == 2)
-    {
-        float z = TexcoordToView(input.texcoord).z /* TODO  : 수정 필요 -> 원본 (* depthScale) */;
-        return float4(z, z, z, 1);
     }
 }
