@@ -57,6 +57,9 @@ namespace PostEffect
     ID3D11RenderTargetView* WorldPosRTV;
     ID3D11Texture2D* WorldPosTexture;
     ID3D11ShaderResourceView* WorldPosSRV;
+    ID3D11RenderTargetView* WorldNormalRTV;
+    ID3D11Texture2D* WorldNormalTexture;
+    ID3D11ShaderResourceView* WorldNormalSRV;
     
     ID3D11InputLayout* PostEffectInputLayout;
     ID3D11ShaderResourceView* PostEffectSRV;
@@ -192,7 +195,7 @@ void PostEffect::InitDepthTextures(FGraphicsDevice* Graphics)
 void PostEffect::InitRenderTargetViews(FGraphicsDevice* Graphics)
 {
     Graphics->SwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&finalTexture);
-    
+
     D3D11_RENDER_TARGET_VIEW_DESC rtvDesc = {};
     rtvDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;
     rtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
@@ -206,6 +209,55 @@ void PostEffect::InitRenderTargetViews(FGraphicsDevice* Graphics)
         finalTexture = nullptr;
         return;
     }
+
+#pragma region World Position Texture
+    D3D11_TEXTURE2D_DESC worldPosTexDesc = {};
+    worldPosTexDesc.Width = Graphics->screenWidth;
+    worldPosTexDesc.Height = Graphics->screenHeight;
+    worldPosTexDesc.MipLevels = 1;
+    worldPosTexDesc.ArraySize = 1;
+    worldPosTexDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT; // World position: float4
+    worldPosTexDesc.SampleDesc.Count = 1;
+    worldPosTexDesc.Usage = D3D11_USAGE_DEFAULT;
+    worldPosTexDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+
+    hr = Graphics->Device->CreateTexture2D(&worldPosTexDesc, nullptr, &WorldPosTexture);
+    if (FAILED(hr))
+    {
+        OutputDebugString(L"Failed to create WorldPosTexture in InitWorldPosRenderTarget\n");
+        return;
+    }
+
+    // World Position RTV 생성
+    D3D11_RENDER_TARGET_VIEW_DESC worldPosRTVDesc = {};
+    worldPosRTVDesc.Format = worldPosTexDesc.Format;
+    worldPosRTVDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+
+    hr = Graphics->Device->CreateRenderTargetView(WorldPosTexture, &worldPosRTVDesc, &WorldPosRTV);
+    if (FAILED(hr))
+    {
+        OutputDebugString(L"Failed to create WorldPosRTV in InitWorldPosRenderTarget\n");
+        WorldPosTexture->Release();
+        WorldPosTexture = nullptr;
+        return;
+    }
+
+    // World Position SRV 생성
+    D3D11_SHADER_RESOURCE_VIEW_DESC worldPosSRVDesc = {};
+    worldPosSRVDesc.Format = worldPosTexDesc.Format;
+    worldPosSRVDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+    worldPosSRVDesc.Texture2D.MostDetailedMip = 0;
+    worldPosSRVDesc.Texture2D.MipLevels = worldPosTexDesc.MipLevels;
+
+    hr = Graphics->Device->CreateShaderResourceView(WorldPosTexture, &worldPosSRVDesc, &WorldPosSRV);
+    if (FAILED(hr))
+    {
+        OutputDebugString(L"Failed to create WorldPosSRV in InitWorldPosRenderTarget\n");
+        SAFE_RELEASE(WorldPosRTV);
+        SAFE_RELEASE(WorldPosTexture);
+        return;
+    }
+#pragma endregion
 }
 
 void PostEffect::Render(ID3D11DeviceContext*& DeviceContext, ID3D11ShaderResourceView*& ColorSRV)
@@ -224,9 +276,9 @@ void PostEffect::Render(ID3D11DeviceContext*& DeviceContext, ID3D11ShaderResourc
     DeviceContext->PSSetShader(PostEffectPS, nullptr, 0);
     DeviceContext->IASetInputLayout(PostEffectInputLayout);
 
-    DeviceContext->PSSetShaderResources(10, 1, &ColorSRV);                   // SRV
-    DeviceContext->PSSetShaderResources(11, 1, &DepthOnlySRV);  
-    
+    ID3D11ShaderResourceView* ppSRV[4] = { ColorSRV, DepthOnlySRV, WorldPosSRV, WorldNormalSRV };
+    DeviceContext->PSSetShaderResources(10, 4, ppSRV);                      // SRV
+
     DeviceContext->PSSetConstantBuffers(0, 1, &GlobalConstantBuffer);       // 상수 버퍼
     DeviceContext->PSSetConstantBuffers(1, 1, &FogConstantBuffer);
 
@@ -238,14 +290,7 @@ void PostEffect::Render(ID3D11DeviceContext*& DeviceContext, ID3D11ShaderResourc
 
 void PostEffect::Release()
 {
-    SAFE_RELEASE(DepthOnlyRTV);                     // Depth Texture RTV    
-    SAFE_RELEASE(DepthOnlyTexture);                 // Depth Texture
-    SAFE_RELEASE(DepthOnlySRV);                     // Depth Only Texture
-    SAFE_RELEASE(DepthOnlyDSV);                     // Depth Only Stencil View
-    
-    SAFE_RELEASE(WorldPosRTV);                      // World Position RTV     
-    SAFE_RELEASE(WorldPosSRV);                      // World Position SRV
-    SAFE_RELEASE(WorldPosTexture);                  // World Position Texture
+    ReleaseRTVDepth();
 
     SAFE_RELEASE(PostEffectSRV);                    // 원본 Color SRV
 
@@ -257,14 +302,21 @@ void PostEffect::Release()
     SAFE_RELEASE(PostEffectSampler);                // Sampler
     SAFE_RELEASE(PostEffectPS);                     // Pixel Shader
     SAFE_RELEASE(PostEffectVS);                     // Vertex Shader     
-
-    ReleaseRTVDepth();
 }
 
 void PostEffect::ReleaseRTVDepth()
 {
     SAFE_RELEASE(finalRTV);
     SAFE_RELEASE(finalTexture);
+
+    SAFE_RELEASE(WorldPosRTV);
+    SAFE_RELEASE(WorldPosTexture);
+    SAFE_RELEASE(WorldPosSRV);
+
+    SAFE_RELEASE(WorldNormalRTV);
+    SAFE_RELEASE(WorldNormalTexture);
+    SAFE_RELEASE(WorldNormalSRV);
+
     
     SAFE_RELEASE(DepthOnlyRTV);                     // Depth Texture RTV    
     SAFE_RELEASE(DepthOnlyTexture);                 // Depth Texture

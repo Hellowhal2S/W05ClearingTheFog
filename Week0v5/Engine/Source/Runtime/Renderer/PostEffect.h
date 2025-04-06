@@ -39,6 +39,11 @@ namespace PostEffect
     extern ID3D11Texture2D* WorldPosTexture;
     extern ID3D11ShaderResourceView* WorldPosSRV;
 
+    // World Normal을 담을 Texture
+    extern ID3D11RenderTargetView* WorldNormalRTV;
+    extern ID3D11Texture2D* WorldNormalTexture;
+    extern ID3D11ShaderResourceView* WorldNormalSRV;
+
     // 원본 컬러 값 (Texture)를 변환시켜 SRV로 사용
     extern ID3D11ShaderResourceView* PostEffectSRV;
 
