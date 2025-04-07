@@ -259,7 +259,7 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
         ImGui::Text("Fog Density");
         FogDensity = PostEffect::Fog.fogDensity;
         ImGui::SetNextItemWidth(120.0f);
-        if (ImGui::DragFloat("##FogDensity", &FogDensity, 0.1f, 5.0f, 100.0f, "%.1f"))
+        if (ImGui::DragFloat("##FogDensity", &FogDensity, 0.1f, 0.1f, 100.0f, "%.1f"))
         {
             PostEffect::Fog.fogDensity = FogDensity;
         }
@@ -268,12 +268,12 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
         ImGui::Text("Depth Scale");
         DepthScale = PostEffect::Fog.depthScale;
         ImGui::SetNextItemWidth(120.0f);
-        if (ImGui::DragFloat("##DepthScale", &DepthScale, 0.1f, 5.0f, 100.0f, "%.1f"))
+        if (ImGui::DragFloat("##DepthScale", &DepthScale, 0.1f, 0.1f, 1.0f, "%.1f"))
         {
             PostEffect::Fog.depthScale = DepthScale;
         }
         ImGui::Spacing();
-        const char* fogModes[] = { "None", "Normal", "Scene Depth" };
+        const char* fogModes[] = { "None", "Normal", "Scene Depth", "World Pos" };
         ImGui::Text("Fog Mode");
         ImGui::SetNextItemWidth(120.0f);
         if (ImGui::Combo("##FogModeCombo", &FogMode, fogModes, IM_ARRAYSIZE(fogModes)))

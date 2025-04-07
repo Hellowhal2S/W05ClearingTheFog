@@ -20,7 +20,7 @@ namespace PostEffect
     {
         float heightStart = 0.0f;
         float heightFalloff = 50.0f;
-        float fogDensity = 5.0f;
+        float fogDensity = 0.1f;
         int mode; // 1: Rendered image, 2: DepthOnly
         FVector4 fogColor  = { 1.0f,1.0f,1.0f,1.0f};
         float depthScale = 1.0f;
