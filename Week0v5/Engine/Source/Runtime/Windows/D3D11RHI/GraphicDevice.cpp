@@ -330,7 +330,8 @@ void FGraphicsDevice::SwapBuffer() {
 void FGraphicsDevice::Prepare()
 {
     // 후처리용 RTV 클리어
-    //DeviceContext->ClearRenderTargetView(PostEffect::finalRTV, ClearColor);
+    DeviceContext->ClearRenderTargetView(PostEffect::WorldPosRTV, ClearColor);
+    DeviceContext->ClearRenderTargetView(PostEffect::WorldNormalRTV, ClearColor);
 
     DeviceContext->ClearRenderTargetView(FrameBufferRTV, ClearColor); // 렌더 타겟 뷰에 저장된 이전 프레임 데이터를 삭제
     DeviceContext->ClearRenderTargetView(UUIDFrameBufferRTV, ClearColor); // 렌더 타겟 뷰에 저장된 이전 프레임 데이터를 삭제

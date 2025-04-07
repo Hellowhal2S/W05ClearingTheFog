@@ -12,9 +12,12 @@ struct PSInput {
 
 PSInput main(VSInput input) {
     PSInput output;
-    output.position = mul(float4(input.position, 1.0f), ModelMatrix);
-    output.position = mul(output.position, ViewMatrix);
-    output.position = mul(output.position, ProjMatrix);
+    
+    float4 pos;
+    pos = mul(float4(input.position, 1.0f), ModelMatrix);
+    pos = mul(pos, ViewMatrix);
+    pos = mul(pos, ProjMatrix);
+    output.position = pos;
     
     output.texCoord = input.texCoord;
     

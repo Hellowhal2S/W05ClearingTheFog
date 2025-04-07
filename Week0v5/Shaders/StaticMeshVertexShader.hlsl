@@ -17,6 +17,7 @@ struct PS_INPUT
     bool normalFlag : TEXCOORD0; // 노멀 유효성 플래그 (1.0: 유효, 0.0: 무효)
     float2 texcoord : TEXCOORD1;
     int materialIndex : MATERIAL_INDEX;
+    float4 worldPos : TEXCOORD2; // 월드 좌표
 };
 
 PS_INPUT mainVS(VS_INPUT input)
@@ -26,10 +27,14 @@ PS_INPUT mainVS(VS_INPUT input)
     output.materialIndex = input.materialIndex;
     
     // 위치 변환
-    output.position = mul(input.position, ModelMatrix);
-    output.position = mul(output.position, ViewMatrix);
-    output.position = mul(output.position, ProjMatrix);
+    float4 pos;
+    pos = mul(input.position, ModelMatrix);
+    output.worldPos = pos;
     
+    pos = mul(pos, ViewMatrix);
+    pos = mul(pos, ProjMatrix);
+    output.position = pos;
+
     output.color = input.color;
     if (IsSelectedActor)
         output.color *= 0.5;
