@@ -974,7 +974,7 @@ void FRenderer::PreparePrimitives()
                 if (UStaticMeshComponent* pStaticMeshComp = Cast<UStaticMeshComponent>(iter))
                 {
                     if (!Cast<UGizmoBaseComponent>(iter))
-                        RenderResources.Primitives.StaticMeshObjs.Add(pStaticMeshComp);
+                        RenderResources.Components.StaticMeshObjs.Add(pStaticMeshComp);
                 }
                 //if (UGizmoBaseComponent* pGizmoComp = Cast<UGizmoBaseComponent>(iter))
                 //{
@@ -982,11 +982,11 @@ void FRenderer::PreparePrimitives()
                 //}
                 if (UBillboardComponent* pBillboardComp = Cast<UBillboardComponent>(iter))
                 {
-                    RenderResources.Primitives.BillboardObjs.Add(pBillboardComp);
+                    RenderResources.Components.BillboardObjs.Add(pBillboardComp);
                 }
                 if (ULightComponentBase* pLightComp = Cast<ULightComponentBase>(iter))
                 {
-                    RenderResources.Primitives.LightObjs.Add(pLightComp);
+                    RenderResources.Components.LightObjs.Add(pLightComp);
                 }
         }
         
@@ -1002,15 +1002,15 @@ void FRenderer::PreparePrimitives()
                 if (UStaticMeshComponent* pStaticMeshComp = Cast<UStaticMeshComponent>(iter2))
                 {
                     if (!Cast<UGizmoBaseComponent>(iter2))
-                        RenderResources.Primitives.StaticMeshObjs.Add(pStaticMeshComp);
+                        RenderResources.Components.StaticMeshObjs.Add(pStaticMeshComp);
                 }
                 if (UBillboardComponent* pBillboardComp = Cast<UBillboardComponent>(iter2))
                 {
-                    RenderResources.Primitives.BillboardObjs.Add(pBillboardComp);
+                    RenderResources.Components.BillboardObjs.Add(pBillboardComp);
                 }
                 if (ULightComponentBase* pLightComp = Cast<ULightComponentBase>(iter2))
                 {
-                    RenderResources.Primitives.LightObjs.Add(pLightComp);
+                    RenderResources.Components.LightObjs.Add(pLightComp);
                 }
             }
         }
@@ -1019,10 +1019,10 @@ void FRenderer::PreparePrimitives()
 
 void FRenderer::ClearRenderArr()
 {
-    RenderResources.Primitives.StaticMeshObjs.Empty();
+    RenderResources.Components.StaticMeshObjs.Empty();
     //RenderResources.Primitives.GizmoObjs.Empty();
-    RenderResources.Primitives.BillboardObjs.Empty();
-    RenderResources.Primitives.LightObjs.Empty();
+    RenderResources.Components.BillboardObjs.Empty();
+    RenderResources.Components.LightObjs.Empty();
 }
 
 void FRenderer::Render(UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport)
@@ -1064,7 +1064,7 @@ void FRenderer::Render(UWorld* World, std::shared_ptr<FEditorViewportClient> Act
     {
         RenderBillboards(World, ActiveViewport);
     }
-    if (RenderResources.Primitives.LightObjs.Num() > 0)
+    if (RenderResources.Components.LightObjs.Num() > 0)
     {
         RenderLight(World, ActiveViewport);
     }
@@ -1077,7 +1077,7 @@ void FRenderer::RenderStaticMeshes(UWorld* World, std::shared_ptr<FEditorViewpor
 {
     PrepareShader(RenderResources.Shaders.StaticMesh);
     PrepareConstantbufferStaticMesh();
-    for (UStaticMeshComponent* StaticMeshComp : RenderResources.Primitives.StaticMeshObjs)
+    for (UStaticMeshComponent* StaticMeshComp : RenderResources.Components.StaticMeshObjs)
     {
         // Actor별 constantbuffer
         {
@@ -1103,7 +1103,7 @@ void FRenderer::RenderStaticMeshes(UWorld* World, std::shared_ptr<FEditorViewpor
         if (ActiveViewport->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::SF_AABB))
         {
             UPrimitiveBatch::GetInstance().RenderAABB(
-                StaticMeshComp->GetBoundingBox(),
+                StaticMeshComp->GetBoundingBoxLocal(),
                 StaticMeshComp->GetComponentLocation(),
                 Model);
         }
@@ -1193,7 +1193,7 @@ void FRenderer::RenderBillboards(UWorld* World, std::shared_ptr<FEditorViewportC
 {
     PrepareTextureShader();
     PrepareSubUVConstant();
-    for (auto BillboardComp : RenderResources.Primitives.BillboardObjs)
+    for (auto BillboardComp : RenderResources.Components.BillboardObjs)
     {
         UpdateSubUVConstant(BillboardComp->finalIndexU, BillboardComp->finalIndexV);
         
@@ -1248,7 +1248,7 @@ void FRenderer::RenderPostProcess()
 
 void FRenderer::RenderLight(UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport)
 {
-    for (auto Light : RenderResources.Primitives.LightObjs)
+    for (auto Light : RenderResources.Components.LightObjs)
     {
         FMatrix Model = JungleMath::CreateModelMatrix(Light->GetComponentLocation(), Light->GetComponentRotation(), {1, 1, 1});
         UPrimitiveBatch::GetInstance().AddCone(Light->GetComponentLocation(), Light->GetRadius(), 15, 140, Light->GetColor(), Model);

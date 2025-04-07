@@ -17,7 +17,7 @@ public:
         const FVector& rayOrigin, const FVector& rayDirection,
         const FVector& v0, const FVector& v1, const FVector& v2, float& hitDistance
     );
-    FBoundingBox AABB;
+    FBoundingBox LocalAABB;
     virtual UObject* Duplicate() const override;
     virtual void DuplicateSubObjects(const UObject* Source) override;
     virtual void PostDuplicate() override;
@@ -32,6 +32,6 @@ public:
         m_Type = _Type;
         //staticMesh = FEngineLoop::resourceMgr.GetMesh(m_Type);
     }
-    FBoundingBox GetBoundingBox() { return AABB; }
+    FBoundingBox GetBoundingBoxLocal() { return LocalAABB; }
 };
 

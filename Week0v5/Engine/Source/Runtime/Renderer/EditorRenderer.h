@@ -32,10 +32,12 @@ private:
     void CreateBuffers();
     void CreateConstantBuffers();
 
+    void PreparePrimitives();
+
     void PrepareConstantbufferGlobal();
     void UpdateConstantbufferGlobal(FConstantBufferCamera Buffer);
     // Gizmo 관련 함수
-    void RenderGizmos(const UWorld* World, const std::shared_ptr<FEditorViewportClient>& ActiveViewport);
+    void RenderGizmos(const UWorld* World);
     void PrepareShaderGizmo();
     void PrepareConstantbufferGizmo();
 
@@ -44,12 +46,11 @@ private:
     void PrepareShaderAxis();
 
     // AABB
-    void RenderAABB(const UWorld* World, const std::shared_ptr<FEditorViewportClient>& ActiveViewport);
-    void PrepareShaderAABB();
+    void RenderAABBInstanced(const UWorld* World);
     void PrepareConstantbufferAABB();
-    void UdpateConstantbufferAABB(FConstantBufferDebugAABB Buffer);
+    void UdpateConstantbufferAABBInstanced(TArray<FConstantBufferDebugAABB> Buffer);
 
 
-    UINT32 AABBMaxNum = 8;
+    const UINT32 ConstantBufferSizeAABB = 8;
 };
 

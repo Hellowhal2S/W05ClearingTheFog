@@ -85,14 +85,31 @@ float4 axisPS(PS_INPUT input) : SV_Target
 /////////////////////////////////////////////
 // AABB
 // Input buffer는 position과 extent
-
-
-struct VS_INPUT_POS_EXT
+struct VS_INPUT_POS_ONLY
 {
     float4 position : POSITION0;
-    float4 extent : POSITION1;
 };
-PS_INPUT aabbVS(VS_INPUT input)
+
+PS_INPUT aabbVS(VS_INPUT_POS_ONLY input, uint instanceID : SV_InstanceID)
 {
+    PS_INPUT output;
     
+    float3 pos = Data[instanceID].AABBPosition;
+    float3 scale = Data[instanceID].AABBExtent;
+    //scale = float3(1, 1, 1);
+    
+    float4 localPos = float4(input.position.xyz * scale + pos, 1.f);
+        
+    localPos = mul(localPos, ViewMatrix);
+    localPos = mul(localPos, ProjMatrix);
+    output.position = localPos;
+    
+    // color는 지정안해줌
+    
+    return output;
+}
+
+float4 aabbPS(PS_INPUT input) : SV_Target
+{
+    return float4(1.0f, 1.0f, 0.0f, 1.0f); // 노란색 AABB
 }

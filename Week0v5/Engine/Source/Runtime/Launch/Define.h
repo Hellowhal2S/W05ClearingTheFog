@@ -167,6 +167,8 @@ struct FPoint
 
     float x, y;
 };
+
+// 셰이더 직접 안들어가면 나중에 padding 빼기
 struct FBoundingBox
 {
     FBoundingBox(){}
@@ -175,6 +177,10 @@ struct FBoundingBox
 	float pad;
 	FVector max; // Maximum extents
 	float pad1;
+
+    FVector GetPosition() { return (min + max) / 2.f; }
+    FVector GetExtent() { return (max - min) / 2.f; }
+
     bool Intersect(const FVector& rayOrigin, const FVector& rayDir, float& outDistance)
     {
         float tmin = -FLT_MAX;

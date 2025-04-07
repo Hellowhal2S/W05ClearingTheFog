@@ -161,6 +161,6 @@ struct alignas(16) FConstantBufferCamera
 /// </summary>
 struct alignas(16) FConstantBufferDebugAABB
 {
-    FVector Position;
-    FVector Extent;
+    alignas(16) FVector Position;
+    alignas(16) FVector Extent;
 };

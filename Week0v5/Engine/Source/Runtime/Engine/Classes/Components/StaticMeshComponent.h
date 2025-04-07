@@ -30,12 +30,19 @@ public:
     { 
         staticMesh = value;
         OverrideMaterials.SetNum(value->GetMaterials().Num());
-        AABB = FBoundingBox(staticMesh->GetRenderData()->BoundingBoxMin, staticMesh->GetRenderData()->BoundingBoxMax);
+        LocalAABB = FBoundingBox(staticMesh->GetRenderData()->BoundingBoxMin, staticMesh->GetRenderData()->BoundingBoxMax);
+        WorldAABB = LocalAABB;
     }
+
+    FBoundingBox GetBoundingBoxWorld() { return WorldAABB; }
+    void UpdateWorldAABB();
 
 protected:
     UStaticMesh* staticMesh = nullptr;
     int selectedSubMeshIndex = -1;
 private:
     float Timer = 0.0f;
+
+private:
+    FBoundingBox WorldAABB;
 };

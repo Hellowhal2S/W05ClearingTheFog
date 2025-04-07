@@ -96,3 +96,13 @@ cbuffer ConstantBufferMesh : register(b6)
 };
 
 // 마지막 슬롯인 b13은 debug용으로 예약.
+// 디버그는 13번만 쓰고 계속 set과 memcpy가 필요
+struct AABBData
+{
+    float3 AABBPosition;
+    float3 AABBExtent;
+};
+cbuffer ConstantBufferDebugAABB : register(b13)
+{
+    AABBData Data[8];
+}

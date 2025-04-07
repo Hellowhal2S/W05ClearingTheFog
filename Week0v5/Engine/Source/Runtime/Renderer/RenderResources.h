@@ -51,6 +51,8 @@ struct FDebugPrimitiveData
     ID3D11Buffer* Vertex;
     ID3D11Buffer* Index;
     UINT32 NumVertices;
+    UINT32 VertexStride;
+    UINT32 NumIndices;
 };
 struct FRenderResourcesDebug
 {

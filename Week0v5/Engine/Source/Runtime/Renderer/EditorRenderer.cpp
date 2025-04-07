@@ -13,6 +13,7 @@ void FEditorRenderer::Initialize(FRenderer* InRenderer)
 {
     Renderer = InRenderer;
     CreateShaders();
+    CreateBuffers();
     CreateConstantBuffers();
 }
 
@@ -50,6 +51,7 @@ void FEditorRenderer::CreateShaders()
     Renderer->Graphics->Device->CreateInputLayout(
         layout, ARRAYSIZE(layout), VertexShaderCSO->GetBufferPointer(), VertexShaderCSO->GetBufferSize(), &Resources.Shaders.Gizmo.Layout
     );
+    Resources.Shaders.Gizmo.Topology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 
     VertexShaderCSO->Release();
     PixelShaderCSO->Release();
@@ -75,6 +77,31 @@ void FEditorRenderer::CreateShaders()
 
     VertexShaderCSO->Release();
     PixelShaderCSO->Release();
+
+    VertexShaderCSO = nullptr;
+    PixelShaderCSO = nullptr;
+
+    D3DCompileFromFile(L"Shaders/EditorShader.hlsl", defines, D3D_COMPILE_STANDARD_FILE_INCLUDE, "aabbVS", "vs_5_0", 0, 0, &VertexShaderCSO, &errorBlob);
+    if (errorBlob)
+    {
+        OutputDebugStringA((char*)errorBlob->GetBufferPointer());
+        errorBlob->Release();
+    }
+    Renderer->Graphics->Device->CreateVertexShader(VertexShaderCSO->GetBufferPointer(), VertexShaderCSO->GetBufferSize(), nullptr, &Resources.Shaders.AABB.Vertex);
+
+    D3DCompileFromFile(L"Shaders/EditorShader.hlsl", defines, D3D_COMPILE_STANDARD_FILE_INCLUDE, "aabbPS", "ps_5_0", 0, 0, &PixelShaderCSO, &errorBlob);
+
+    Renderer->Graphics->Device->CreatePixelShader(PixelShaderCSO->GetBufferPointer(), PixelShaderCSO->GetBufferSize(), nullptr, &Resources.Shaders.AABB.Pixel);
+
+    // Box의 vertex
+    D3D11_INPUT_ELEMENT_DESC layout1[] = {
+        {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+    };
+
+    Renderer->Graphics->Device->CreateInputLayout(
+        layout1, ARRAYSIZE(layout1), VertexShaderCSO->GetBufferPointer(), VertexShaderCSO->GetBufferSize(), &Resources.Shaders.AABB.Layout
+    );
+    Resources.Shaders.AABB.Topology = D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
 
 }
 
@@ -110,14 +137,14 @@ void FEditorRenderer::CreateBuffers()
 {
     // Box 버퍼 생성
     TArray<FVector> CubeFrameVertices;
-    CubeFrameVertices.Add({ -0.5f, -0.5f, -0.5f}); // 0
-    CubeFrameVertices.Add({ -0.5f, 0.5f, -0.5f}); // 1
-    CubeFrameVertices.Add({ 0.5f, -0.5f, -0.5f}); // 2
-    CubeFrameVertices.Add({ 0.5f, 0.5f, -0.5f}); // 3
-    CubeFrameVertices.Add({ -0.5f, -0.5f, 0.5f}); // 4
-    CubeFrameVertices.Add({ 0.5f, -0.5f, 0.5f}); // 5
-    CubeFrameVertices.Add({ -0.5f, 0.5f, 0.5f}); // 6
-    CubeFrameVertices.Add({ 0.5f, 0.5f, 0.5f}); // 7
+    CubeFrameVertices.Add({ -1.f, -1.f, -1.f}); // 0
+    CubeFrameVertices.Add({ -1.f, 1.f, -1.f}); // 1
+    CubeFrameVertices.Add({ 1.f, -1.f, -1.f}); // 2
+    CubeFrameVertices.Add({ 1.f, 1.f, -1.f}); // 3
+    CubeFrameVertices.Add({ -1.f, -1.f, 1.f}); // 4
+    CubeFrameVertices.Add({ 1.f, -1.f, 1.f}); // 5
+    CubeFrameVertices.Add({ -1.f, 1.f, 1.f}); // 6
+    CubeFrameVertices.Add({ 1.f, 1.f, 1.f}); // 7
 
     TArray<uint32> CubeFrameIndices = {
         // Bottom face
@@ -131,7 +158,7 @@ void FEditorRenderer::CreateBuffers()
     // 버텍스 버퍼 생성
     D3D11_BUFFER_DESC bufferDesc = {};
     bufferDesc.Usage = D3D11_USAGE_IMMUTABLE; // will never be updated 
-    bufferDesc.ByteWidth = sizeof(FVector) * 8;
+    bufferDesc.ByteWidth = sizeof(FVector) * CubeFrameVertices.Num();
     bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
     bufferDesc.CPUAccessFlags = 0;
 
@@ -141,13 +168,15 @@ void FEditorRenderer::CreateBuffers()
     HRESULT hr = Renderer->Graphics->Device->CreateBuffer(&bufferDesc, &initData, &Resources.Primitives.Box.Vertex);
 
     bufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
-    bufferDesc.ByteWidth = sizeof(uint32) * 24;
+    bufferDesc.ByteWidth = sizeof(uint32) * CubeFrameIndices.Num();
 
     initData.pSysMem = CubeFrameIndices.GetData();
 
     hr = Renderer->Graphics->Device->CreateBuffer(&bufferDesc, &initData, &Resources.Primitives.Box.Index);
 
-    Resources.Primitives.Box.NumVertices = 8;
+    Resources.Primitives.Box.NumVertices = CubeFrameVertices.Num();
+    Resources.Primitives.Box.VertexStride = sizeof(FVector);
+    Resources.Primitives.Box.NumIndices = CubeFrameIndices.Num();
 }
 
 void FEditorRenderer::CreateConstantBuffers()
@@ -160,10 +189,29 @@ void FEditorRenderer::CreateConstantBuffers()
     ConstantBufferDesc.ByteWidth = sizeof(FConstantBufferCamera);
     Renderer->Graphics->Device->CreateBuffer(&ConstantBufferDesc, nullptr, &Resources.ConstantBuffers.Camera00);
 
-    // 초기값은 8개 배열로
+    // 16개 고정
+    // 그려야할 대상이 더 많을 경우 16개씩 쪼개서 사용
     ConstantBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-    ConstantBufferDesc.ByteWidth = sizeof(FConstantBufferDebugAABB) * AABBMaxNum;
+    ConstantBufferDesc.ByteWidth = sizeof(FConstantBufferDebugAABB) * ConstantBufferSizeAABB;
     Renderer->Graphics->Device->CreateBuffer(&ConstantBufferDesc, nullptr, &Resources.ConstantBuffers.AABB13);
+}
+
+void FEditorRenderer::PreparePrimitives()
+{
+    Resources.Components.PrimitiveObjs.Empty();
+    // gizmo 제외하고 넣기
+    if (GEngine->GetWorld()->WorldType == EWorldType::Editor)
+    {
+        for (const auto iter : TObjectRange<UPrimitiveComponent>())
+        {
+            if (UStaticMeshComponent* pStaticMeshComp = Cast<UStaticMeshComponent>(iter))
+            {
+                if (!Cast<UGizmoBaseComponent>(iter))
+                    Resources.Components.PrimitiveObjs.Add(pStaticMeshComp);
+            }
+        }
+
+    }
 }
 
 void FEditorRenderer::PrepareConstantbufferGlobal()
@@ -188,17 +236,19 @@ void FEditorRenderer::UpdateConstantbufferGlobal(FConstantBufferCamera Buffer)
 
 void FEditorRenderer::Render(UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport)
 {
+    PreparePrimitives();
     PrepareConstantbufferGlobal();
     FConstantBufferCamera buf;
     buf.ViewMatrix = ActiveViewport->GetViewMatrix();
     buf.ProjMatrix = ActiveViewport->GetProjectionMatrix();
     UpdateConstantbufferGlobal(buf);
 
+    RenderAABBInstanced(World);
     RenderAxis(ActiveViewport);
-    RenderGizmos(World, ActiveViewport);
+    RenderGizmos(World);
 }
 
-void FEditorRenderer::RenderGizmos(const UWorld* World, const std::shared_ptr<FEditorViewportClient>& ActiveViewport)
+void FEditorRenderer::RenderGizmos(const UWorld* World)
 {
     PrepareShader(Resources.Shaders.Gizmo);
 
@@ -299,50 +349,80 @@ void FEditorRenderer::PrepareShaderAxis()
 
 }
 
-void FEditorRenderer::RenderAABBInstanced(const UWorld* World, const std::shared_ptr<FEditorViewportClient>& ActiveViewport)
+void FEditorRenderer::RenderAABBInstanced(const UWorld* World)
 {
-    PrepareShaderAABB();
-    UdpateConstantbufferAABB();
-    PrepareConstantbufferAABB();
-}
+    PrepareShader(Resources.Shaders.AABB);
+    UINT offset = 0;
+    Renderer->Graphics->DeviceContext->IASetVertexBuffers(0, 1, &Resources.Primitives.Box.Vertex, &Resources.Primitives.Box.VertexStride, &offset);
+    Renderer->Graphics->DeviceContext->IASetIndexBuffer(Resources.Primitives.Box.Index, DXGI_FORMAT_R32_UINT, 0);
 
-void FEditorRenderer::PrepareShaderAABB()
-{
+    // 위치랑 bounding box 크기 정보 가져오기
+    TArray<FConstantBufferDebugAABB> BufferAll;
+    for (UPrimitiveComponent* PrimComp : Resources.Components.PrimitiveObjs)
+    //for (UPrimitiveComponent* StaticComp : Resources.Components.PrimitiveObjs)
+    {
+        // 현재 bounding box를 갱신안해주고있음
+        // 여기서 직접 갱신
+        // TODO : 진짜 vertex 다 돌아야하나?
+        if (UStaticMeshComponent* StaticComp = Cast<UStaticMeshComponent>(PrimComp))
+        {
+            StaticComp->UpdateWorldAABB();
+            FConstantBufferDebugAABB b;
+            b.Position = StaticComp->GetBoundingBoxWorld().GetPosition();
+            b.Extent = StaticComp->GetBoundingBoxWorld().GetExtent();
+            BufferAll.Add(b);
+        }
+    }
+    
+    int BufferIndex = 0;
+    for (int i = 0; i < (1 + BufferAll.Num() / ConstantBufferSizeAABB) * ConstantBufferSizeAABB; ++i)
+    {
+        TArray<FConstantBufferDebugAABB> SubBuffer;
+        for (int j = 0; j < ConstantBufferSizeAABB; ++j)
+        {
+            if (BufferIndex < BufferAll.Num())
+            {
+                SubBuffer.Add(BufferAll[BufferIndex]);
+                ++BufferIndex;
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        if (SubBuffer.Num() > 0)
+        {
+            UdpateConstantbufferAABBInstanced(SubBuffer);
+            PrepareConstantbufferAABB();
+            Renderer->Graphics->DeviceContext->DrawIndexedInstanced(Resources.Primitives.Box.NumIndices, SubBuffer.Num(), 0, 0, 0);
+        }
+    }
 }
 
 void FEditorRenderer::PrepareConstantbufferAABB()
 {
     if (Resources.ConstantBuffers.AABB13)
     {
-        Renderer->Graphics->DeviceContext->VSSetConstantBuffers(0, 1, &Resources.ConstantBuffers.AABB13);
+        Renderer->Graphics->DeviceContext->VSSetConstantBuffers(13, 1, &Resources.ConstantBuffers.AABB13);
     }
 }
 
 void FEditorRenderer::UdpateConstantbufferAABBInstanced(TArray<FConstantBufferDebugAABB> Buffer)
 {
-    // 원래 배열 개수보다 많을 경우 다시 생성
-    if (Buffer.Num() > AABBMaxNum)
+    if (Buffer.Num() > ConstantBufferSizeAABB)
     {
-        AABBMaxNum = (1 + Buffer.Num() / 8) * 8; // 8의 배수로 증가
-
-        // release 후 새로 생성
-        Resources.ConstantBuffers.AABB13->Release(); 
-        D3D11_BUFFER_DESC ConstantBufferDesc = {};
-        ConstantBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-        ConstantBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-
-        // 초기값은 8개 배열로
-        ConstantBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-        ConstantBufferDesc.ByteWidth = sizeof(FConstantBufferDebugAABB) * AABBMaxNum;
-        Renderer->Graphics->Device->CreateBuffer(&ConstantBufferDesc, nullptr, &Resources.ConstantBuffers.AABB13);
+        // 최대개수 초과
+        // 코드 잘못짠거 아니면 오면안됨
+        UE_LOG(LogLevel::Error, "Invalid Buffer Num");
+        return;
     }
-
     if (Resources.ConstantBuffers.AABB13)
     {
         D3D11_MAPPED_SUBRESOURCE ConstantBufferMSR; // GPU�� �޸� �ּ� ����
 
         Renderer->Graphics->DeviceContext->Map(Resources.ConstantBuffers.AABB13, 0, D3D11_MAP_WRITE_DISCARD, 0, &ConstantBufferMSR); // update constant buffer every frame
-        memcpy(ConstantBufferMSR.pData, &Buffer, sizeof(FConstantBufferDebugAABB) * Buffer.Num());
+        memcpy(ConstantBufferMSR.pData, Buffer.GetData(), sizeof(FConstantBufferDebugAABB) * Buffer.Num()); // TArray이니까 실제 값을 받아와야함
         Renderer->Graphics->DeviceContext->Unmap(Resources.ConstantBuffers.AABB13, 0); // GPU�� �ٽ� ��밡���ϰ� �����
     }
 }
