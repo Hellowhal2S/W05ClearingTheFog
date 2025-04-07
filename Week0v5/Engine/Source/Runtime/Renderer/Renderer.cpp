@@ -453,8 +453,7 @@ void FRenderer::UpdateLightBuffer() const
         buf.PointLights[LightIndex].Intensity = FireballComp->Intensity;
         buf.PointLights[LightIndex].Radius = FireballComp->Radius;
         buf.PointLights[LightIndex].RadiusFallOff = FireballComp->RadiusFallOff;
-
-        LightIndex++;
+        buf.NumPointLights = ++LightIndex;
     }
 
     UpdateConstantbufferLights(buf);

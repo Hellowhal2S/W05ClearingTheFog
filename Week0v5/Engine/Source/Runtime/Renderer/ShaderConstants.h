@@ -140,6 +140,7 @@ struct alignas(16) FConstantBufferLights
     FConstantBufferLightPoint PointLights[MACRO_FCONSTANT_NUM_MAX_POINTLIGHT];
     FConstantBufferLightSpot SpotLights[MACRO_FCONSTANT_NUM_MAX_SPOTLIGHT];
     alignas(16) UINT isLit = 1;
+    int NumPointLights;
 };
 
 /// <summary>
