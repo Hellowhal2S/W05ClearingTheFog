@@ -50,29 +50,6 @@ float4 PaperTexture(float3 originalColor)
     return float4(saturate(finalColor), 1.0);
 }
 
-//float3 CalculatePointLight(FConstantBufferLightPoint light, float3 fragPos, float3 N, float3 V)
-//{
-//    float3 lightVec = light.Position - fragPos;
-//    float distance = length(lightVec);
-//    if (distance > light.Radius)
-//        return float3(0, 0, 0);
-//    lightVec = normalize(lightVec);
-//    // 감쇠 계산
-//    float normalizedDistance = saturate(distance / light.Radius);
-//    float attenuation = light.Intensity * exp(-light.RadiusFallOff * pow(normalizedDistance, 2));
-//    // 확산광 계산 (강도 50% 감소)
-//    float diffuseFactor = saturate(dot(N, lightVec));
-//    float3 diffuseLight = Material.DiffuseColor * 0.5 * light.Color.rgb * diffuseFactor * attenuation;
-//    // 스페큘러 계산
-//    float3 H = normalize(lightVec + V);
-//    float specularFactor = pow(saturate(dot(N, H)), Material.SpecularScalar * 128);
-//    float3 specularLight = Material.SpecularColor * light.Color.rgb * specularFactor * attenuation;
-//    // 앰비언트 계산 (강도 2%로 조정)
-//    float3 ambient = Material.AmbientColor * light.Color.rgb * 0.02 * attenuation;
-//    // 발광 효과 제거
-//    return ambient + diffuseLight + specularLight;
-//}
-
 float3 CalculatePointLight(FConstantBufferLightPoint Light, float3 WorldPos, float3 Normal, float3 ViewDir, float3 DiffuseColor, float3 SpecularColor, float3 SpecularPower)
 {
     float3 LightDir = normalize(Light.Position - WorldPos);
@@ -85,7 +62,7 @@ float3 CalculatePointLight(FConstantBufferLightPoint Light, float3 WorldPos, flo
     float Attenuation = RadiusAttenuation * DistanceAttenuation * Light.Intensity;
     float Diff = max(dot(Normal, LightDir), 0.0f);
     float3 Diffuse = Light.Color.rgb * Diff * DiffuseColor * Attenuation; // float3으로 수정
-    float3 ReflectDir = reflect(-LightDir, Normal);
+    float3 ReflectDir = normalize(reflect(-LightDir, Normal));
     float Spec = pow(max(dot(ViewDir, ReflectDir), 0.0f), SpecularPower);
     float3 Specular = Light.Color.rgb * SpecularColor * Spec * Attenuation;
     return Diffuse + Specular;
@@ -126,7 +103,7 @@ PS_OUTPUT mainPS(PS_INPUT input)
             float diffuse = saturate(dot(N, L));
             
             // 스페큘러 계산 (간단한 Blinn-Phong)
-            float3 V = float3(CameraPos - input.worldPos); // 카메라가 Z 방향을 향한다고 가정
+            float3 V = normalize(float3(CameraPos - input.worldPos)); // 카메라가 Z 방향을 향한다고 가정
             float3 H = normalize(L + V);
             float specular = pow(saturate(dot(N, H)), Material.SpecularScalar * 32) * Material.SpecularScalar;
             
@@ -145,7 +122,7 @@ PS_OUTPUT mainPS(PS_INPUT input)
         }
         
         // 투명도 적용
-        //color += Material.EmmisiveColor;
+        color += Material.EmmisiveColor;
         output.color = float4(color, Material.TransparencyScalar);
         return output;
     }
