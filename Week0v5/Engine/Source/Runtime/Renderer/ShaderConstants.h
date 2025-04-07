@@ -34,6 +34,16 @@ struct FConstantBuffers
     ID3D11Buffer* Mesh06;
 };
 
+struct FConstantBuffersBatchLine
+{
+    ID3D11Buffer* Camera00;
+    ID3D11Buffer* Grid01;
+    ID3D11Buffer* BoundingBox02;
+    ID3D11Buffer* Counts03;
+    //ID3D11Buffer* Grid01;
+    //ID3D11Buffer* Grid01;
+    
+};
 
 
 

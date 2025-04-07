@@ -433,7 +433,7 @@ void FRenderer::ReleaseConstantBuffers()
     ReleaseBuffer(ConstantBuffers.Mesh06);
 }
 
-void FRenderer::UpdateLightBufferForTest() const
+void FRenderer::UpdateLightBuffer() const
 {
     if (!ConstantBuffers.Light01) return;
     FConstantBufferLights buf;
@@ -1079,7 +1079,7 @@ void FRenderer::Render(UWorld* World, std::shared_ptr<FEditorViewportClient> Act
         buf.ProjMatrix = ActiveViewport->GetProjectionMatrix();
         UpdateConstantbufferCamera(buf);
     }
-    UpdateLightBufferForTest();
+    UpdateLightBuffer();
     UPrimitiveBatch::GetInstance().RenderBatch(ActiveViewport->GetViewMatrix(), ActiveViewport->GetProjectionMatrix());
 
     if (ActiveViewport->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::SF_Primitives))

@@ -57,6 +57,14 @@ static const int BB_EdgeIndices[12][2] =
     { 3, 7 } // 측면
 };
 
+const static matrix Identity =
+{
+    1, 0, 0, 0,
+    0, 1, 0, 0,
+    0, 0, 1, 0,
+    0, 0, 0, 1
+};
+
 struct VS_INPUT
 {
     uint vertexID : SV_VertexID; // 0 또는 1: 각 라인의 시작과 끝
@@ -304,7 +312,7 @@ PS_INPUT mainVS(VS_INPUT input)
 
     // 출력 변환
     float4 outPos = float4(pos, 1.0);
-    outPos = mul(outPos, ModelMatrix);
+    //outPos = mul(outPos, ModelMatrix);
     output.worldPos = outPos;
     
     outPos = mul(outPos, ViewMatrix);

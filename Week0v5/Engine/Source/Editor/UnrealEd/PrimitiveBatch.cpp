@@ -97,7 +97,7 @@ void UPrimitiveBatch::UpdateConeResources()
         ReleaseConeResources();
 
         pConesBuffer = UEditorEngine::renderer.CreateConeBuffer(static_cast<UINT>(allocatedConeCapacity));
-        pConesSRV = UEditorEngine::renderer.CreateConeSRV(pConesBuffer, static_cast<UINT>(allocatedConeCapacity));
+        //pConesSRV = UEditorEngine::renderer.CreateConeSRV(pConesBuffer, static_cast<UINT>(allocatedConeCapacity));
     }
 
     if (pConesBuffer && pConesSRV) {

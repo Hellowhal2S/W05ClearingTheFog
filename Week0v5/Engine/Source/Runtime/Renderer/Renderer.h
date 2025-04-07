@@ -77,7 +77,7 @@ public:
     //  Constant Buffers
     FConstantBuffers ConstantBuffers;
 
-    void UpdateLightBufferForTest() const;
+    void UpdateLightBuffer() const;
     void UpdateConstantbufferMesh(FConstantBufferMesh Buffer) const;
     void UpdateConstantbufferTexture(FConstantBufferTexture Buffer) const;
     void UpdateConstantbufferActor(FConstantBufferActor Buffer) const;
