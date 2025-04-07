@@ -243,6 +243,8 @@
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\QuadTexture.cpp" />
     <ClCompile Include="Engine\Source\ThirdParty\tinyfiledialogs\tinyfiledialogs.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\RenderResources.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Renderer\EditorRenderer.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Renderer\RenderEngine.cpp" />
     <ClCompile Include="UEditorStateManager.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -360,9 +362,14 @@
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\UText.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\UTextUUID.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\RenderResources.h" />
+    <ClInclude Include="Engine\Source\Runtime\Renderer\EditorRenderer.h" />
+    <ClInclude Include="Engine\Source\Runtime\Renderer\RenderEngine.h" />
     <ClInclude Include="UEditorStateManager.h" />
   </ItemGroup>
   <ItemGroup>
+    <FxCompile Include="Shaders\EditorShader.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </FxCompile>
     <FxCompile Include="Shaders\PostEffectPS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>

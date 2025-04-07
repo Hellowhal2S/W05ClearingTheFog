@@ -119,6 +119,7 @@ namespace OBJ
         
         TArray<FVertexSimple> Vertices;
         TArray<UINT> Indices;
+        UINT32 Stride = sizeof(FVertexSimple);
 
         ID3D11Buffer* VertexBuffer;
         ID3D11Buffer* IndexBuffer;

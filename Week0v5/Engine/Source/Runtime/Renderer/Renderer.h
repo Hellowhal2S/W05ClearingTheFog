@@ -23,6 +23,7 @@ class UGizmoBaseComponent;
 class FRenderer 
 {
     friend class UPrimitiveBatch;
+    friend class FEditorRenderer;
 public:
     void Initialize(FGraphicsDevice* graphics);
     void Release();
@@ -45,7 +46,7 @@ private:
     float litFlag =1;
     FGraphicsDevice* Graphics;
 
-    uint32 Stride;
+    //uint32 Stride;
 
     void PrepareShader(FShaderResource ShaderResource) const;
     void PrepareConstantbufferStaticMesh(/*FConstantBuffersStaticMesh Constantbuffers*/);
@@ -56,7 +57,7 @@ private:
    
     void RenderTexturedModelPrimitive(ID3D11Buffer* pVertexBuffer, UINT numVertices, ID3D11Buffer* pIndexBuffer, UINT numIndices, ID3D11ShaderResourceView* InTextureSRV, ID3D11SamplerState* InSamplerState) const;
     //Release
-    void ReleaseShader();
+    void ReleaseShaders();
     void ReleaseBuffer(ID3D11Buffer*& Buffer) const;
     void ReleaseConstantBuffers();
 
@@ -76,7 +77,6 @@ private:
 
 
     void CreateTextureShader();
-    void ReleaseTextureShader();
     void PrepareTextureShader() const;
     ID3D11Buffer* CreateVertexTextureBuffer(FVertexTexture* vertices, UINT byteWidth) const;
     ID3D11Buffer* CreateIndexTextureBuffer(uint32* indices, UINT byteWidth) const;
@@ -95,7 +95,6 @@ private:
 
     //void PrepareLineShader() const;
     void CreateLineShader();
-    void ReleaseLineShader() const;
     void RenderBatch(const FGridParameters& gridParam, ID3D11Buffer* pVertexBuffer, int boundingBoxCount, int coneCount, int coneSegmentCount, int obbCount) const;
     void UpdateGridConstantBuffer(const FGridParameters& gridParams) const;
     void UpdateLinePrimitveCountBuffer(int numBoundingBoxes, int numCones) const;
@@ -112,10 +111,10 @@ private:
     void UpdateConesBuffer(ID3D11Buffer* pConeBuffer, const TArray<FCone>& Cones, int numCones) const;
 
     //Render Pass Demo
-    void PrepareRender();
+    void PreparePrimitives();
     void ClearRenderArr();
     void RenderStaticMeshes(UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport);
-    void RenderGizmos(const UWorld* World, const std::shared_ptr<FEditorViewportClient>& ActiveViewport);
+    //void RenderGizmos(const UWorld* World, const std::shared_ptr<FEditorViewportClient>& ActiveViewport);
     void RenderLight(UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport);
     void RenderBillboards(UWorld* World,std::shared_ptr<FEditorViewportClient> ActiveViewport);
     void RenderPostProcess();

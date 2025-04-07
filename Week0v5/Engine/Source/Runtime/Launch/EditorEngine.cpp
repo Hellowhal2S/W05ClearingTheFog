@@ -17,7 +17,7 @@
 class ULevel;
 
 FGraphicsDevice UEditorEngine::graphicDevice;
-FRenderer UEditorEngine::renderer;
+FRenderEngine UEditorEngine::RenderEngine;
 FResourceMgr UEditorEngine::resourceMgr;
 
 UEditorEngine::UEditorEngine()
@@ -35,10 +35,10 @@ int32 UEditorEngine::Init(HWND hwnd)
     /* must be initialized before window. */
     hWnd = hwnd;
     graphicDevice.Initialize(hWnd);
-    renderer.Initialize(&graphicDevice);
+    RenderEngine.Initialize(&graphicDevice);
     UIMgr = new UImGuiManager;
     UIMgr->Initialize(hWnd, graphicDevice.Device, graphicDevice.DeviceContext);
-    resourceMgr.Initialize(&renderer, &graphicDevice);
+    resourceMgr.Initialize(&RenderEngine.Renderer, &graphicDevice);
     
     FWorldContext EditorContext;
     EditorContext.WorldType = EWorldType::Editor;
@@ -74,13 +74,13 @@ void UEditorEngine::Render()
         for (int i = 0; i < 4; ++i)
         {
             LevelEditor->SetViewportClient(i);
-            renderer.Render(GWorld,LevelEditor->GetActiveViewportClient());
+            RenderEngine.Render(GWorld,LevelEditor->GetActiveViewportClient());
         }
         GetLevelEditor()->SetViewportClient(viewportClient);
     }   
     else
     {
-        renderer.Render(GWorld,LevelEditor->GetActiveViewportClient());
+        RenderEngine.Render(GWorld,LevelEditor->GetActiveViewportClient());
     }
 
     // OMSEtrender - depth용 pass
@@ -93,6 +93,21 @@ void UEditorEngine::Render()
         
     //graphicDevice.DeviceContext->ClearRenderTargetView(graphicDevice.FrameBufferRTV, graphicDevice.ClearColor); // 비동기이므로 위험함
     PostEffect::Render(graphicDevice.DeviceContext, graphicDevice.ColorSRV);
+
+    if (LevelEditor->IsMultiViewport())
+    {
+        std::shared_ptr<FEditorViewportClient> viewportClient = GetLevelEditor()->GetActiveViewportClient();
+        for (int i = 0; i < 4; ++i)
+        {
+            LevelEditor->SetViewportClient(i);
+            RenderEngine.RenderDebug(GWorld, LevelEditor->GetActiveViewportClient());
+        }
+        GetLevelEditor()->SetViewportClient(viewportClient);
+    }
+    else
+    {
+        RenderEngine.RenderDebug(GWorld, LevelEditor->GetActiveViewportClient());
+    }
 
     //graphicDevice.DeviceContext->OMSetRenderTargets(1, &graphicDevice.FrameBufferRTV, nullptr);
     //graphicDevice.DeviceContext->CopyResource(graphicDevice.FrameBuffer, PostEffect::finalTexture);
@@ -230,8 +245,8 @@ void UEditorEngine::Exit()
     UIMgr->Shutdown();
     delete UIMgr;
     delete SceneMgr;
-    resourceMgr.Release(&renderer);
-    renderer.Release();
+    resourceMgr.Release(&RenderEngine.Renderer);
+    RenderEngine.Renderer.Release();
     graphicDevice.Release();
 }
 

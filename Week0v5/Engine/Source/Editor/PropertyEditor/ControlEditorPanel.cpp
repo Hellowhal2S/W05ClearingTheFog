@@ -259,7 +259,7 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
         ImGui::Text("Fog Density");
         FogDensity = PostEffect::Fog.fogDensity;
         ImGui::SetNextItemWidth(120.0f);
-        if (ImGui::DragFloat("##FogDensity", &FogDensity, 0.1f, 5.0f, 100.0f, "%.1f"))
+        if (ImGui::DragFloat("##FogDensity", &FogDensity, 0.1f, 0.f, 100.0f, "%.1f"))
         {
             PostEffect::Fog.fogDensity = FogDensity;
         }
@@ -428,7 +428,7 @@ void ControlEditorPanel::CreateFlagButton() const
             {
                 ActiveViewport->SetViewMode((EViewModeIndex)i);
                 UEditorEngine::graphicDevice.ChangeRasterizer(ActiveViewport->GetViewMode());
-                UEditorEngine::renderer.ChangeViewMode(ActiveViewport->GetViewMode());
+                UEditorEngine::RenderEngine.Renderer.ChangeViewMode(ActiveViewport->GetViewMode());
             }
 
             if (bIsSelected)

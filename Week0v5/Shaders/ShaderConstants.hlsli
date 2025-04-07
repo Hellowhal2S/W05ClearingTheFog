@@ -94,3 +94,5 @@ cbuffer ConstantBufferMesh : register(b6)
     FMaterialConstants Material;
     uint IsSelectedMesh;
 };
+
+// 마지막 슬롯인 b13은 debug용으로 예약.
