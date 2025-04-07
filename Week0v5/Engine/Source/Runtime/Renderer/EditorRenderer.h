@@ -20,7 +20,6 @@ public:
     void Render(UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport);
     void Release();
 
-
 private:
     FRenderer* Renderer;
     FRenderResourcesDebug Resources;

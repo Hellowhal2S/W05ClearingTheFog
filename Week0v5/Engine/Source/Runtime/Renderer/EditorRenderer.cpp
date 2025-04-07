@@ -6,8 +6,10 @@
 #include "UObject/UObjectIterator.h"
 #include "BaseGizmos/GizmoBaseComponent.h"
 #include "D3D11RHI/GraphicDevice.h"
-#include "Engine\Classes\Actors\Player.h"
+#include "Engine/Classes/Actors/Player.h"
 #include "Renderer.h"
+//#include "Engine/Classes/Components/FireballComponent.h" // 추가하면 RenderPointlightInstanced의 주석이랑 함께 풀기
+
 
 void FEditorRenderer::Initialize(FRenderer* InRenderer)
 {
@@ -537,9 +539,7 @@ void FEditorRenderer::RenderAABBInstanced(const UWorld* World)
     for (UPrimitiveComponent* PrimComp : Resources.Components.PrimitiveObjs)
     //for (UPrimitiveComponent* StaticComp : Resources.Components.PrimitiveObjs)
     {
-        // 현재 bounding box를 갱신안해주고있음
-        // 여기서 직접 갱신
-        // TODO : 진짜 vertex 다 돌아야하나?
+        // 현재 bounding box를 갱신안해주고있음 : 여기서 직접 갱신
         if (UStaticMeshComponent* StaticComp = Cast<UStaticMeshComponent>(PrimComp))
         {
             StaticComp->UpdateWorldAABB();
@@ -549,7 +549,7 @@ void FEditorRenderer::RenderAABBInstanced(const UWorld* World)
             BufferAll.Add(b);
         }
     }
-    
+  
     int BufferIndex = 0;
     for (int i = 0; i < (1 + BufferAll.Num() / ConstantBufferSizeAABB) * ConstantBufferSizeAABB; ++i)
     {
@@ -615,9 +615,6 @@ void FEditorRenderer::RenderPointlightInstanced(const UWorld* World)
     for (UPrimitiveComponent* PrimComp : Resources.Components.PrimitiveObjs)
         //for (UPrimitiveComponent* StaticComp : Resources.Components.PrimitiveObjs)
     {
-        // 현재 bounding box를 갱신안해주고있음
-        // 여기서 직접 갱신
-        // TODO : 진짜 vertex 다 돌아야하나?
         if (UStaticMeshComponent* StaticComp = Cast<UStaticMeshComponent>(PrimComp))
         {
             StaticComp->UpdateWorldAABB();
@@ -627,6 +624,22 @@ void FEditorRenderer::RenderPointlightInstanced(const UWorld* World)
             b.Radius = extent.Magnitude();
             BufferAll.Add(b);
         }
+
+        // Fireball 합치면 헤더랑 여기 풀기
+        /*
+        if (UFireBallComponent* FireballComp = Cast<UFireBallComponent>(PrimComp))
+        {
+            FConstantBufferDebugAABB b;
+            b.Position = FireballComp->GetComponentLocation();
+            b.Extent = FireballComp->Radius;
+            BufferAll.Add(b);
+
+            b.Position = FireballComp->GetComponentLocation();
+            b.Extent = FireballComp->RadiusFallOff;
+            BufferAll.Add(b);
+        }
+        */
+
     }
 
     int BufferIndex = 0;
