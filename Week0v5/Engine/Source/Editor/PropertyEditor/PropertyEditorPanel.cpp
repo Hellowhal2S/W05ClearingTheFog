@@ -150,7 +150,7 @@ void PropertyEditorPanel::Render()
         }
     }
 
-    if (PickedActor && PickedComponent && PickedComponent->IsA<UProjectileMovementComponent>())
+    if (PickedActor && PickedComponent && PickedComponent->IsA<UMovementComponent>())
     {
         ImGui::SetItemDefaultFocus();
         ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
@@ -161,17 +161,22 @@ void PropertyEditorPanel::Render()
         }
         if (UProjectileMovementComponent* ProjectileComp = Cast<UProjectileMovementComponent>(PickedComponent))
         {
-            float InitialSpeed = ProjectileComp->InitialSpeed;
-            ImGui::InputFloat("Initial Speed", &InitialSpeed);
-            ProjectileComp->InitialSpeed = InitialSpeed;
-
-            float MaxSpeed = ProjectileComp->MaxSpeed;
-            ImGui::InputFloat("Max Speed", &MaxSpeed);
-            ProjectileComp->MaxSpeed = MaxSpeed;
-
-            FVector Velocity = ProjectileComp->Velocity;
-            ImGui::InputFloat3("Velocity", &Velocity.x);
-            ProjectileComp->Velocity = Velocity;
+            if (ImGui::CollapsingHeader("Projectile Movement Settings", ImGuiTreeNodeFlags_DefaultOpen))
+            {
+                ImGui::DragFloat("Initial Speed",
+                    &ProjectileComp->InitialSpeed,
+                    1.0f, 0.0f, 10000.0f, "%.0f");
+                ImGui::DragFloat("Max Speed",
+                    &ProjectileComp->MaxSpeed,
+                    1.0f, 0.0f, 10000.0f, "%.0f");
+                FVector Velocity = ProjectileComp->Velocity;
+                if (ImGui::DragFloat3("Velocity",
+                    &Velocity.x,
+                    0.1f, -1000.0f, 1000.0f, "%.2f"))
+                {
+                    ProjectileComp->Velocity = Velocity;
+                }
+            }
         }
         ImGui::PopStyleColor();
     }
@@ -226,6 +231,37 @@ void PropertyEditorPanel::Render()
         }
         ImGui::PopStyleColor();
         bFirstFrame = false;
+    }
+
+    if (PickedActor && PickedComponent && PickedComponent->IsA<UFireBallComponent>())
+    {
+        ImGui::SetItemDefaultFocus();
+        ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
+        if (PickedComponent != LastComponent)
+        {
+            LastComponent = PickedComponent;
+            bFirstFrame = true;
+        }
+        UFireBallComponent* FireBallComp = Cast<UFireBallComponent>(PickedComponent);
+        if (FireBallComp)
+        {
+            if (ImGui::CollapsingHeader("Fire Ball Settings", ImGuiTreeNodeFlags_DefaultOpen))
+            {
+                ImGui::DragFloat("Intensity", &FireBallComp->Intensity, 0.1f, 0.0f, 1000.0f, "%.2f");
+                ImGui::DragFloat("Radius", &FireBallComp->Radius, 1.0f, 0.0f, 5000.0f, "%.0f");
+                ImGui::DragFloat("Falloff", &FireBallComp->RadiusFallOff, 0.05f, 0.01f, 10.0f, "%.2f");
+                FLinearColor& Color = FireBallComp->Color;
+                float colorArray[4] = { Color.R, Color.G, Color.B, Color.A };
+                if (ImGui::ColorEdit4("Color", colorArray, ImGuiColorEditFlags_Float))
+                {
+                    Color.R = colorArray[0];
+                    Color.G = colorArray[1];
+                    Color.B = colorArray[2];
+                    Color.A = colorArray[3];
+                }
+            }
+        }
+        ImGui::PopStyleColor();
     }
 
     if (PickedActor && PickedComponent && PickedComponent->IsA<ULightComponentBase>())
@@ -342,9 +378,9 @@ void PropertyEditorPanel::Render()
     }
 
     // TODO: 추후에 RTTI를 이용해서 프로퍼티 출력하기
-    if (PickedActor)
-    if (UStaticMeshComponent* StaticMeshComponent = PickedActor->GetComponentByClass<UStaticMeshComponent>())
+    if (PickedActor && PickedComponent && PickedComponent->IsA<UStaticMeshComponent>())
     {
+        UStaticMeshComponent* StaticMeshComponent = PickedActor->GetComponentByClass<UStaticMeshComponent>();
         RenderForStaticMesh(StaticMeshComponent);
         RenderForMaterial(StaticMeshComponent);
     }

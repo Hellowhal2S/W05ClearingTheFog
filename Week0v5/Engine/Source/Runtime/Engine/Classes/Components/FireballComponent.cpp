@@ -5,6 +5,10 @@
 UFireBallComponent::UFireBallComponent()
 {
     SetType(StaticClass()->GetName());
+    Intensity = 1000.0f;
+    Radius = 500.0f;
+    RadiusFallOff = 2.0f;
+    Color = FLinearColor::Red;
 }
 
 UFireBallComponent::~UFireBallComponent()

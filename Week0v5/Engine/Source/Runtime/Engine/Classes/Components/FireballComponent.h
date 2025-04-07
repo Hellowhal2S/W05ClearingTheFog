@@ -18,7 +18,6 @@ public:
     virtual void DuplicateSubObjects(const UObject* Source) override;
     virtual void PostDuplicate() override;
 
-private:
     float Intensity;
     float Radius;
     float RadiusFallOff;
