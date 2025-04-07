@@ -13,7 +13,7 @@ struct FPostEffectConstant
 {
     // fog strength, fog color, inverse projection matrix... 등 추가 요망
 };
-
+class AExponentialHeightFog;
 namespace PostEffect
 {
     struct FFogConstants
@@ -25,7 +25,7 @@ namespace PostEffect
         float fogDensity = 0.1f;
         float heightDensity =0.3f;
         int mode; // 0: Rendered image, 1: Normal, 2: DepthOnly, 3: WorldPos
-        float padding;
+        bool fogEnabled;
         FVector4 fogColor  = { 1.0f,1.0f,1.0f,1.0f};
     };
     struct FCameraConstants
@@ -78,7 +78,7 @@ namespace PostEffect
     extern ID3D11RenderTargetView* finalRTV;
     extern ID3D11Texture2D* finalTexture;
     
-    extern FFogConstants Fog;
+    extern int renderMode;
     
     void InitCommonStates(FGraphicsDevice*& Graphics);
     void InitBuffers(ID3D11Device*& Device);
@@ -90,7 +90,7 @@ namespace PostEffect
     void Render(ID3D11DeviceContext*& DeviceContext, ID3D11ShaderResourceView*& ColorSRV);
     void Release();
     void ReleaseRTVDepth();
-    void UpdateFogConstantBuffer(ID3D11DeviceContext*& DeviceContext, FFogConstants newFog);
+    void UpdateFogConstantBuffer(ID3D11DeviceContext*& DeviceContext, AExponentialHeightFog* newFog);
     void UpdateCameraConstantBuffer(ID3D11DeviceContext*& DeviceContext);
     void CopyBackBufferToColorSRV(ID3D11DeviceContext*& DeviceContext, ID3D11Texture2D*& ColorTexture, ID3D11Texture2D*& FrameBuffer);
 

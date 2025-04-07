@@ -5,9 +5,13 @@
 #include <d3dcompiler.h>
 
 #include "EditorEngine.h"
+#include "Actors/AExponentialHeightFog.h"
+#include "Components/HeightFogComponent.h"
 #include "D3D11RHI/GraphicDevice.h"
+#include "Engine/World.h"
 #include "LevelEditor/SLevelEditor.h"
 #include "UnrealEd/EditorViewportClient.h"
+#include "UObject/Casts.h"
 
 #define SAFE_RELEASE(x) if (x) { x->Release(); x = nullptr; }
 
@@ -80,7 +84,7 @@ namespace PostEffect
 
     ID3D11RenderTargetView* finalRTV;
     ID3D11Texture2D* finalTexture;
-    FFogConstants Fog;
+    int renderMode;
 } // namespace PostEffect
 
 void PostEffect::InitCommonStates(FGraphicsDevice*& Graphics)
@@ -327,7 +331,7 @@ void PostEffect::Render(ID3D11DeviceContext*& DeviceContext, ID3D11ShaderResourc
     DeviceContext->PSSetConstantBuffers(1, 1, &FogConstantBuffer);
 
 
-    UpdateFogConstantBuffer(DeviceContext, Fog);
+    UpdateFogConstantBuffer(DeviceContext, GEngine->GetWorld()->Fog);
     UpdateCameraConstantBuffer(DeviceContext);
     DeviceContext->PSSetSamplers(0, 1, &PostEffectSampler);                 // Sampler      
     DeviceContext->Draw(6, 0);
@@ -369,21 +373,23 @@ void PostEffect::ReleaseRTVDepth()
     SAFE_RELEASE(DepthOnlyDSV);                     // Depth Only Stencil View
 }
 
-void PostEffect::UpdateFogConstantBuffer(ID3D11DeviceContext*& DeviceContext, FFogConstants newFog)
+void PostEffect::UpdateFogConstantBuffer(ID3D11DeviceContext*& DeviceContext, AExponentialHeightFog* newFog)
 {
     if (!FogConstantBuffer) return;
+    if (!newFog) return;
     D3D11_MAPPED_SUBRESOURCE mappedResource;
     DeviceContext->Map(FogConstantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
     {
         FFogConstants* constants = static_cast<FFogConstants*>(mappedResource.pData);
-        constants->depthStart = newFog.depthStart;
-        constants->depthFalloff = newFog.depthFalloff;
-        constants->heightStart = newFog.heightStart;
-        constants->heightFalloff = newFog.heightFalloff;
-        constants->heightDensity = newFog.heightDensity;
-        constants->fogDensity = newFog.fogDensity;
-        constants->mode = newFog.mode;
-        constants->fogColor = newFog.fogColor;
+        constants->depthStart = newFog->GetFogComponent()->GetDepthStart();
+        constants->depthFalloff =  newFog->GetFogComponent()->GetDepthFalloff();
+        constants->heightStart =  newFog->GetFogComponent()->GetHeightStart();
+        constants->heightFalloff =  newFog->GetFogComponent()->GetHeightFalloff();
+        constants->heightDensity =  newFog->GetFogComponent()->GetHeightDensity();
+        constants->fogDensity =  newFog->GetFogComponent()->GetFogDensity();
+        constants->mode = renderMode; // TODO : 분리 요망 
+        constants->fogColor =  newFog->GetFogComponent()->GetFogColor();
+        constants->fogEnabled = static_cast<bool>(GEngine->GetWorld()->Fog);
     }
     DeviceContext->Unmap(FogConstantBuffer, 0);
 }

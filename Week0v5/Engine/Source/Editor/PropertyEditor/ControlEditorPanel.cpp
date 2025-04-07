@@ -16,6 +16,7 @@
 #include "PropertyEditor/ShowFlags.h"
 #include "UnrealEd/SceneMgr.h"
 #include "UEditorStateManager.h"
+#include "Actors/AExponentialHeightFog.h"
 #include "Renderer/PostEffect.h"
 
 void ControlEditorPanel::Render()
@@ -238,63 +239,14 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
         }
         ImGui::Spacing();
 
-        ImGui::Text("Fog Start");
-        FogStart = PostEffect::Fog.heightStart;
-        ImGui::SetNextItemWidth(120.0f);
-        if (ImGui::DragFloat("##FogStart", &FogStart, 0.1f, 0.0f, 10.0f, "%.1f"))
-        {
-            PostEffect::Fog.heightStart = FogStart;
-        }
-        ImGui::Spacing();
-
-        ImGui::Text("Fog Falloff");
-        FogFalloff = PostEffect::Fog.heightFalloff;
-        ImGui::SetNextItemWidth(120.0f);
-        if (ImGui::DragFloat("##FogFalloff", &FogFalloff, .1f, 10.0f, 100.0f, "%.1f"))
-        {
-            PostEffect::Fog.heightFalloff = FogFalloff;
-        }
-        ImGui::Spacing();
-
-        ImGui::Text("Fog Density");
-        FogDensity = PostEffect::Fog.fogDensity;
-        ImGui::SetNextItemWidth(120.0f);
-        if (ImGui::DragFloat("##FogDensity", &FogDensity, 0.1f, 0.1f, 100.0f, "%.1f"))
-        {
-            PostEffect::Fog.fogDensity = FogDensity;
-        }
-        ImGui::Spacing();
-
-        ImGui::Text("Depth Scale");
-        DepthStart = PostEffect::Fog.depthStart;
-        ImGui::SetNextItemWidth(120.0f);
-        if (ImGui::DragFloat("##DepthStart", &DepthStart, 0.1f, 0.1f, 1.0f, "%.1f"))
-        {
-            PostEffect::Fog.depthStart = DepthStart;
-        }
-        ImGui::Spacing();
-
-        ImGui::Text("Depth Falloff");
-        DepthFalloff = PostEffect::Fog.depthFalloff;
-        ImGui::SetNextItemWidth(120.0f);
-        if (ImGui::DragFloat("##DepthFalloff", &DepthFalloff, 0.1f, 0.1f, 1.0f, "%.1f"))
-        {
-            PostEffect::Fog.depthFalloff = DepthFalloff;
-        }
+        
         ImGui::Spacing();
         const char* fogModes[] = { "None", "Normal", "Scene Depth", "World Pos" };
         ImGui::Text("Fog Mode");
         ImGui::SetNextItemWidth(120.0f);
-        if (ImGui::Combo("##FogModeCombo", &FogMode, fogModes, IM_ARRAYSIZE(fogModes)))
+        if (ImGui::Combo("##FogModeCombo", &renderMode, fogModes, IM_ARRAYSIZE(fogModes)))
         {
-            PostEffect::Fog.mode = FogMode;
-        }
-        ImGui::Spacing();
-        ImGui::Text("Fog Color");
-        ImGui::SetNextItemWidth(120.0f);
-        if (ImGui::ColorEdit4("##FogColor", (float*)&PostEffect::Fog.fogColor))
-        {
-            // PostEffect::Fog.fogColor가 업데이트 됩니다.
+            PostEffect::renderMode = renderMode;
         }
         ImGui::EndPopup();
     }
@@ -319,7 +271,9 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
             { .label= "Sphere",    .obj= OBJ_SPHERE },
             { .label= "SpotLight", .obj= OBJ_SpotLight },
             { .label= "Particle",  .obj= OBJ_PARTICLE },
-            { .label= "Text",      .obj= OBJ_Text }
+            { .label= "Text",      .obj= OBJ_Text },
+            { .label= "Dodge",      .obj= OBJ_CAR },
+            { .label= "Fog",      .obj= OBJ_FOG }
         };
 
         for (const auto& primitive : primitives)
@@ -333,9 +287,11 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
                 {
                 case OBJ_SPHERE:
                 {
-                    SpawnedActor = World->SpawnActor<AActor>();
-                    SpawnedActor->SetActorLabel(TEXT("OBJ_SPHERE"));
-                    SpawnedActor->AddComponent<USphereComp>();
+                    AStaticMeshActor* TempActor = World->SpawnActor<AStaticMeshActor>();
+                    TempActor->SetActorLabel(TEXT("OBJ_SPHERE"));
+                    UStaticMeshComponent* MeshComp = TempActor->GetStaticMeshComponent();
+                    FManagerOBJ::CreateStaticMesh("Assets/apple_mid.obj");
+                    MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"apple_mid.obj"));
                     break;
                 }
                 case OBJ_CUBE:
@@ -375,8 +331,21 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
                     TextComponent->SetText(L"안녕하세요 Jungle 1");
                     break;
                 }
-                case OBJ_TRIANGLE:
-                case OBJ_CAMERA:
+                case OBJ_FOG:
+                {
+                    SpawnedActor = World->SpawnActor<AExponentialHeightFog>();
+                    SpawnedActor->SetActorLabel(TEXT("OBJ_FOG"));
+                    break;
+                }
+                case OBJ_CAR:
+                {
+                    AStaticMeshActor* TempActor = World->SpawnActor<AStaticMeshActor>();
+                    TempActor->SetActorLabel(TEXT("OBJ_DODGE"));
+                    UStaticMeshComponent* MeshComp = TempActor->GetStaticMeshComponent();
+                    FManagerOBJ::CreateStaticMesh("Assets/Dodge/Dodge.obj");
+                    MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"Dodge.obj"));
+                    break;
+                }
                 case OBJ_PLAYER:
                 case OBJ_END:
                     break;

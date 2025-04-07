@@ -13,6 +13,8 @@
 #include <Components/CubeComp.h>
 #include <Components/UParticleSubUVComp.h>
 
+#include "Components/HeightFogComponent.h"
+
 void PropertyEditorPanel::Render()
 {
     /* Pre Setup */
@@ -316,11 +318,111 @@ void PropertyEditorPanel::Render()
             }
             ImGui::TreePop();
         }
+    }
+    if (PickedActor && PickedComponent && PickedComponent->IsA<UHeightFogComponent>())
+    {
+      UHeightFogComponent* fog = Cast<UHeightFogComponent>(PickedComponent);
+        // Light Radius
 
+      ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
+        if (ImGui::TreeNodeEx("ExponentialFog Component", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) // 트리 노드 생성
+        {
+            float depthStart = fog->GetDepthStart();
+            if (ImGui::SliderFloat("Depth Start", &depthStart, 0.0f, 20.0f))
+            {
+                fog->SetDepthStart(depthStart);
+            }
+            float depthFalloff = fog->GetDepthFalloff();
+            if (ImGui::SliderFloat("Depth Falloff", &depthFalloff, 20.0f, 100.0f))
+            {
+                fog->SetDepthFalloff(depthFalloff);
+            }
+            float depthDensity= fog->GetFogDensity();
+            if (ImGui::SliderFloat("Fog Depth Density", &depthDensity, 0.0f, 10.0f))
+            {
+                fog->SetFogDensity(depthDensity);
+            }
+            float heightStart= fog->GetHeightStart();
+            if (ImGui::SliderFloat("Height Start", &heightStart, 0.0f, 20.0f))
+            {
+                fog->SetHeightStart(heightStart);
+            }
+            float heightFalloff= fog->GetHeightFalloff();
+            if (ImGui::SliderFloat("Height Falloff", &heightFalloff, 20.0f, 100.0f))
+            {
+                fog->SetHeightFalloff(heightFalloff);
+            }
+            float heightDencity= fog->GetHeightDensity();
+            if (ImGui::SliderFloat("Fog Height Density", &heightDencity, 0.0f, 100.0f))
+            {
+                fog->SetHeightDensity(heightDencity);
+            }
+            
+            FVector4 currColor = fog->GetFogColor();
+            float r = currColor.x;
+            float g = currColor.y;
+            float b = currColor.z;
+            float a = currColor.a;
+            float h, s, v;
+            float lightColor[4] = { r, g, b, a };
+
+            // SpotLight Color
+            if (ImGui::ColorPicker4("Fog Color", lightColor,
+                ImGuiColorEditFlags_DisplayRGB |
+                ImGuiColorEditFlags_NoSidePreview |
+                ImGuiColorEditFlags_NoInputs |
+                ImGuiColorEditFlags_Float))
+
+            {
+
+                r = lightColor[0];
+                g = lightColor[1];
+                b = lightColor[2];
+                a = lightColor[3];
+                fog->SetFogColor(FVector4(r, g, b, a));
+            }
+            RGBToHSV(r, g, b, h, s, v);
+            // RGB/HSV
+            bool changedRGB = false;
+            bool changedHSV = false;
+
+            // RGB
+            ImGui::PushItemWidth(50.0f);
+            if (ImGui::DragFloat("R##R", &r, 0.001f, 0.f, 1.f)) changedRGB = true;
+            ImGui::SameLine();
+            if (ImGui::DragFloat("G##G", &g, 0.001f, 0.f, 1.f)) changedRGB = true;
+            ImGui::SameLine();
+            if (ImGui::DragFloat("B##B", &b, 0.001f, 0.f, 1.f)) changedRGB = true;
+            ImGui::Spacing();
+            
+            // HSV
+            if (ImGui::DragFloat("H##H", &h, 0.1f, 0.f, 360)) changedHSV = true;
+            ImGui::SameLine();
+            if (ImGui::DragFloat("S##S", &s, 0.001f, 0.f, 1)) changedHSV = true;
+            ImGui::SameLine();
+            if (ImGui::DragFloat("V##V", &v, 0.001f, 0.f, 1)) changedHSV = true;
+            ImGui::PopItemWidth();
+            ImGui::Spacing();
+            
+            if (changedRGB && !changedHSV)
+            {
+                // RGB -> HSV
+                RGBToHSV(r, g, b, h, s, v);
+                fog->SetFogColor(FVector4(r, g, b, a));
+            }
+            else if (changedHSV && !changedRGB)
+            {
+                // HSV -> RGB
+                HSVToRGB(h, s, v, r, g, b);
+                fog->SetFogColor(FVector4(r, g, b, a));
+            }
+
+            ImGui::TreePop();
+        }
+
+        ImGui::PopStyleColor();
     }
     ImGui::End();
-
-
 }
 
 void PropertyEditorPanel::DrawSceneComponentTree(USceneComponent* Component, UActorComponent*& PickedComponent)

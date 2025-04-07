@@ -25,12 +25,10 @@ private:
     float* FOV = nullptr;
     float CameraSpeed = 0.0f;
     float GridScale = 1.0f;
-    float FogStart = 0.0f;
-    float FogFalloff = 0.0f;
-    float FogDensity = 0.0f;
-    int FogMode = 0;
-    float DepthStart = 1.0f;
-    float DepthFalloff = 50.0f;
-    FVector FogColor = FVector(1.0f, 1.0f, 1.0f);
+
+    // 안개 
+
+    int renderMode = 0;
+
 };
 

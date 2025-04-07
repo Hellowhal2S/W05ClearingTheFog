@@ -27,7 +27,7 @@ cbuffer FogConstants : register(b1)
     float fogDensity;
     float heightDensity;
     int mode; // 1: Rendered image, 2: DepthOnly
-    float padding;
+    bool fogEnabled;
     float4 fogColor;
 };
 
@@ -86,19 +86,24 @@ float4 mainPS(SamplingPixelShaderInput input) : SV_TARGET
     else // 모드 1: 렌더링 이미지에 안개 효과 적용
     {
         // // 뷰 공간 좌표 복원 (거리 기반 안개 계산용)
-        float4 posView = TexcoordToView(input.texcoord);
+        if (fogEnabled)
+        {
+            float4 posView = TexcoordToView(input.texcoord);
         
-        float dist = length(posView.xyz);
-        //float distFog = saturate((dist - depthStart) / (depthFalloff - depthStart));
-        float rawDepth = depthOnlyTex.Sample(Sampler,input.texcoord).r;
-        float linearDepth = LinearizeAndNormalizeDepth(rawDepth, 0.1f, 100.0f);
-        float fogFactor = 1.0 - exp(-fogDensity* linearDepth);
-        float3 color = renderTex.Sample(Sampler, input.texcoord).rgb;
+            float dist = length(posView.xyz);
+            //float distFog = saturate((dist - depthStart) / (depthFalloff - depthStart));
+            float rawDepth = depthOnlyTex.Sample(Sampler,input.texcoord).r;
+            float linearDepth = LinearizeAndNormalizeDepth(rawDepth, 0.1f, 100.0f);
+            float fogFactor = 1.0 - exp(-fogDensity* linearDepth);
+            float3 color = renderTex.Sample(Sampler, input.texcoord).rgb;
         
-        float worldHeight = worldPosTex.Sample(Sampler, input.texcoord).z;
-        float heightFactor = 1.0 - saturate((worldHeight - heightStart) / heightFalloff);
-        fogFactor += heightDensity * heightFactor;
-        color = lerp(color, fogColor.rgb, fogFactor);
-        return float4(color, 1.0);
+            float worldHeight = worldPosTex.Sample(Sampler, input.texcoord).z;
+            float heightFactor = 1.0 - saturate((worldHeight - heightStart) / heightFalloff);
+            fogFactor += heightDensity * heightFactor;
+            color = lerp(color, fogColor.rgb, fogFactor);
+            return float4(color, 1.0);
+        }
+        else
+            return float4(renderTex.Sample(Sampler, input.texcoord).rgb,1.0f);
     }
 }
