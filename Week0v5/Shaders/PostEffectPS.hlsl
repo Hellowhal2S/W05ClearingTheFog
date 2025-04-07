@@ -58,7 +58,7 @@ float4 TexcoordToView(float2 texcoord)
 float LinearizeAndNormalizeDepth(float z_buffer, float nearZ, float farZ)
 {
     float linearizedZ = (nearZ * farZ) / (farZ - z_buffer * (farZ - nearZ));
-    return saturate((linearizedZ - nearZ) / (farZ - nearZ));
+    return saturate((linearizedZ - nearZ) / (farZ - nearZ)); // scale 0 to 1
 
 }
 
@@ -85,17 +85,18 @@ float4 mainPS(SamplingPixelShaderInput input) : SV_TARGET
     else // 모드 1: 렌더링 이미지에 안개 효과 적용
     {
         // // 뷰 공간 좌표 복원 (거리 기반 안개 계산용)
-        // float4 posView = TexcoordToView(input.texcoord);
-        //
-        // float dist = length(posView.xyz);
-        // float distFog = saturate((dist - depthStart) / (depthFalloff - depthStart));
+        float4 posView = TexcoordToView(input.texcoord);
+        
+        float dist = length(posView.xyz);
+        //float distFog = saturate((dist - depthStart) / (depthFalloff - depthStart));
         float rawDepth = depthOnlyTex.Sample(Sampler,input.texcoord).r;
         float linearDepth = LinearizeAndNormalizeDepth(rawDepth, 0.1f, 100.0f);
-         // float fogFactor = saturate(1.0 - exp(-fogDensity * distFog * depthOnlyTex.Sample(Sampler,input.texcoord).r));
-         // float fogFactor = exp(-distFog * fogDensity);
-        float fogFactor = saturate(1.0 - exp(-fogDensity* linearDepth));
-        // fogFactor = fogFactor * linearDepth * 10.0f;
+        float fogFactor = 1.0 - exp(-fogDensity* linearDepth);
         float3 color = renderTex.Sample(Sampler, input.texcoord).rgb;
+        
+        float worldHeight = worldPosTex.Sample(Sampler, input.texcoord).z;
+        float heightFactor = 1.0 - saturate((worldHeight - heightStart) / heightFalloff);
+        fogFactor += 0.3 * heightFactor;
         color = lerp(color, fogColor.rgb, fogFactor);
         return float4(color, 1.0);
         
