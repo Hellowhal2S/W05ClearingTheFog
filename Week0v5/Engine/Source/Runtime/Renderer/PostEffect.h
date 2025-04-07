@@ -23,8 +23,9 @@ namespace PostEffect
         float heightStart = 0.0f;
         float heightFalloff = 50.0f;
         float fogDensity = 0.1f;
-        int mode; // 1: Rendered image, 2: DepthOnly
-        FVector2D padding;
+        float heightDensity =0.3f;
+        int mode; // 0: Rendered image, 1: Normal, 2: DepthOnly, 3: WorldPos
+        float padding;
         FVector4 fogColor  = { 1.0f,1.0f,1.0f,1.0f};
     };
     struct FCameraConstants

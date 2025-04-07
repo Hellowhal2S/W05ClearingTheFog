@@ -380,6 +380,7 @@ void PostEffect::UpdateFogConstantBuffer(ID3D11DeviceContext*& DeviceContext, FF
         constants->depthFalloff = newFog.depthFalloff;
         constants->heightStart = newFog.heightStart;
         constants->heightFalloff = newFog.heightFalloff;
+        constants->heightDensity = newFog.heightDensity;
         constants->fogDensity = newFog.fogDensity;
         constants->mode = newFog.mode;
         constants->fogColor = newFog.fogColor;

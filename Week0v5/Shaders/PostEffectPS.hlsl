@@ -25,8 +25,9 @@ cbuffer FogConstants : register(b1)
     float heightStart;
     float heightFalloff;
     float fogDensity;
+    float heightDensity;
     int mode; // 1: Rendered image, 2: DepthOnly
-    float2 padding;
+    float padding;
     float4 fogColor;
 };
 
@@ -96,7 +97,7 @@ float4 mainPS(SamplingPixelShaderInput input) : SV_TARGET
         
         float worldHeight = worldPosTex.Sample(Sampler, input.texcoord).z;
         float heightFactor = 1.0 - saturate((worldHeight - heightStart) / heightFalloff);
-        fogFactor += 0.3 * heightFactor;
+        fogFactor += heightDensity * heightFactor;
         color = lerp(color, fogColor.rgb, fogFactor);
         return float4(color, 1.0);
     }
