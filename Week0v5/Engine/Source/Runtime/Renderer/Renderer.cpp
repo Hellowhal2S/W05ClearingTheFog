@@ -433,7 +433,7 @@ void FRenderer::ReleaseConstantBuffers()
     ReleaseBuffer(ConstantBuffers.Mesh06);
 }
 
-void FRenderer::UpdateLightBuffer() const
+void FRenderer::UpdateLightBufferForTest() const
 {
     if (!ConstantBuffers.Light01) return;
     FConstantBufferLights buf;
@@ -786,7 +786,7 @@ void FRenderer::PrepareLineShader() const
     // - GridConstantBuffer�� register(b1)��, Vertex�� Pixel Shader�� ���ε� (�ȼ� ���̴��� �ʿ信 ����)
     if (ConstantBuffers.Mesh06 && GridConstantBuffer)
     {
-        Graphics->DeviceContext->VSSetConstantBuffers(0, 1, &ConstantBuffers.Mesh06);     // MatrixBuffer (b0)
+        //Graphics->DeviceContext->VSSetConstantBuffers(0, 1, &ConstantBuffers.Mesh06);     // MatrixBuffer (b0)
         Graphics->DeviceContext->VSSetConstantBuffers(1, 1, &GridConstantBuffer); // GridParameters (b1)
         Graphics->DeviceContext->PSSetConstantBuffers(1, 1, &GridConstantBuffer);
         Graphics->DeviceContext->VSSetConstantBuffers(3, 1, &LinePrimitiveBuffer);
@@ -1072,7 +1072,6 @@ void FRenderer::Render(UWorld* World, std::shared_ptr<FEditorViewportClient> Act
 
     Graphics->DeviceContext->RSSetViewports(1, &ActiveViewport->GetD3DViewport());
     Graphics->ChangeRasterizer(ActiveViewport->GetViewMode());
-    UpdateLightBuffer();
     // Scene Update
     {
         FConstantBufferCamera buf;
@@ -1080,6 +1079,7 @@ void FRenderer::Render(UWorld* World, std::shared_ptr<FEditorViewportClient> Act
         buf.ProjMatrix = ActiveViewport->GetProjectionMatrix();
         UpdateConstantbufferCamera(buf);
     }
+    UpdateLightBufferForTest();
     UPrimitiveBatch::GetInstance().RenderBatch(ActiveViewport->GetViewMatrix(), ActiveViewport->GetProjectionMatrix());
 
     if (ActiveViewport->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::SF_Primitives))

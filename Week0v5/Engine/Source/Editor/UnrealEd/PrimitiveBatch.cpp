@@ -41,10 +41,8 @@ void UPrimitiveBatch::RenderBatch(const FMatrix& View, const FMatrix& Projection
     InitializeVertexBuffer();
 
     FMatrix Model = FMatrix::Identity;
-    FMatrix MVP = Model * View * Projection;
-    FMatrix NormalMatrix = FMatrix::Transpose(FMatrix::Inverse(Model));
     FConstantBufferMesh buf;
-    buf.ModelMatrix = MVP;
+    buf.ModelMatrix = Model;
 
     UEditorEngine::renderer.UpdateConstantbufferMesh(buf);
     UEditorEngine::renderer.UpdateGridConstantBuffer(GridParam);
