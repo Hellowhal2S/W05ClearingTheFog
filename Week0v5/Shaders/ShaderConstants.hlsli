@@ -65,6 +65,9 @@ cbuffer ConstantBufferScene : register(b0)
     float3 CameraLookAt;
 };
 
+// FCONSTANT_NUM 관련 컴파일 에러(HLSL0033)는 무시하세요
+// hlsl 외부에서 정의되고 있기 때문에 이 스코프에서는 선언되지 않지만,
+// 셰이더 컴파일시에 정의되고 있습니다.
 cbuffer ConstantBufferLights : register(b1)
 {
     FConstantBufferLightDir DirLights[FCONSTANT_NUM_DIRLIGHT];

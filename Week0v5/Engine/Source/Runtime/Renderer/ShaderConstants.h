@@ -25,7 +25,7 @@ const D3D_SHADER_MACRO defines[] =
 };
 
 
-struct FConstantBuffers
+struct FConstantBuffersStaticMesh
 {
     ID3D11Buffer* Camera00;
     ID3D11Buffer* Light01;
@@ -40,9 +40,6 @@ struct FConstantBuffersBatchLine
     ID3D11Buffer* Grid01;
     ID3D11Buffer* BoundingBox02;
     ID3D11Buffer* Counts03;
-    //ID3D11Buffer* Grid01;
-    //ID3D11Buffer* Grid01;
-    
 };
 
 

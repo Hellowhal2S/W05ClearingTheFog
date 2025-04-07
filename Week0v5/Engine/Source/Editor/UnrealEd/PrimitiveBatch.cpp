@@ -36,7 +36,7 @@ void UPrimitiveBatch::GenerateGrid(float spacing, int gridCount)
 void UPrimitiveBatch::RenderBatch(const FMatrix& View, const FMatrix& Projection)
 {
     // week5 수정중
-    UEditorEngine::renderer.PrepareLineShader();
+    UEditorEngine::renderer.PrepareShader(UEditorEngine::renderer.RenderResources.Shaders.Line);
 
     InitializeVertexBuffer();
 
@@ -58,7 +58,7 @@ void UPrimitiveBatch::RenderBatch(const FMatrix& View, const FMatrix& Projection
     BoundingBoxes.Empty();
     Cones.Empty();
     OrientedBoundingBoxes.Empty();
-    UEditorEngine::renderer.PrepareShader();
+    //UEditorEngine::renderer.PrepareShader();
 }
 void UPrimitiveBatch::InitializeVertexBuffer()
 {

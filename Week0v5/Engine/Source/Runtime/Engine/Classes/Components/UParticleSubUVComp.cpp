@@ -23,8 +23,8 @@ UParticleSubUVComp::~UParticleSubUVComp()
 void UParticleSubUVComp::InitializeComponent()
 {
 	Super::InitializeComponent();
-	UEditorEngine::renderer.UpdateSubUVConstant(0, 0);
-	UEditorEngine::renderer.PrepareSubUVConstant();
+	//UEditorEngine::renderer.UpdateSubUVConstant(0, 0);
+	//UEditorEngine::renderer.PrepareSubUVConstant();
 }
 
 void UParticleSubUVComp::TickComponent(float DeltaTime)
