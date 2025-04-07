@@ -435,8 +435,8 @@ void FRenderer::UpdateLightBuffer() const
     if (!ConstantBuffers.Light01) return;
     FConstantBufferLights buf;
     buf.DirLights[0].Color.Ambient = FVector(1.0f, 1.0f, 1.0f) * 0.06f;
-    buf.DirLights[0].Color.Diffuse = FVector(1.0f, 1.0f, 1.0f);
-    buf.DirLights[0].Color.Specular = FVector(1.0f, 1.0f, 1.0f);
+    buf.DirLights[0].Color.Diffuse = FVector(1.0f, 1.0f, 1.0f) * 0.2f;
+    buf.DirLights[0].Color.Specular = FVector(1.0f, 1.0f, 1.0f) * 0.2f;
     static float time = 0;
     time += 0.1;
     buf.DirLights[0].Direction = FVector(sin(time), cos(time), -10.0f).Normalize();

@@ -17,7 +17,7 @@ struct PS_INPUT
     bool normalFlag : TEXCOORD0; // 노멀 유효성 플래그 (1.0: 유효, 0.0: 무효)
     float2 texcoord : TEXCOORD1;
     int materialIndex : MATERIAL_INDEX;
-    float3 worldPos : TEXCCOORD2;
+    float3 worldPos : TEXCOORD2;
 };
 
 PS_INPUT mainVS(VS_INPUT input)

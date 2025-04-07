@@ -71,6 +71,7 @@ cbuffer ConstantBufferLights : register(b1)
     FConstantBufferLightPoint PointLights[FCONSTANT_NUM_POINTLIGHT];
     FConstantBufferLightSpot SpotLights[FCONSTANT_NUM_SPOTLIGHT];
     uint isLit;
+    int NumPointLights;
 }
 
 cbuffer ConstantBufferActor : register(b3)
