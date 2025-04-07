@@ -93,7 +93,8 @@ float4 mainPS(SamplingPixelShaderInput input) : SV_TARGET
         float linearDepth = LinearizeAndNormalizeDepth(rawDepth, 0.1f, 100.0f);
          // float fogFactor = saturate(1.0 - exp(-fogDensity * distFog * depthOnlyTex.Sample(Sampler,input.texcoord).r));
          // float fogFactor = exp(-distFog * fogDensity);
-        float fogFactor = saturate(1.0 - exp(-fogDensity * distFog * linearDepth.rrr * 10.0f));
+        float fogFactor = saturate(1.0 - exp(-fogDensity* linearDepth));
+        // fogFactor = fogFactor * linearDepth * 10.0f;
         float3 color = renderTex.Sample(Sampler, input.texcoord).rgb;
         color = lerp(color, fogColor.rgb, fogFactor);
         return float4(color, 1.0);
