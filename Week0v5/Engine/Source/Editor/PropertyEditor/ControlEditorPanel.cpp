@@ -266,11 +266,20 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
         ImGui::Spacing();
 
         ImGui::Text("Depth Scale");
-        DepthScale = PostEffect::Fog.depthScale;
+        DepthStart = PostEffect::Fog.depthStart;
         ImGui::SetNextItemWidth(120.0f);
-        if (ImGui::DragFloat("##DepthScale", &DepthScale, 0.1f, 0.1f, 1.0f, "%.1f"))
+        if (ImGui::DragFloat("##DepthStart", &DepthStart, 0.1f, 0.1f, 1.0f, "%.1f"))
         {
-            PostEffect::Fog.depthScale = DepthScale;
+            PostEffect::Fog.depthStart = DepthStart;
+        }
+        ImGui::Spacing();
+
+        ImGui::Text("Depth Falloff");
+        DepthFalloff = PostEffect::Fog.depthFalloff;
+        ImGui::SetNextItemWidth(120.0f);
+        if (ImGui::DragFloat("##DepthFalloff", &DepthFalloff, 0.1f, 0.1f, 1.0f, "%.1f"))
+        {
+            PostEffect::Fog.depthFalloff = DepthFalloff;
         }
         ImGui::Spacing();
         const char* fogModes[] = { "None", "Normal", "Scene Depth", "World Pos" };

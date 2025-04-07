@@ -18,13 +18,14 @@ namespace PostEffect
 {
     struct FFogConstants
     {
+        float depthStart = 0.0f;
+        float depthFalloff = 50.0f;
         float heightStart = 0.0f;
         float heightFalloff = 50.0f;
         float fogDensity = 0.1f;
         int mode; // 1: Rendered image, 2: DepthOnly
+        FVector2D padding;
         FVector4 fogColor  = { 1.0f,1.0f,1.0f,1.0f};
-        float depthScale = 1.0f;
-        FVector padding;
     };
     struct FCameraConstants
     {

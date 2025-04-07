@@ -29,7 +29,8 @@ private:
     float FogFalloff = 0.0f;
     float FogDensity = 0.0f;
     int FogMode = 0;
-    float DepthScale = 1.0f;
+    float DepthStart = 1.0f;
+    float DepthFalloff = 50.0f;
     
 };
 

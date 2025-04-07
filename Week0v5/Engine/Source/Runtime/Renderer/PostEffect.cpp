@@ -376,12 +376,13 @@ void PostEffect::UpdateFogConstantBuffer(ID3D11DeviceContext*& DeviceContext, FF
     DeviceContext->Map(FogConstantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
     {
         FFogConstants* constants = static_cast<FFogConstants*>(mappedResource.pData);
+        constants->depthStart = newFog.depthStart;
+        constants->depthFalloff = newFog.depthFalloff;
         constants->heightStart = newFog.heightStart;
         constants->heightFalloff = newFog.heightFalloff;
         constants->fogDensity = newFog.fogDensity;
         constants->mode = newFog.mode;
         constants->fogColor = newFog.fogColor;
-        constants->depthScale = newFog.depthScale;
     }
     DeviceContext->Unmap(FogConstantBuffer, 0);
 }
