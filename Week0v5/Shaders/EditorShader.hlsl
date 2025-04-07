@@ -94,8 +94,8 @@ PS_INPUT aabbVS(VS_INPUT_POS_ONLY input, uint instanceID : SV_InstanceID)
 {
     PS_INPUT output;
     
-    float3 pos = Data[instanceID].AABBPosition;
-    float3 scale = Data[instanceID].AABBExtent;
+    float3 pos = DataAABB[instanceID].Position;
+    float3 scale = DataAABB[instanceID].Extent;
     //scale = float3(1, 1, 1);
     
     float4 localPos = float4(input.position.xyz * scale + pos, 1.f);
@@ -110,6 +110,30 @@ PS_INPUT aabbVS(VS_INPUT_POS_ONLY input, uint instanceID : SV_InstanceID)
 }
 
 float4 aabbPS(PS_INPUT input) : SV_Target
+{
+    return float4(1.0f, 1.0f, 0.0f, 1.0f); // 노란색 AABB
+}
+
+PS_INPUT sphereVS(VS_INPUT_POS_ONLY input, uint instanceID : SV_InstanceID)
+{
+    PS_INPUT output;
+    
+    float3 pos = DataSphere[instanceID].Position;
+    float scale = DataSphere[instanceID].Radius;
+    //scale = float3(1, 1, 1);
+    
+    float4 localPos = float4(input.position.xyz * scale + pos, 1.f);
+        
+    localPos = mul(localPos, ViewMatrix);
+    localPos = mul(localPos, ProjMatrix);
+    output.position = localPos;
+    
+    // color는 지정안해줌
+    
+    return output;
+}
+
+float4 spherePS(PS_INPUT input) : SV_Target
 {
     return float4(1.0f, 1.0f, 0.0f, 1.0f); // 노란색 AABB
 }

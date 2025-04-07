@@ -103,6 +103,36 @@ void FEditorRenderer::CreateShaders()
     );
     Resources.Shaders.AABB.Topology = D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
 
+    VertexShaderCSO->Release();
+    PixelShaderCSO->Release();
+
+    VertexShaderCSO = nullptr;
+    PixelShaderCSO = nullptr;
+
+    D3DCompileFromFile(L"Shaders/EditorShader.hlsl", defines, D3D_COMPILE_STANDARD_FILE_INCLUDE, "sphereVS", "vs_5_0", 0, 0, &VertexShaderCSO, &errorBlob);
+    if (errorBlob)
+    {
+        OutputDebugStringA((char*)errorBlob->GetBufferPointer());
+        errorBlob->Release();
+    }
+    Renderer->Graphics->Device->CreateVertexShader(VertexShaderCSO->GetBufferPointer(), VertexShaderCSO->GetBufferSize(), nullptr, &Resources.Shaders.Sphere.Vertex);
+
+    D3DCompileFromFile(L"Shaders/EditorShader.hlsl", defines, D3D_COMPILE_STANDARD_FILE_INCLUDE, "spherePS", "ps_5_0", 0, 0, &PixelShaderCSO, &errorBlob);
+
+    Renderer->Graphics->Device->CreatePixelShader(PixelShaderCSO->GetBufferPointer(), PixelShaderCSO->GetBufferSize(), nullptr, &Resources.Shaders.Sphere.Pixel);
+
+    // Box의 vertex
+    D3D11_INPUT_ELEMENT_DESC layout2[] = {
+        {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+    };
+
+    Renderer->Graphics->Device->CreateInputLayout(
+        layout2, ARRAYSIZE(layout2), VertexShaderCSO->GetBufferPointer(), VertexShaderCSO->GetBufferSize(), &Resources.Shaders.Sphere.Layout
+    );
+    Resources.Shaders.Sphere.Topology = D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
+
+    VertexShaderCSO->Release();
+    PixelShaderCSO->Release();
 }
 
 void FEditorRenderer::PrepareShader(FShaderResource ShaderResource) const
@@ -135,6 +165,7 @@ void FEditorRenderer::ReleaseShaders()
 
 void FEditorRenderer::CreateBuffers()
 {
+    ////////////////////////////////////
     // Box 버퍼 생성
     TArray<FVector> CubeFrameVertices;
     CubeFrameVertices.Add({ -1.f, -1.f, -1.f}); // 0
@@ -177,6 +208,145 @@ void FEditorRenderer::CreateBuffers()
     Resources.Primitives.Box.NumVertices = CubeFrameVertices.Num();
     Resources.Primitives.Box.VertexStride = sizeof(FVector);
     Resources.Primitives.Box.NumIndices = CubeFrameIndices.Num();
+
+    ////////////////////////////////////
+    // Sphere 버퍼 생성
+    FVector SphereFrameVertices[] =
+    {
+        {1.0, 0.0, 0},
+        {0.9795299412524945, 0.20129852008866006, 0},
+        {0.9189578116202306, 0.39435585511331855, 0},
+        {0.8207634412072763, 0.5712682150947923, 0},
+        {0.6889669190756866, 0.72479278722912, 0},
+        {0.5289640103269624, 0.8486442574947509, 0},
+        {0.3473052528448203, 0.9377521321470804, 0},
+        {0.1514277775045767, 0.9884683243281114, 0},
+        {-0.05064916883871264, 0.9987165071710528, 0},
+        {-0.2506525322587204, 0.9680771188662043, 0},
+        {-0.4403941515576344, 0.8978045395707416, 0},
+        {-0.6121059825476629, 0.7907757369376985, 0},
+        {-0.758758122692791, 0.6513724827222223, 0},
+        {-0.8743466161445821, 0.48530196253108104, 0},
+        {-0.9541392564000488, 0.29936312297335804, 0},
+        {-0.9948693233918952, 0.10116832198743228, 0},
+        {-0.9948693233918952, -0.10116832198743204, 0},
+        {-0.9541392564000489, -0.29936312297335776, 0},
+        {-0.8743466161445822, -0.4853019625310808, 0},
+        {-0.7587581226927911, -0.651372482722222, 0},
+        {-0.6121059825476627, -0.7907757369376986, 0},
+        {-0.44039415155763423, -0.8978045395707417, 0},
+        {-0.2506525322587205, -0.9680771188662043, 0},
+        {-0.05064916883871266, -0.9987165071710528, 0},
+        {0.15142777750457667, -0.9884683243281114, 0},
+        {0.3473052528448203, -0.9377521321470804, 0},
+        {0.5289640103269624, -0.8486442574947509, 0},
+        {0.6889669190756865, -0.72479278722912, 0},
+        {0.8207634412072763, -0.5712682150947924, 0},
+        {0.9189578116202306, -0.3943558551133187, 0},
+        {0.9795299412524945, -0.20129852008866028, 0},
+        {1, 0, 0},
+        {1.0, 0, 0.0},
+        {0.9795299412524945, 0, 0.20129852008866006},
+        {0.9189578116202306, 0, 0.39435585511331855},
+        {0.8207634412072763, 0, 0.5712682150947923},
+        {0.6889669190756866, 0, 0.72479278722912},
+        {0.5289640103269624, 0, 0.8486442574947509},
+        {0.3473052528448203, 0, 0.9377521321470804},
+        {0.1514277775045767, 0, 0.9884683243281114},
+        {-0.05064916883871264, 0, 0.9987165071710528},
+        {-0.2506525322587204, 0, 0.9680771188662043},
+        {-0.4403941515576344, 0, 0.8978045395707416},
+        {-0.6121059825476629, 0, 0.7907757369376985},
+        {-0.758758122692791, 0, 0.6513724827222223},
+        {-0.8743466161445821, 0, 0.48530196253108104},
+        {-0.9541392564000488, 0, 0.29936312297335804},
+        {-0.9948693233918952, 0, 0.10116832198743228},
+        {-0.9948693233918952, 0, -0.10116832198743204},
+        {-0.9541392564000489, 0, -0.29936312297335776},
+        {-0.8743466161445822, 0, -0.4853019625310808},
+        {-0.7587581226927911, 0, -0.651372482722222},
+        {-0.6121059825476627, 0, -0.7907757369376986},
+        {-0.44039415155763423, 0, -0.8978045395707417},
+        {-0.2506525322587205, 0, -0.9680771188662043},
+        {-0.05064916883871266, 0, -0.9987165071710528},
+        {0.15142777750457667, 0, -0.9884683243281114},
+        {0.3473052528448203, 0, -0.9377521321470804},
+        {0.5289640103269624, 0, -0.8486442574947509},
+        {0.6889669190756865, 0, -0.72479278722912},
+        {0.8207634412072763, 0, -0.5712682150947924},
+        {0.9189578116202306, 0, -0.3943558551133187},
+        {0.9795299412524945, 0, -0.20129852008866028},
+        {1, 0, 0},
+        {0, 1.0, 0.0},
+        {0, 0.9795299412524945, 0.20129852008866006},
+        {0, 0.9189578116202306, 0.39435585511331855},
+        {0, 0.8207634412072763, 0.5712682150947923},
+        {0, 0.6889669190756866, 0.72479278722912},
+        {0, 0.5289640103269624, 0.8486442574947509},
+        {0, 0.3473052528448203, 0.9377521321470804},
+        {0, 0.1514277775045767, 0.9884683243281114},
+        {0, -0.05064916883871264, 0.9987165071710528},
+        {0, -0.2506525322587204, 0.9680771188662043},
+        {0, -0.4403941515576344, 0.8978045395707416},
+        {0, -0.6121059825476629, 0.7907757369376985},
+        {0, -0.758758122692791, 0.6513724827222223},
+        {0, -0.8743466161445821, 0.48530196253108104},
+        {0, -0.9541392564000488, 0.29936312297335804},
+        {0, -0.9948693233918952, 0.10116832198743228},
+        {0, -0.9948693233918952, -0.10116832198743204},
+        {0, -0.9541392564000489, -0.29936312297335776},
+        {0, -0.8743466161445822, -0.4853019625310808},
+        {0, -0.7587581226927911, -0.651372482722222},
+        {0, -0.6121059825476627, -0.7907757369376986},
+        {0, -0.44039415155763423, -0.8978045395707417},
+        {0, -0.2506525322587205, -0.9680771188662043},
+        {0, -0.05064916883871266, -0.9987165071710528},
+        {0, 0.15142777750457667, -0.9884683243281114},
+        {0, 0.3473052528448203, -0.9377521321470804},
+        {0, 0.5289640103269624, -0.8486442574947509},
+        {0, 0.6889669190756865, -0.72479278722912},
+        {0, 0.8207634412072763, -0.5712682150947924},
+        {0, 0.9189578116202306, -0.3943558551133187},
+        {0, 0.9795299412524945, -0.20129852008866028},
+        {0, 1, 0}
+    };
+
+    uint32 SphereFrameIndices[] =
+    {
+        0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10,
+        11, 11, 12, 12, 13, 13, 14, 14, 15, 15, 16, 16, 17, 17, 18, 18, 19, 19, 20, 20,
+        21, 21, 22, 22, 23, 23, 24, 24, 25, 25, 26, 26, 27, 27, 28, 28, 29, 29, 30, 30,
+        31, 32, 33, 33, 34, 34, 35, 35, 36, 36, 37, 37, 38, 38, 39, 39, 40, 40,
+        41, 41, 42, 42, 43, 43, 44, 44, 45, 45, 46, 46, 47, 47, 48, 48, 49, 49, 50, 50,
+        51, 51, 52, 52, 53, 53, 54, 54, 55, 55, 56, 56, 57, 57, 58, 58, 59, 59, 60, 60,
+        61, 61, 62, 62, 63, 64, 65, 65, 66, 66, 67, 67, 68, 68, 69, 69, 70, 70,
+        71, 71, 72, 72, 73, 73, 74, 74, 75, 75, 76, 76, 77, 77, 78, 78, 79, 79, 80, 80,
+        81, 81, 82, 82, 83, 83, 84, 84, 85, 85, 86, 86, 87, 87, 88, 88, 89, 89, 90, 90,
+        91, 91, 92, 92, 93, 93, 94, 94, 95
+    };
+
+    // 버텍스 버퍼 생성
+    bufferDesc = {};
+    bufferDesc.Usage = D3D11_USAGE_IMMUTABLE; // will never be updated 
+    bufferDesc.ByteWidth = sizeof(SphereFrameVertices);
+    bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+    bufferDesc.CPUAccessFlags = 0;
+
+    initData = {};
+    initData.pSysMem = SphereFrameVertices;
+
+    hr = Renderer->Graphics->Device->CreateBuffer(&bufferDesc, &initData, &Resources.Primitives.Sphere.Vertex);
+
+    bufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+    bufferDesc.ByteWidth = sizeof(SphereFrameIndices);
+
+    initData.pSysMem = SphereFrameIndices;
+
+    hr = Renderer->Graphics->Device->CreateBuffer(&bufferDesc, &initData, &Resources.Primitives.Sphere.Index);
+
+    Resources.Primitives.Sphere.NumVertices = ARRAYSIZE(SphereFrameVertices);
+    Resources.Primitives.Sphere.VertexStride = sizeof(FVector);
+    Resources.Primitives.Sphere.NumIndices = ARRAYSIZE(SphereFrameIndices);
 }
 
 void FEditorRenderer::CreateConstantBuffers()
@@ -194,6 +364,11 @@ void FEditorRenderer::CreateConstantBuffers()
     ConstantBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
     ConstantBufferDesc.ByteWidth = sizeof(FConstantBufferDebugAABB) * ConstantBufferSizeAABB;
     Renderer->Graphics->Device->CreateBuffer(&ConstantBufferDesc, nullptr, &Resources.ConstantBuffers.AABB13);
+
+    ConstantBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+    ConstantBufferDesc.ByteWidth = sizeof(FConstantBufferDebugSphere) * ConstantBufferSizeSphere;
+    Renderer->Graphics->Device->CreateBuffer(&ConstantBufferDesc, nullptr, &Resources.ConstantBuffers.Sphere13);
+
 }
 
 void FEditorRenderer::PreparePrimitives()
@@ -244,6 +419,7 @@ void FEditorRenderer::Render(UWorld* World, std::shared_ptr<FEditorViewportClien
     UpdateConstantbufferGlobal(buf);
 
     RenderAABBInstanced(World);
+    RenderPointlightInstanced(World);
     RenderAxis(ActiveViewport);
     RenderGizmos(World);
 }
@@ -424,5 +600,84 @@ void FEditorRenderer::UdpateConstantbufferAABBInstanced(TArray<FConstantBufferDe
         Renderer->Graphics->DeviceContext->Map(Resources.ConstantBuffers.AABB13, 0, D3D11_MAP_WRITE_DISCARD, 0, &ConstantBufferMSR); // update constant buffer every frame
         memcpy(ConstantBufferMSR.pData, Buffer.GetData(), sizeof(FConstantBufferDebugAABB) * Buffer.Num()); // TArray이니까 실제 값을 받아와야함
         Renderer->Graphics->DeviceContext->Unmap(Resources.ConstantBuffers.AABB13, 0); // GPU�� �ٽ� ��밡���ϰ� �����
+    }
+}
+
+void FEditorRenderer::RenderPointlightInstanced(const UWorld* World)
+{
+    PrepareShader(Resources.Shaders.Sphere);
+    UINT offset = 0;
+    Renderer->Graphics->DeviceContext->IASetVertexBuffers(0, 1, &Resources.Primitives.Sphere.Vertex, &Resources.Primitives.Sphere.VertexStride, &offset);
+    Renderer->Graphics->DeviceContext->IASetIndexBuffer(Resources.Primitives.Sphere.Index, DXGI_FORMAT_R32_UINT, 0);
+
+    // 위치랑 bounding box 크기 정보 가져오기
+    TArray<FConstantBufferDebugSphere> BufferAll;
+    for (UPrimitiveComponent* PrimComp : Resources.Components.PrimitiveObjs)
+        //for (UPrimitiveComponent* StaticComp : Resources.Components.PrimitiveObjs)
+    {
+        // 현재 bounding box를 갱신안해주고있음
+        // 여기서 직접 갱신
+        // TODO : 진짜 vertex 다 돌아야하나?
+        if (UStaticMeshComponent* StaticComp = Cast<UStaticMeshComponent>(PrimComp))
+        {
+            StaticComp->UpdateWorldAABB();
+            FConstantBufferDebugSphere b;
+            b.Position = StaticComp->GetBoundingBoxWorld().GetPosition();
+            FVector extent = StaticComp->GetBoundingBoxWorld().GetExtent();
+            b.Radius = extent.Magnitude();
+            BufferAll.Add(b);
+        }
+    }
+
+    int BufferIndex = 0;
+    for (int i = 0; i < (1 + BufferAll.Num() / ConstantBufferSizeSphere) * ConstantBufferSizeSphere; ++i)
+    {
+        TArray<FConstantBufferDebugSphere> SubBuffer;
+        for (int j = 0; j < ConstantBufferSizeAABB; ++j)
+        {
+            if (BufferIndex < BufferAll.Num())
+            {
+                SubBuffer.Add(BufferAll[BufferIndex]);
+                ++BufferIndex;
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        if (SubBuffer.Num() > 0)
+        {
+            UdpateConstantbufferPointlightInstanced(SubBuffer);
+            PrepareConstantbufferPointlight();
+            Renderer->Graphics->DeviceContext->DrawIndexedInstanced(Resources.Primitives.Sphere.NumIndices, SubBuffer.Num(), 0, 0, 0);
+        }
+    }
+}
+
+void FEditorRenderer::PrepareConstantbufferPointlight()
+{
+    if (Resources.ConstantBuffers.Sphere13)
+    {
+        Renderer->Graphics->DeviceContext->VSSetConstantBuffers(13, 1, &Resources.ConstantBuffers.Sphere13);
+    }
+}
+
+void FEditorRenderer::UdpateConstantbufferPointlightInstanced(TArray<FConstantBufferDebugSphere> Buffer)
+{
+    if (Buffer.Num() > ConstantBufferSizeSphere)
+    {
+        // 최대개수 초과
+        // 코드 잘못짠거 아니면 오면안됨
+        UE_LOG(LogLevel::Error, "Invalid Buffer Num");
+        return;
+    }
+    if (Resources.ConstantBuffers.Sphere13)
+    {
+        D3D11_MAPPED_SUBRESOURCE ConstantBufferMSR; // GPU�� �޸� �ּ� ����
+
+        Renderer->Graphics->DeviceContext->Map(Resources.ConstantBuffers.Sphere13, 0, D3D11_MAP_WRITE_DISCARD, 0, &ConstantBufferMSR); // update constant buffer every frame
+        memcpy(ConstantBufferMSR.pData, Buffer.GetData(), sizeof(FConstantBufferDebugSphere) * Buffer.Num()); // TArray이니까 실제 값을 받아와야함
+        Renderer->Graphics->DeviceContext->Unmap(Resources.ConstantBuffers.Sphere13, 0); // GPU�� �ٽ� ��밡���ϰ� �����
     }
 }

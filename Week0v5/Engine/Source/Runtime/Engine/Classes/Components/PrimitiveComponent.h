@@ -32,6 +32,7 @@ public:
         m_Type = _Type;
         //staticMesh = FEngineLoop::resourceMgr.GetMesh(m_Type);
     }
+    // 의미없는 함수입니다.
     FBoundingBox GetBoundingBoxLocal() { return LocalAABB; }
 };
 

@@ -97,12 +97,24 @@ cbuffer ConstantBufferMesh : register(b6)
 
 // 마지막 슬롯인 b13은 debug용으로 예약.
 // 디버그는 13번만 쓰고 계속 set과 memcpy가 필요
+// 8개는 FEditorRenderer에서 Constantbuffersize에서 온것
+// 일단은 hardcoding인데 나중에 compile time에 defines로 넣어야함
 struct AABBData
 {
-    float3 AABBPosition;
-    float3 AABBExtent;
+    float3 Position;
+    float3 Extent;
 };
 cbuffer ConstantBufferDebugAABB : register(b13)
 {
-    AABBData Data[8];
+    AABBData DataAABB[8];
+}
+
+struct SphereData
+{
+    float3 Position;
+    float Radius;
+};
+cbuffer ConstantBufferDebugSphere : register(b13)
+{
+    SphereData DataSphere[8];
 }

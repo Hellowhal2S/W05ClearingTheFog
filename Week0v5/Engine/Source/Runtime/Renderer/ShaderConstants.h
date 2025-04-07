@@ -164,3 +164,12 @@ struct alignas(16) FConstantBufferDebugAABB
     alignas(16) FVector Position;
     alignas(16) FVector Extent;
 };
+
+/// <summary>
+/// Debug용 sphere 상수버퍼 : b13
+/// </summary>
+struct alignas(16) FConstantBufferDebugSphere
+{
+    alignas(16) FVector Position;
+    float Radius;
+};

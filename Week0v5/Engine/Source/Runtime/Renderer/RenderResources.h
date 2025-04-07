@@ -75,10 +75,12 @@ struct FRenderResourcesDebug
     {
         ID3D11Buffer* Camera00;
         ID3D11Buffer* AABB13;
+        ID3D11Buffer* Sphere13;
     } ConstantBuffers;
 
     struct FPrimitiveResourceContainer
     {
         FDebugPrimitiveData Box;
+        FDebugPrimitiveData Sphere;
     } Primitives;
 };

@@ -34,6 +34,8 @@ public:
         WorldAABB = LocalAABB;
     }
 
+    // UScenecomponent에서 setter가 실행되었으면 changed bit를 변경해서
+    // AABB 조사 전에 값을 업데이트합니다.
     FBoundingBox GetBoundingBoxWorld() { return WorldAABB; }
     void UpdateWorldAABB();
 
