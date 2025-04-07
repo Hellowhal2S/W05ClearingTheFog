@@ -99,24 +99,5 @@ float4 mainPS(SamplingPixelShaderInput input) : SV_TARGET
         fogFactor += 0.3 * heightFactor;
         color = lerp(color, fogColor.rgb, fogFactor);
         return float4(color, 1.0);
-        
-
-/*
-        // 뷰 공간 좌표 계산
-        float4 posWorld = TexcoordToView(input.texcoord);
-        float dist = length(posWorld.xyz); // 카메라(원점)로부터의 거리
-
-        // 기본 지수 안개 계산: 거리에 따른 안개 양
-        float fogAmount = saturate(1.0 - exp(-fogDensity * dist * depthOnlyTex.Sample(Sampler,input.texcoord).r));
-
-        // (선택 사항) 높이 기반 안개 감쇠 추가:
-        // float heightFactor = saturate((posView.y - heightStart) / heightFalloff);
-        // fogAmount *= heightFactor;
-
-        float3 sceneColor = renderTex.Sample(Sampler, input.texcoord).rgb;
-        // 안개 색상은 상수 버퍼의 fogColor 사용
-        float3 finalColor = lerp(sceneColor, fogColor.rgb, fogAmount);
-        return float4(finalColor, 1.0f);
-        */
     }
 }
