@@ -85,10 +85,10 @@ float4 mainPS(SamplingPixelShaderInput input) : SV_TARGET
     else // 모드 1: 렌더링 이미지에 안개 효과 적용
     {
         // // 뷰 공간 좌표 복원 (거리 기반 안개 계산용)
-        float4 posView = TexcoordToView(input.texcoord);
-        
-        float dist = length(posView.xyz);
-        float distFog = saturate((dist - depthStart) / (depthFalloff - depthStart));
+        // float4 posView = TexcoordToView(input.texcoord);
+        //
+        // float dist = length(posView.xyz);
+        // float distFog = saturate((dist - depthStart) / (depthFalloff - depthStart));
         float rawDepth = depthOnlyTex.Sample(Sampler,input.texcoord).r;
         float linearDepth = LinearizeAndNormalizeDepth(rawDepth, 0.1f, 100.0f);
          // float fogFactor = saturate(1.0 - exp(-fogDensity * distFog * depthOnlyTex.Sample(Sampler,input.texcoord).r));

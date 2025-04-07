@@ -289,6 +289,13 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
         {
             PostEffect::Fog.mode = FogMode;
         }
+        ImGui::Spacing();
+        ImGui::Text("Fog Color");
+        ImGui::SetNextItemWidth(120.0f);
+        if (ImGui::ColorEdit4("##FogColor", (float*)&PostEffect::Fog.fogColor))
+        {
+            // PostEffect::Fog.fogColor가 업데이트 됩니다.
+        }
         ImGui::EndPopup();
     }
     ImGui::SameLine();

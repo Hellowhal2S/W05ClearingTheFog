@@ -31,6 +31,6 @@ private:
     int FogMode = 0;
     float DepthStart = 1.0f;
     float DepthFalloff = 50.0f;
-    
+    FVector FogColor = FVector(1.0f, 1.0f, 1.0f);
 };
 
