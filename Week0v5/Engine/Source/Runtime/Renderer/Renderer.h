@@ -20,6 +20,7 @@ class FEditorViewportClient;
 class UBillboardComponent;
 class UStaticMeshComponent;
 class UGizmoBaseComponent;
+class UFireBallComponent;
 class FRenderer 
 {
 
@@ -151,7 +152,7 @@ private:
     TArray<UGizmoBaseComponent*> GizmoObjs;
     TArray<UBillboardComponent*> BillboardObjs;
     TArray<ULightComponentBase*> LightObjs;
-
+    TArray<UFireBallComponent*> FireballObjs;
 public:
     ID3D11VertexShader* VertexLineShader = nullptr;
     ID3D11PixelShader* PixelLineShader = nullptr;

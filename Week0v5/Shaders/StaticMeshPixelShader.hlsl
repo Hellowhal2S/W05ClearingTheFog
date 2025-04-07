@@ -11,6 +11,7 @@ struct PS_INPUT
     bool normalFlag : TEXCOORD0; // 노멀 유효성 플래그 (1.0: 유효, 0.0: 무효)
     float2 texcoord : TEXCOORD1;
     int materialIndex : MATERIAL_INDEX;
+    float3 worldPos : TEXCOORD2;
 };
 
 struct PS_OUTPUT
@@ -47,6 +48,30 @@ float4 PaperTexture(float3 originalColor)
     // 최종 색상 계산
     float3 finalColor = mixedColor + grain + rough - vignetting * 0.1;
     return float4(saturate(finalColor), 1.0);
+}
+
+float3 CalculatePointLight(FConstantBufferLightPoint light, float3 fragPos, float3 N, float3 V)
+{
+    float3 lightVec = light.Position - fragPos;
+    float distance = length(lightVec);
+    lightVec = normalize(lightVec);
+    
+    // 감쇠 계산 (C++과 동일한 공식)
+    float attenuation = light.Intensity / (1.0 + light.RadiusFallOff * pow(distance / light.Radius, 4));
+    
+    // 확산광 계산
+    float diffuse = saturate(dot(N, lightVec));
+    
+    // 스페큘러 계산 (Blinn-Phong)
+    float3 H = normalize(lightVec + V);
+    float specular = pow(saturate(dot(N, H)), Material.SpecularScalar * 32) * Material.SpecularScalar;
+    
+    // 조명 합성
+    float3 ambient = Material.AmbientColor * light.Color.rgb * 0.1;
+    float3 diffuseLight = diffuse * light.Color * attenuation;
+    float3 specularLight = specular * Material.SpecularColor * light.Color.rgb * attenuation;
+    
+    return ambient + (diffuseLight + specularLight);
 }
 
 PS_OUTPUT mainPS(PS_INPUT input)
@@ -94,6 +119,12 @@ PS_OUTPUT mainPS(PS_INPUT input)
             float3 specularLight = specular * Material.SpecularColor * DirLights[0].Color.Specular;
             
             color = ambient + (diffuseLight * color) + specularLight;
+            
+            // 포인트 라이트 계산 추가
+            for (int i = 0; i < FCONSTANT_NUM_POINTLIGHT; i++)
+            {
+                color += CalculatePointLight(PointLights[i], input.worldPos, N, V);
+            }
         }
         
         // 투명도 적용

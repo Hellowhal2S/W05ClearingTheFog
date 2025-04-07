@@ -31,7 +31,7 @@ struct FConstantBufferLightDir
 
 struct FConstantBufferLightPoint
 {
-    FConstantLightColor Color;
+    float4 Color;
     float3 Position;
     float _pad0;
     

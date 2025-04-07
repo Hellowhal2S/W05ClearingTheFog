@@ -6,7 +6,7 @@
 
 class UMovementComponent : public UActorComponent
 {
-    DECLARE_CLASS(UMovementComponent, UActorComponent);
+    DECLARE_CLASS(UMovementComponent, UActorComponent)
 
 public:
     UMovementComponent();

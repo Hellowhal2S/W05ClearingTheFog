@@ -4,7 +4,7 @@
 
 class UFireBallComponent : public UPrimitiveComponent
 {
-    DECLARE_CLASS(UFireBallComponent, UPrimitiveComponent);
+    DECLARE_CLASS(UFireBallComponent, UPrimitiveComponent)
 
 public:
     UFireBallComponent();

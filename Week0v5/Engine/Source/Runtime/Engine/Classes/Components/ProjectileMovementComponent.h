@@ -4,7 +4,7 @@
 
 class UProjectileMovementComponent : public UMovementComponent
 {
-    DECLARE_CLASS(UProjectileMovementComponent, UMovementComponent);
+    DECLARE_CLASS(UProjectileMovementComponent, UMovementComponent)
 
 public:
     UProjectileMovementComponent();

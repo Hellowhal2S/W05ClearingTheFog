@@ -4,7 +4,7 @@
 #include "Math/Vector.h"
 #include "Math/Vector4.h"
 #include "Math/Matrix.h"
-
+#include "Math/Color.h"
 
 // 아래의 두개 다 수정하기
 #define MACRO_FCONSTANT_NUM_MAX_DIRLIGHT 1
@@ -69,12 +69,11 @@ struct alignas(16) FConstantBufferLightDir
 
 struct alignas(16) FConstantBufferLightPoint
 {
-    FConstantBufferLightColor Color;
-
-    alignas(16) FVector Position = { 0,0,0 };
+    FLinearColor Color;
+    FVector Position = { 0,0,0 };
     float pad0 = 0;
 
-    alignas(16) float Intensity = 0;
+    float Intensity = 0;
     float Radius = 0;
     float RadiusFallOff = 0;
     float pad1 = 0;

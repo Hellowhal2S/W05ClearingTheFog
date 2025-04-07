@@ -17,6 +17,7 @@ struct PS_INPUT
     bool normalFlag : TEXCOORD0; // 노멀 유효성 플래그 (1.0: 유효, 0.0: 무효)
     float2 texcoord : TEXCOORD1;
     int materialIndex : MATERIAL_INDEX;
+    float3 worldPos : TEXCCOORD2;
 };
 
 PS_INPUT mainVS(VS_INPUT input)
@@ -27,6 +28,7 @@ PS_INPUT mainVS(VS_INPUT input)
     
     // 위치 변환
     output.position = mul(input.position, ModelMatrix);
+    output.worldPos = output.position;
     output.position = mul(output.position, ViewMatrix);
     output.position = mul(output.position, ProjMatrix);
     

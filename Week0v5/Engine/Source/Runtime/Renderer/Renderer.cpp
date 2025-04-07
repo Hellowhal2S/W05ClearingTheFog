@@ -10,6 +10,7 @@
 #include "Components/UParticleSubUVComp.h"
 #include "Components/UText.h"
 #include "Components/Material/Material.h"
+#include "Components/FireballComponent.h"
 #include "D3D11RHI/GraphicDevice.h"
 #include "Launch/EditorEngine.h"
 #include "Math/JungleMath.h"
@@ -440,6 +441,21 @@ void FRenderer::UpdateLightBuffer() const
     time += 0.1;
     buf.DirLights[0].Direction = FVector(sin(time), cos(time), -10.0f).Normalize();
     buf.isLit = litFlag;
+
+    int32 LightIndex = 0;
+    for (UFireBallComponent* FireballComp : FireballObjs)
+    {
+        if (LightIndex >= MACRO_FCONSTANT_NUM_MAX_POINTLIGHT)
+            break;
+
+        buf.PointLights[LightIndex].Color = FireballComp->Color;
+        buf.PointLights[LightIndex].Position = FireballComp->GetComponentLocation();
+        buf.PointLights[LightIndex].Intensity = FireballComp->Intensity;
+        buf.PointLights[LightIndex].Radius = FireballComp->Radius;
+        buf.PointLights[LightIndex].RadiusFallOff = FireballComp->RadiusFallOff;
+
+        LightIndex++;
+    }
 
     UpdateConstantbufferLights(buf);
 }
@@ -1009,6 +1025,10 @@ void FRenderer::PrepareRender()
         for (const auto iter : TObjectRange<USceneComponent>())
         {
                 UE_LOG(LogLevel::Display, "%d", GUObjectArray.GetObjectItemArrayUnsafe().Num());
+                if (UFireBallComponent* pFireballComp = Cast<UFireBallComponent>(iter))
+                {
+                    FireballObjs.Add(pFireballComp);
+                }
                 if (UStaticMeshComponent* pStaticMeshComp = Cast<UStaticMeshComponent>(iter))
                 {
                     if (!Cast<UGizmoBaseComponent>(iter))
@@ -1036,6 +1056,10 @@ void FRenderer::PrepareRender()
             
             for (const auto iter2 : iter->GetComponents())
             {
+                if (UFireBallComponent* pFireballComp = Cast<UFireBallComponent>(iter2))
+                {
+                    FireballObjs.Add(pFireballComp);
+                }
                 if (UStaticMeshComponent* pStaticMeshComp = Cast<UStaticMeshComponent>(iter2))
                 {
                     if (!Cast<UGizmoBaseComponent>(iter2))
@@ -1060,6 +1084,7 @@ void FRenderer::ClearRenderArr()
     GizmoObjs.Empty();
     BillboardObjs.Empty();
     LightObjs.Empty();
+    FireballObjs.Empty();
 }
 
 void FRenderer::Render(UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport)
