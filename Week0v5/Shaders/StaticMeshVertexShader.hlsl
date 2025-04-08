@@ -27,10 +27,12 @@ PS_INPUT mainVS(VS_INPUT input)
     output.materialIndex = input.materialIndex;
     
     // 위치 변환
-    output.position = mul(input.position, ModelMatrix);
+    float4 pos;
+    pos = mul(input.position, ModelMatrix);
     output.worldPos = output.position;
-    output.position = mul(output.position, ViewMatrix);
-    output.position = mul(output.position, ProjMatrix);
+    pos = mul(pos, ViewMatrix);
+    pos = mul(pos, ProjMatrix);
+    output.position = pos;
     
     output.color = input.color;
     if (IsSelectedActor)
@@ -46,7 +48,7 @@ PS_INPUT mainVS(VS_INPUT input)
     else
     {
         //output.normal = normalize(input.normal);
-        output.normal = mul(input.normal, ModelInvTransMatrix);
+        output.normal = normalize(mul(float4(input.normal, 0.0f), ModelInvTransMatrix));
         output.normalFlag = 1.0;
     }
     output.texcoord = input.texcoord;
