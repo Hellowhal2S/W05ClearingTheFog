@@ -89,7 +89,7 @@ void UEditorEngine::Render()
     }   
     else
     {
-        PostEffect::ClearRTV(graphicDevice.DeviceContext);
+        //graphicDevice.Prepare();
         RenderEngine.Render(GWorld,LevelEditor->GetActiveViewportClient());
         PostEffect::CopyBackBufferToColorSRV(graphicDevice.DeviceContext, graphicDevice.ColorTexture, graphicDevice.FrameBuffer);
         PostEffect::CopyDepthBufferToDepthOnlySRV(graphicDevice.DeviceContext, graphicDevice.DepthStencilBuffer);

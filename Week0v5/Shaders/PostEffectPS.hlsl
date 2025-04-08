@@ -73,8 +73,8 @@ float LinearizeAndNormalizeDepth(float z_buffer, float nearZ, float farZ)
 
 float4 mainPS(SamplingPixelShaderInput input) : SV_TARGET
 {
-    //return float4(1.0f, 0.0f, 0.0f, 1.0f); // TODO: 수정 필요)
-    //return float4(renderTex.Sample(Sampler, input.texcoord).rgb,1.0f);
+    float2 EncodedNormal = g_worldNormalTex.Sample(g_Sampler, input.texcoord).rg;
+    float3 normal = DecodeNormalOctahedral(EncodedNormal);
 
     if (renderMode == 3)
     {

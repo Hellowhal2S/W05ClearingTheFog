@@ -546,6 +546,9 @@ void FEditorRenderer::Render(UWorld* World, std::shared_ptr<FEditorViewportClien
     buf.ProjMatrix = ActiveViewport->GetProjectionMatrix();
     UpdateConstantbufferGlobal(buf);
 
+    ID3D11DepthStencilState* DepthStateEnable = Renderer->Graphics->DepthStencilState;
+    Renderer->Graphics->DeviceContext->OMSetDepthStencilState(DepthStateEnable, 0);
+
     RenderAABBInstanced(World);
     RenderPointlightInstanced(World);
     RenderSpotlightInstanced(World);

@@ -320,6 +320,7 @@ void PostEffect::Render(ID3D11DeviceContext*& DeviceContext, ID3D11ShaderResourc
 
     ID3D11Buffer* LightConstantBuffer = GEngine->RenderEngine.Renderer.GetLightConstantBuffer();
     DeviceContext->PSSetConstantBuffers(1, 1, &LightConstantBuffer);        // Light Constant Buffer
+    DeviceContext->PSSetConstantBuffers(2, 1, &SettingConstantBuffer);         // Fog  
     DeviceContext->PSSetConstantBuffers(10, 1, &CameraConstantBuffer);      // Camera 
     DeviceContext->PSSetConstantBuffers(11, 1, &FogConstantBuffer);         // Fog  
 
