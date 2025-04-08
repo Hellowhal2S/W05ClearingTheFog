@@ -332,8 +332,7 @@ void PostEffect::Render(ID3D11DeviceContext*& DeviceContext, ID3D11ShaderResourc
     // Draw
     // Sampler
     //ClearCommBreak
-    FLOAT ClearColor[4] = { 1.0f, 0.025f, 0.025f, 1.0f };
-    //DeviceContext->ClearRenderTargetView(finalRTV, ClearColor); // Clear Color
+
     DeviceContext->OMSetRenderTargets(1, &finalRTV, nullptr);
     DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     DeviceContext->VSSetShader(PostEffectVS, nullptr, 0);
@@ -353,6 +352,12 @@ void PostEffect::Render(ID3D11DeviceContext*& DeviceContext, ID3D11ShaderResourc
     
     DeviceContext->PSSetSamplers(0, 1, &PostEffectSampler);                 // Sampler      
     DeviceContext->Draw(6, 0);
+}
+
+void PostEffect::ClearRTV(ID3D11DeviceContext*& DeviceContext)
+{
+    FLOAT ClearColor[4] = { 1.f, 1.f, 1.f, 1.0f };
+    DeviceContext->ClearRenderTargetView(finalRTV, ClearColor); // Clear Color
 }
 
 void PostEffect::Release()

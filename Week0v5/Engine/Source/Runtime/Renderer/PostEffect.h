@@ -90,6 +90,7 @@ namespace PostEffect
     void InitDepthTextures(FGraphicsDevice * Graphics);
     void InitRenderTargetViews(FGraphicsDevice * Graphics);
     void Render(ID3D11DeviceContext*& DeviceContext, ID3D11ShaderResourceView*& ColorSRV);
+    void ClearRTV(ID3D11DeviceContext*& DeviceContext);
     void Release();
     void ReleaseRTVDepth();
     void UpdateFogConstantBuffer(ID3D11DeviceContext*& DeviceContext, AExponentialHeightFog* newFog);

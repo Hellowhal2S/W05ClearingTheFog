@@ -68,15 +68,18 @@ int32 UEditorEngine::Init(HWND hwnd)
 
 void UEditorEngine::Render()
 {
-    graphicDevice.Prepare();
     if (LevelEditor->IsMultiViewport())
     {
         std::shared_ptr<FEditorViewportClient> viewportClient = GetLevelEditor()->GetActiveViewportClient();
+        PostEffect::ClearRTV(graphicDevice.DeviceContext);
         for (int i = 0; i < 4; ++i)
         {
+            graphicDevice.Prepare();
             LevelEditor->SetViewportClient(i);
             renderer.PrepareRender();
             renderer.Render(GWorld,LevelEditor->GetActiveViewportClient());
+            // graphicDevice.DeviceContext->RSSetViewports(1, &LevelEditor->GetActiveViewportClient()->GetD3DViewport());
+
             PostEffect::CopyBackBufferToColorSRV(graphicDevice.DeviceContext, graphicDevice.ColorTexture, graphicDevice.FrameBuffer);
             PostEffect::CopyDepthBufferToDepthOnlySRV(graphicDevice.DeviceContext, graphicDevice.DepthStencilBuffer);
             PostEffect::Render(graphicDevice.DeviceContext, graphicDevice.ColorSRV);
@@ -85,6 +88,7 @@ void UEditorEngine::Render()
     }   
     else
     {
+        graphicDevice.Prepare();
         renderer.PrepareRender();
         renderer.Render(GWorld,LevelEditor->GetActiveViewportClient());
         PostEffect::CopyBackBufferToColorSRV(graphicDevice.DeviceContext, graphicDevice.ColorTexture, graphicDevice.FrameBuffer);
