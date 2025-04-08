@@ -241,8 +241,8 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
 
         
         ImGui::Spacing();
-        const char* fogModes[] = { "None", "Normal", "Scene Depth", "World Pos" };
-        ImGui::Text("Fog Mode");
+        const char* fogModes[] = { "None", "Normal", "Scene Depth", "World Pos", "Albedo", "Specular"};
+        ImGui::Text("Mode");
         ImGui::SetNextItemWidth(120.0f);
         if (ImGui::Combo("##FogModeCombo", &renderMode, fogModes, IM_ARRAYSIZE(fogModes)))
         {

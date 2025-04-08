@@ -332,29 +332,27 @@ void PostEffect::ReleaseRTVDepth()
     SAFE_RELEASE(DepthOnlyTexture);                 // Depth Texture
     SAFE_RELEASE(DepthOnlySRV);                     // Depth Only Texture
     SAFE_RELEASE(DepthOnlyDSV);                     // Depth Only Stencil View
-
-    SAFE_RELEASE(PostEffectInputLayout);            // Input Layout
-    SAFE_RELEASE(PostEffectSampler);                // Sampler
-    SAFE_RELEASE(PostEffectPS);                     // Pixel Shader
 }
 
 void PostEffect::UpdateFogConstantBuffer(ID3D11DeviceContext*& DeviceContext, AExponentialHeightFog* newFog)
 {
     if (!FogConstantBuffer) return;
-    if (!newFog) return;
+    //if (!newFog) return;
     D3D11_MAPPED_SUBRESOURCE mappedResource;
     DeviceContext->Map(FogConstantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
     {
         FFogConstants* constants = static_cast<FFogConstants*>(mappedResource.pData);
-        constants->depthStart = newFog->GetFogComponent()->GetDepthStart();
-        constants->depthFalloff =  newFog->GetFogComponent()->GetDepthFalloff();
-        constants->heightStart =  newFog->GetFogComponent()->GetHeightStart();
-        constants->heightFalloff =  newFog->GetFogComponent()->GetHeightFalloff();
-        constants->heightDensity =  newFog->GetFogComponent()->GetHeightDensity();
-        constants->fogDensity =  newFog->GetFogComponent()->GetFogDensity();
+        if (newFog) {
+            constants->depthStart = newFog->GetFogComponent()->GetDepthStart();
+            constants->depthFalloff = newFog->GetFogComponent()->GetDepthFalloff();
+            constants->heightStart = newFog->GetFogComponent()->GetHeightStart();
+            constants->heightFalloff = newFog->GetFogComponent()->GetHeightFalloff();
+            constants->heightDensity = newFog->GetFogComponent()->GetHeightDensity();
+            constants->fogDensity = newFog->GetFogComponent()->GetFogDensity();
+            constants->fogColor =  newFog->GetFogComponent()->GetFogColor();
+            constants->fogEnabled = static_cast<bool>(GEngine->GetWorld()->Fog);
+        }
         constants->mode = renderMode; // TODO : 분리 요망 
-        constants->fogColor =  newFog->GetFogComponent()->GetFogColor();
-        constants->fogEnabled = static_cast<bool>(GEngine->GetWorld()->Fog);
     }
     DeviceContext->Unmap(FogConstantBuffer, 0);
 }

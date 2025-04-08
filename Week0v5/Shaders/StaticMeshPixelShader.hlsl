@@ -27,7 +27,7 @@ struct FMaterial
 cbuffer MaterialConstants : register(b1)
 {
     FMaterial Material;
-}
+};
 
 cbuffer LightingConstants : register(b2)
 {
@@ -43,19 +43,19 @@ cbuffer FlagConstants : register(b3)
 {
     bool IsLit;
     float3 flagPad0;
-}
+};
 
 cbuffer SubMeshConstants : register(b4)
 {
     bool IsSelectedSubMesh;
     float3 SubMeshPad0;
-}
+};
 
 cbuffer TextureConstants : register(b5)
 {
     float2 UVOffset;
     float2 TexturePad0;
-}
+};
 
 struct PS_INPUT
 {

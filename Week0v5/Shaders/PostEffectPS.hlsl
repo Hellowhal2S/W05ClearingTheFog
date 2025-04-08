@@ -47,7 +47,7 @@ float4 TexcoordToView(float2 texcoord)
     // [0, 1]x[0, 1] -> [-1, 1]x[-1, 1]
     posProj.xy = texcoord * 2.0 - 1.0;
     posProj.y *= -1; // 주의: y 방향을 뒤집어줘야 합니다.
-    posProj.z = g_depthOnlyTex.Sample(Sampler, texcoord).r;
+    posProj.z = g_depthOnlyTex.Sample(g_Sampler, texcoord).r;
     posProj.w = 1.0;
 
     // ProjectSpace -> ViewSpace
@@ -85,6 +85,15 @@ float4 mainPS(SamplingPixelShaderInput input) : SV_TARGET
     {
         return float4(g_worldPosTex.Sample(g_Sampler, input.texcoord).rgb, 1.0f);
     }
+    else if (mode == 4)
+    {
+        return float4(g_albedoTex.Sample(g_Sampler, input.texcoord).rgb, 1.0f);
+    }
+    else if (mode == 5)
+    {
+        return float4(g_specularTex.Sample(g_Sampler, input.texcoord).rgb, 1.0f);
+    }
+
     else // 모드 1: 렌더링 이미지에 안개 효과 적용
     {
         // // 뷰 공간 좌표 복원 (거리 기반 안개 계산용)
@@ -96,7 +105,7 @@ float4 mainPS(SamplingPixelShaderInput input) : SV_TARGET
             //float distFog = saturate((dist - depthStart) / (depthFalloff - depthStart));
             float rawDepth = g_depthOnlyTex.Sample(g_Sampler, input.texcoord).r;
             float linearDepth = LinearizeAndNormalizeDepth(rawDepth, 0.1f, 100.0f);
-            float fogFactor = 1.0 - exp(-fogDensity* linearDepth);
+            float fogFactor = 1.0 - exp(-fogDensity * linearDepth);
             float3 color = g_renderTex.Sample(g_Sampler, input.texcoord).rgb;
         
             float worldHeight = g_worldPosTex.Sample(g_Sampler, input.texcoord).z;
