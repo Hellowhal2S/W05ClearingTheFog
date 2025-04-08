@@ -107,6 +107,7 @@ void UEditorEngine::Render()
         {
             LevelEditor->SetViewportClient(i);
             RenderEngine.RenderDebug(GWorld, LevelEditor->GetActiveViewportClient());
+
         }
         GetLevelEditor()->SetViewportClient(viewportClient);
     }

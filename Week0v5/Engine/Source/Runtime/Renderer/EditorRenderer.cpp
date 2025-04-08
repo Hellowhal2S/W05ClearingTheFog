@@ -412,6 +412,8 @@ void FEditorRenderer::Render(UWorld* World, std::shared_ptr<FEditorViewportClien
 {
     PreparePrimitives();
     PrepareConstantbufferGlobal();
+    Renderer->Graphics->DeviceContext->RSSetViewports(1, &ActiveViewport->GetD3DViewport());
+
     FConstantBufferCamera buf;
     buf.ViewMatrix = ActiveViewport->GetViewMatrix();
     buf.ProjMatrix = ActiveViewport->GetProjectionMatrix();
