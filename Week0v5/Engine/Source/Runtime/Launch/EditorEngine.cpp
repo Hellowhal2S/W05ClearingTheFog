@@ -12,6 +12,7 @@
 #include "UnrealEd/SceneMgr.h"
 
 #include "Renderer/PostEffect.h" // 후처리용 : FrameBuffer 안의 내용을 ColorSRV로 복사 후, PostEffect::Render 호출
+#include "UnrealEd/PrimitiveBatch.h"
 
 
 class ULevel;
@@ -90,7 +91,7 @@ void UEditorEngine::Render()
     //graphicDevice.DeviceContext->ClearRenderTargetView(graphicDevice.FrameBufferRTV, graphicDevice.ClearColor);
     PostEffect::CopyBackBufferToColorSRV(graphicDevice.DeviceContext, graphicDevice.ColorTexture, graphicDevice.FrameBuffer);
     PostEffect::CopyDepthBufferToDepthOnlySRV(graphicDevice.DeviceContext, graphicDevice.DepthStencilBuffer);
-        
+
     //graphicDevice.DeviceContext->ClearRenderTargetView(graphicDevice.FrameBufferRTV, graphicDevice.ClearColor); // 비동기이므로 위험함
     PostEffect::Render(graphicDevice.DeviceContext, graphicDevice.ColorSRV);
 

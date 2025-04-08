@@ -7,6 +7,7 @@
 #include "UObject/ObjectFactory.h"
 #include "UObject/ObjectMacros.h"
 
+class AExponentialHeightFog;
 class FObjectFactory;
 class AActor;
 class UObject;
@@ -55,6 +56,7 @@ private:
     USceneComponent* pickingGizmo = nullptr;
     AEditorPlayer* EditorPlayer = nullptr;
 public:
+    AExponentialHeightFog* Fog = nullptr;
     EWorldType::Type WorldType = EWorldType::None;
     const TSet<AActor*>& GetActors() const { return Level->GetActors(); }
     ULevel* GetLevel() const { return Level; }

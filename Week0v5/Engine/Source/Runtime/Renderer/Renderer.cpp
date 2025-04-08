@@ -934,7 +934,6 @@ void FRenderer::PreparePrimitives()
     {
         for (const auto iter : TObjectRange<USceneComponent>())
         {
-                UE_LOG(LogLevel::Display, "%d", GUObjectArray.GetObjectItemArrayUnsafe().Num());
                 if (UStaticMeshComponent* pStaticMeshComp = Cast<UStaticMeshComponent>(iter))
                 {
                     if (!Cast<UGizmoBaseComponent>(iter))
@@ -957,7 +956,6 @@ void FRenderer::PreparePrimitives()
     }
     else if (GEngine->GetWorld()->WorldType == EWorldType::PIE)
     {
-        // UE_LOG(LogLevel::Display, "%d", GEngine->GetWorld()->GetActors().Num() );
         for (const auto iter : GEngine->GetWorld()->GetActors())
         {
             
