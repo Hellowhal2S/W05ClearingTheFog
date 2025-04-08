@@ -54,7 +54,12 @@ private:
     void PrepareConstantbufferPointlight();
     void UdpateConstantbufferPointlightInstanced(TArray<FConstantBufferDebugSphere> Buffer);
 
+    void RenderSpotlightInstanced(const UWorld* World);
+    void PrepareConstantbufferSpotlight();
+    void UdpateConstantbufferSpotlightInstanced(TArray<FConstantBufferDebugCone> Buffer);
+
     const UINT32 ConstantBufferSizeAABB = 8;
     const UINT32 ConstantBufferSizeSphere = 8;
+    const UINT32 ConstantBufferSizeCone = 8;
 };
 

@@ -9,6 +9,7 @@
 #include "Engine/Classes/Actors/Player.h"
 #include "Renderer.h"
 #include "Engine/Classes/Components/FireBallComponent.h"
+#include "Engine/Classes/Components/LightComponent.h"
 
 
 void FEditorRenderer::Initialize(FRenderer* InRenderer)
@@ -30,6 +31,8 @@ void FEditorRenderer::CreateShaders()
     ID3DBlob* VertexShaderCSO;
     ID3DBlob* PixelShaderCSO;
 
+    /////////////////////////////
+    // 기즈모
     D3DCompileFromFile(L"Shaders/EditorShader.hlsl", defines, D3D_COMPILE_STANDARD_FILE_INCLUDE, "gizmoVS", "vs_5_0", 0, 0, &VertexShaderCSO, &errorBlob);
     if (errorBlob)
     {
@@ -61,6 +64,8 @@ void FEditorRenderer::CreateShaders()
     VertexShaderCSO = nullptr;
     PixelShaderCSO = nullptr;
 
+    /////////////////////////////
+    // axisline
     D3DCompileFromFile(L"Shaders/EditorShader.hlsl", defines, D3D_COMPILE_STANDARD_FILE_INCLUDE, "axisVS", "vs_5_0", 0, 0, &VertexShaderCSO, &errorBlob);
     if (errorBlob)
     {
@@ -83,6 +88,8 @@ void FEditorRenderer::CreateShaders()
     VertexShaderCSO = nullptr;
     PixelShaderCSO = nullptr;
 
+    /////////////////////////////
+    // AABB
     D3DCompileFromFile(L"Shaders/EditorShader.hlsl", defines, D3D_COMPILE_STANDARD_FILE_INCLUDE, "aabbVS", "vs_5_0", 0, 0, &VertexShaderCSO, &errorBlob);
     if (errorBlob)
     {
@@ -111,6 +118,8 @@ void FEditorRenderer::CreateShaders()
     VertexShaderCSO = nullptr;
     PixelShaderCSO = nullptr;
 
+    /////////////////////////////
+    // Sphere
     D3DCompileFromFile(L"Shaders/EditorShader.hlsl", defines, D3D_COMPILE_STANDARD_FILE_INCLUDE, "sphereVS", "vs_5_0", 0, 0, &VertexShaderCSO, &errorBlob);
     if (errorBlob)
     {
@@ -123,15 +132,35 @@ void FEditorRenderer::CreateShaders()
 
     Renderer->Graphics->Device->CreatePixelShader(PixelShaderCSO->GetBufferPointer(), PixelShaderCSO->GetBufferSize(), nullptr, &Resources.Shaders.Sphere.Pixel);
 
-    // Box의 vertex
-    D3D11_INPUT_ELEMENT_DESC layout2[] = {
-        {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-    };
-
     Renderer->Graphics->Device->CreateInputLayout(
-        layout2, ARRAYSIZE(layout2), VertexShaderCSO->GetBufferPointer(), VertexShaderCSO->GetBufferSize(), &Resources.Shaders.Sphere.Layout
+        layout1, ARRAYSIZE(layout1), VertexShaderCSO->GetBufferPointer(), VertexShaderCSO->GetBufferSize(), &Resources.Shaders.Sphere.Layout
     );
     Resources.Shaders.Sphere.Topology = D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
+
+    VertexShaderCSO->Release();
+    PixelShaderCSO->Release();
+
+    VertexShaderCSO = nullptr;
+    PixelShaderCSO = nullptr;
+
+    /////////////////////////////
+    // Cone
+    D3DCompileFromFile(L"Shaders/EditorShader.hlsl", defines, D3D_COMPILE_STANDARD_FILE_INCLUDE, "coneVS", "vs_5_0", 0, 0, &VertexShaderCSO, &errorBlob);
+    if (errorBlob)
+    {
+        OutputDebugStringA((char*)errorBlob->GetBufferPointer());
+        errorBlob->Release();
+    }
+    Renderer->Graphics->Device->CreateVertexShader(VertexShaderCSO->GetBufferPointer(), VertexShaderCSO->GetBufferSize(), nullptr, &Resources.Shaders.Cone.Vertex);
+
+    D3DCompileFromFile(L"Shaders/EditorShader.hlsl", defines, D3D_COMPILE_STANDARD_FILE_INCLUDE, "conePS", "ps_5_0", 0, 0, &PixelShaderCSO, &errorBlob);
+
+    Renderer->Graphics->Device->CreatePixelShader(PixelShaderCSO->GetBufferPointer(), PixelShaderCSO->GetBufferSize(), nullptr, &Resources.Shaders.Cone.Pixel);
+
+    Renderer->Graphics->Device->CreateInputLayout(
+        layout1, ARRAYSIZE(layout1), VertexShaderCSO->GetBufferPointer(), VertexShaderCSO->GetBufferSize(), &Resources.Shaders.Cone.Layout
+    );
+    Resources.Shaders.Cone.Topology = D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP;
 
     VertexShaderCSO->Release();
     PixelShaderCSO->Release();
@@ -349,6 +378,56 @@ void FEditorRenderer::CreateBuffers()
     Resources.Primitives.Sphere.NumVertices = ARRAYSIZE(SphereFrameVertices);
     Resources.Primitives.Sphere.VertexStride = sizeof(FVector);
     Resources.Primitives.Sphere.NumIndices = ARRAYSIZE(SphereFrameIndices);
+
+
+
+    ////////////////////////////////////
+    // Cone 버퍼 생성
+    uint32 NumSegments = 32;
+    TArray<FVector> ConeVertices;
+    ConeVertices.Add({0.0f, 0.0f, 0.0f}); // Apex
+    for (int i = 0; i < NumSegments; i++)
+    {
+        float angle = 2.0f * 3.1415926535897932f * i / (float)NumSegments;
+        float x = cos(angle);
+        float y = sin(angle);
+        ConeVertices.Add({x, y, 1.0f}); // Bottom
+    }
+    TArray<uint32> ConeIndices;
+    for (int i = 0; i < NumSegments-1; i++)
+    {
+        ConeIndices.Add(0);
+        ConeIndices.Add(i + 1);
+        ConeIndices.Add(i + 2);
+    }
+    ConeIndices.Add(0);
+    ConeIndices.Add(NumSegments);
+    ConeIndices.Add(1);
+
+
+    // 버텍스 버퍼 생성
+    bufferDesc = {};
+    bufferDesc.Usage = D3D11_USAGE_IMMUTABLE; // will never be updated 
+    bufferDesc.ByteWidth = ConeVertices.Num() * sizeof(FVector);
+    bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+    bufferDesc.CPUAccessFlags = 0;
+
+    initData = {};
+    initData.pSysMem = ConeVertices.GetData();
+
+    hr = Renderer->Graphics->Device->CreateBuffer(&bufferDesc, &initData, &Resources.Primitives.Cone.Vertex);
+
+    bufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+    bufferDesc.ByteWidth = ConeIndices.Num() * sizeof(FVector);
+
+    initData.pSysMem = ConeIndices.GetData();
+
+    hr = Renderer->Graphics->Device->CreateBuffer(&bufferDesc, &initData, &Resources.Primitives.Cone.Index);
+
+    Resources.Primitives.Cone.NumVertices = ConeVertices.Num();
+    Resources.Primitives.Cone.VertexStride = sizeof(FVector);
+    Resources.Primitives.Cone.NumIndices = ConeIndices.Num();
+
 }
 
 void FEditorRenderer::CreateConstantBuffers()
@@ -371,6 +450,10 @@ void FEditorRenderer::CreateConstantBuffers()
     ConstantBufferDesc.ByteWidth = sizeof(FConstantBufferDebugSphere) * ConstantBufferSizeSphere;
     Renderer->Graphics->Device->CreateBuffer(&ConstantBufferDesc, nullptr, &Resources.ConstantBuffers.Sphere13);
 
+    ConstantBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+    ConstantBufferDesc.ByteWidth = sizeof(FConstantBufferDebugCone) * ConstantBufferSizeCone;
+    Renderer->Graphics->Device->CreateBuffer(&ConstantBufferDesc, nullptr, &Resources.ConstantBuffers.Cone13);
+
 }
 
 void FEditorRenderer::PreparePrimitives()
@@ -384,7 +467,10 @@ void FEditorRenderer::PreparePrimitives()
             if (!Cast<UGizmoBaseComponent>(iter))
                 Resources.Components.PrimitiveObjs.Add(iter);
         }
-
+        for (const auto iter : TObjectRange<ULightComponentBase>())
+        {
+            Resources.Components.LightObjs.Add(iter);
+        }
     }
 }
 
@@ -410,6 +496,8 @@ void FEditorRenderer::UpdateConstantbufferGlobal(FConstantBufferCamera Buffer)
 
 void FEditorRenderer::Render(UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport)
 {
+    ID3D11DepthStencilState* DepthStateDisable = Renderer->Graphics->DepthStateDisable;
+    Renderer->Graphics->DeviceContext->OMSetDepthStencilState(DepthStateDisable, 0);
     PreparePrimitives();
     PrepareConstantbufferGlobal();
     FConstantBufferCamera buf;
@@ -419,6 +507,7 @@ void FEditorRenderer::Render(UWorld* World, std::shared_ptr<FEditorViewportClien
 
     RenderAABBInstanced(World);
     RenderPointlightInstanced(World);
+    RenderSpotlightInstanced(World);
     RenderAxis(ActiveViewport);
     RenderGizmos(World);
 }
@@ -612,29 +701,13 @@ void FEditorRenderer::RenderPointlightInstanced(const UWorld* World)
     for (UPrimitiveComponent* PrimComp : Resources.Components.PrimitiveObjs)
         //for (UPrimitiveComponent* StaticComp : Resources.Components.PrimitiveObjs)
     {
-        if (UStaticMeshComponent* StaticComp = Cast<UStaticMeshComponent>(PrimComp))
-        {
-            StaticComp->UpdateWorldAABB();
-            FConstantBufferDebugSphere b;
-            b.Position = StaticComp->GetBoundingBoxWorld().GetPosition();
-            FVector extent = StaticComp->GetBoundingBoxWorld().GetExtent();
-            b.Radius = extent.Magnitude();
-            BufferAll.Add(b);
-        }
-
         // Fireball 합치면 헤더랑 여기 풀기
         
         if (UFireBallComponent* FireBallComp = Cast<UFireBallComponent>(PrimComp))
         {
             FConstantBufferDebugSphere b;
             b.Position = FireBallComp->GetComponentLocation();
-            FVector extent0 = FireBallComp->Radius;
-            b.Radius = extent0.Magnitude();
-            BufferAll.Add(b);
-
-            b.Position = FireBallComp->GetComponentLocation();
-            FVector extent1 = FireBallComp->RadiusFallOff;
-            b.Radius = extent1.Magnitude();
+            b.Radius = FireBallComp->Radius;
             BufferAll.Add(b);
         }
 
@@ -690,5 +763,78 @@ void FEditorRenderer::UdpateConstantbufferPointlightInstanced(TArray<FConstantBu
         Renderer->Graphics->DeviceContext->Map(Resources.ConstantBuffers.Sphere13, 0, D3D11_MAP_WRITE_DISCARD, 0, &ConstantBufferMSR); // update constant buffer every frame
         memcpy(ConstantBufferMSR.pData, Buffer.GetData(), sizeof(FConstantBufferDebugSphere) * Buffer.Num()); // TArray이니까 실제 값을 받아와야함
         Renderer->Graphics->DeviceContext->Unmap(Resources.ConstantBuffers.Sphere13, 0); // GPU�� �ٽ� ��밡���ϰ� �����
+    }
+}
+
+void FEditorRenderer::RenderSpotlightInstanced(const UWorld* World)
+{
+    PrepareShader(Resources.Shaders.Cone);
+    UINT offset = 0;
+    Renderer->Graphics->DeviceContext->IASetVertexBuffers(0, 1, &Resources.Primitives.Cone.Vertex, &Resources.Primitives.Cone.VertexStride, &offset);
+    Renderer->Graphics->DeviceContext->IASetIndexBuffer(Resources.Primitives.Cone.Index, DXGI_FORMAT_R32_UINT, 0);
+
+    // 위치랑 bounding box 크기 정보 가져오기
+    TArray<FConstantBufferDebugCone> BufferAll;
+    for (ULightComponentBase* LightComp : Resources.Components.LightObjs)
+        //for (UPrimitiveComponent* StaticComp : Resources.Components.PrimitiveObjs)
+    {
+        FConstantBufferDebugCone b;
+        b.ApexPosiiton = LightComp->GetComponentLocation();
+        b.Radius = LightComp->GetRadius();
+        b.Height = 10.f;
+        b.Direction = LightComp->GetUpVector();
+        BufferAll.Add(b);
+    }
+
+    int BufferIndex = 0;
+    for (int i = 0; i < (1 + BufferAll.Num() / ConstantBufferSizeCone) * ConstantBufferSizeCone; ++i)
+    {
+        TArray<FConstantBufferDebugCone> SubBuffer;
+        for (int j = 0; j < ConstantBufferSizeAABB; ++j)
+        {
+            if (BufferIndex < BufferAll.Num())
+            {
+                SubBuffer.Add(BufferAll[BufferIndex]);
+                ++BufferIndex;
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        if (SubBuffer.Num() > 0)
+        {
+            UdpateConstantbufferSpotlightInstanced(SubBuffer);
+            PrepareConstantbufferSpotlight();
+            Renderer->Graphics->DeviceContext->DrawIndexedInstanced(Resources.Primitives.Cone.NumIndices, SubBuffer.Num(), 0, 0, 0);
+        }
+    }
+}
+
+void FEditorRenderer::PrepareConstantbufferSpotlight()
+{
+    if (Resources.ConstantBuffers.Cone13)
+    {
+        Renderer->Graphics->DeviceContext->VSSetConstantBuffers(13, 1, &Resources.ConstantBuffers.Cone13);
+    }
+}
+
+void FEditorRenderer::UdpateConstantbufferSpotlightInstanced(TArray<FConstantBufferDebugCone> Buffer)
+{
+    if (Buffer.Num() > ConstantBufferSizeCone)
+    {
+        // 최대개수 초과
+        // 코드 잘못짠거 아니면 오면안됨
+        UE_LOG(LogLevel::Error, "Invalid Buffer Num");
+        return;
+    }
+    if (Resources.ConstantBuffers.Cone13)
+    {
+        D3D11_MAPPED_SUBRESOURCE ConstantBufferMSR; // GPU�� �޸� �ּ� ����
+
+        Renderer->Graphics->DeviceContext->Map(Resources.ConstantBuffers.Cone13, 0, D3D11_MAP_WRITE_DISCARD, 0, &ConstantBufferMSR); // update constant buffer every frame
+        memcpy(ConstantBufferMSR.pData, Buffer.GetData(), sizeof(FConstantBufferDebugCone) * Buffer.Num()); // TArray이니까 실제 값을 받아와야함
+        Renderer->Graphics->DeviceContext->Unmap(Resources.ConstantBuffers.Cone13, 0); // GPU�� �ٽ� ��밡���ϰ� �����
     }
 }

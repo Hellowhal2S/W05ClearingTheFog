@@ -119,3 +119,15 @@ cbuffer ConstantBufferDebugSphere : register(b13)
 {
     SphereData DataSphere[8];
 }
+
+struct ConeData
+{
+    float3 ApexPosiiton;
+    float Radius;
+    float3 Direction;
+    float Height;
+};
+cbuffer ConstantBufferDebugCone : register(b13)
+{
+    ConeData DataCone[8];
+}

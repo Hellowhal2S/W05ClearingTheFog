@@ -60,6 +60,7 @@ struct FRenderResourcesDebug
     struct FWorldComponentContainer
     {
         TArray<class UPrimitiveComponent*> PrimitiveObjs;
+        TArray<class ULightComponentBase*> LightObjs;
     } Components;
 
     struct FShaderResourceContainer
@@ -70,6 +71,7 @@ struct FRenderResourcesDebug
         FShaderResource Sphere;
         FShaderResource Line;
         FShaderResource GridLine;
+        FShaderResource Cone;
     } Shaders;
 
     struct FConstantBuffers
@@ -77,11 +79,13 @@ struct FRenderResourcesDebug
         ID3D11Buffer* Camera00;
         ID3D11Buffer* AABB13;
         ID3D11Buffer* Sphere13;
+        ID3D11Buffer* Cone13;
     } ConstantBuffers;
 
     struct FPrimitiveResourceContainer
     {
         FDebugPrimitiveData Box;
         FDebugPrimitiveData Sphere;
+        FDebugPrimitiveData Cone;
     } Primitives;
 };

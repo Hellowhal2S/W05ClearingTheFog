@@ -174,3 +174,15 @@ struct alignas(16) FConstantBufferDebugSphere
     alignas(16) FVector Position;
     float Radius;
 };
+
+/// <summary>
+/// Debug용 cone 상수버퍼 : b13
+/// </summary>
+struct alignas(16) FConstantBufferDebugCone
+{
+    alignas(16) FVector ApexPosiiton;
+    float Radius;
+    FVector Direction;
+    float Height;
+};
+

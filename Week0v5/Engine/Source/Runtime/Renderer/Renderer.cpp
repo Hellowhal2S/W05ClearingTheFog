@@ -1051,7 +1051,6 @@ void FRenderer::Render(UWorld* World, std::shared_ptr<FEditorViewportClient> Act
     {
         RenderLight(World, ActiveViewport);
     }
-    UPrimitiveBatch::GetInstance().RenderBatch(ActiveViewport->GetViewMatrix(), ActiveViewport->GetProjectionMatrix());
     
     ClearRenderArr();
 }
@@ -1081,15 +1080,7 @@ void FRenderer::RenderStaticMeshes(UWorld* World, std::shared_ptr<FEditorViewpor
         {
             UpdateConstantbufferTexture({ {0,0} });
         }
-
         FMatrix Model = StaticMeshComp->GetComponentTransform();
-        if (ActiveViewport->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::SF_AABB))
-        {
-            UPrimitiveBatch::GetInstance().RenderAABB(
-                StaticMeshComp->GetBoundingBoxLocal(),
-                StaticMeshComp->GetComponentLocation(),
-                Model);
-        }
         
         if (!StaticMeshComp->GetStaticMesh()) continue;
 
@@ -1233,8 +1224,7 @@ void FRenderer::RenderLight(UWorld* World, std::shared_ptr<FEditorViewportClient
 {
     for (auto Light : RenderResources.Components.LightObjs)
     {
-        FMatrix Model = JungleMath::CreateModelMatrix(Light->GetComponentLocation(), Light->GetComponentRotation(), {1, 1, 1});
-        UPrimitiveBatch::GetInstance().AddCone(Light->GetComponentLocation(), Light->GetRadius(), 15, 140, Light->GetColor(), Model);
-        UPrimitiveBatch::GetInstance().RenderOBB(Light->GetBoundingBox(), Light->GetComponentLocation(), Model);
+        // 추가필요
+        //Cone 
     }
 }
