@@ -1,4 +1,4 @@
-#include "FireballComponent.h"
+#include "FireBallComponent.h"
 
 #include "UObject/ObjectFactory.h"
 

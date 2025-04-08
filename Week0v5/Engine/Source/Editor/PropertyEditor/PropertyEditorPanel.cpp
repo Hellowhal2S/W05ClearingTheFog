@@ -5,7 +5,7 @@
 #include "Components/LightComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/UText.h"
-#include "Components/FireballComponent.h"
+#include "Components/FireBallComponent.h"
 #include "Components/ProjectileMovementComponent.h"
 #include "Engine/FLoaderOBJ.h"
 #include "Math/MathUtility.h"
@@ -132,10 +132,10 @@ void PropertyEditorPanel::Render()
                     UCubeComp* CubeComponent = PickedActor->AddComponent<UCubeComp>();
                     PickedComponent = CubeComponent;
                 }
-                if (ImGui::Selectable("FireballComponent"))
+                if (ImGui::Selectable("FireBallComponent"))
                 {
-                    UFireBallComponent* FireballComponent = PickedActor->AddComponent<UFireBallComponent>();
-                    PickedComponent = FireballComponent;
+                    UFireBallComponent* FireBallComponent = PickedActor->AddComponent<UFireBallComponent>();
+                    PickedComponent = FireBallComponent;
                 }
                 if (ImGui::Selectable("ProjectileMovementComponent"))
                 {

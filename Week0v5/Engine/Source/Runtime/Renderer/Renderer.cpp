@@ -10,7 +10,7 @@
 #include "Components/UParticleSubUVComp.h"
 #include "Components/UText.h"
 #include "Components/Material/Material.h"
-#include "Components/FireballComponent.h"
+#include "Components/FireBallComponent.h"
 #include "D3D11RHI/GraphicDevice.h"
 #include "Launch/EditorEngine.h"
 #include "Math/JungleMath.h"
@@ -936,9 +936,9 @@ void FRenderer::PreparePrimitives()
         for (const auto iter : TObjectRange<USceneComponent>())
         {
                 UE_LOG(LogLevel::Display, "%d", GUObjectArray.GetObjectItemArrayUnsafe().Num());
-                if (UFireBallComponent* pFireballComp = Cast<UFireBallComponent>(iter))
+                if (UFireBallComponent* pFireBallComp = Cast<UFireBallComponent>(iter))
                 {
-                    FireballObjs.Add(pFireballComp);
+                    RenderResources.Components.FireBallObjs.Add(pFireBallComp);
                 }
                 if (UStaticMeshComponent* pStaticMeshComp = Cast<UStaticMeshComponent>(iter))
                 {
@@ -968,9 +968,9 @@ void FRenderer::PreparePrimitives()
             
             for (const auto iter2 : iter->GetComponents())
             {
-                if (UFireBallComponent* pFireballComp = Cast<UFireBallComponent>(iter2))
+                if (UFireBallComponent* pFireBallComp = Cast<UFireBallComponent>(iter2))
                 {
-                    FireballObjs.Add(pFireballComp);
+                    RenderResources.Components.FireBallObjs.Add(pFireBallComp);
                 }
                 if (UStaticMeshComponent* pStaticMeshComp = Cast<UStaticMeshComponent>(iter2))
                 {
@@ -996,6 +996,7 @@ void FRenderer::ClearRenderArr()
     //RenderResources.Primitives.GizmoObjs.Empty();
     RenderResources.Components.BillboardObjs.Empty();
     RenderResources.Components.LightObjs.Empty();
+    RenderResources.Components.FireBallObjs.Empty();
 }
 
 void FRenderer::Render(UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport)
@@ -1012,18 +1013,29 @@ void FRenderer::Render(UWorld* World, std::shared_ptr<FEditorViewportClient> Act
         UpdateConstantbufferCamera(buf);
     }
 
-
-
-
     if (!RenderResources.ConstantBuffers.StaticMesh.Light01) return;
     FConstantBufferLights buf;
     buf.DirLights[0].Color.Ambient = FVector(1.0f, 1.0f, 1.0f) * 0.06f;
-    buf.DirLights[0].Color.Diffuse = FVector(1.0f, 1.0f, 1.0f);
-    buf.DirLights[0].Color.Specular = FVector(1.0f, 1.0f, 1.0f);
+    buf.DirLights[0].Color.Diffuse = FVector(1.0f, 1.0f, 1.0f) * 0.06f;
+    buf.DirLights[0].Color.Specular = FVector(1.0f, 1.0f, 1.0f) * 0.06f;
     static float time = 0;
     time += 0.1;
     buf.DirLights[0].Direction = FVector(sin(time), cos(time), -10.0f).Normalize();
     buf.isLit = litFlag;
+
+    int32 LightIndex = 0;
+    for (UFireBallComponent* FireBallComp : RenderResources.Components.FireBallObjs)
+    {
+        if (LightIndex >= MACRO_FCONSTANT_NUM_MAX_POINTLIGHT)
+            break;
+
+        buf.PointLights[LightIndex].Color = FireBallComp->Color;
+        buf.PointLights[LightIndex].Position = FireBallComp->GetComponentLocation();
+        buf.PointLights[LightIndex].Intensity = FireBallComp->Intensity;
+        buf.PointLights[LightIndex].Radius = FireBallComp->Radius;
+        buf.PointLights[LightIndex].RadiusFallOff = FireBallComp->RadiusFallOff;
+        buf.NumPointLights = ++LightIndex;
+    }
     UpdateConstantbufferLights(buf);
 
 

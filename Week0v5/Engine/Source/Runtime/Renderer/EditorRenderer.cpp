@@ -8,7 +8,7 @@
 #include "D3D11RHI/GraphicDevice.h"
 #include "Engine/Classes/Actors/Player.h"
 #include "Renderer.h"
-//#include "Engine/Classes/Components/FireballComponent.h" // 추가하면 RenderPointlightInstanced의 주석이랑 함께 풀기
+#include "Engine/Classes/Components/FireBallComponent.h"
 
 
 void FEditorRenderer::Initialize(FRenderer* InRenderer)
@@ -381,11 +381,8 @@ void FEditorRenderer::PreparePrimitives()
     {
         for (const auto iter : TObjectRange<UPrimitiveComponent>())
         {
-            if (UStaticMeshComponent* pStaticMeshComp = Cast<UStaticMeshComponent>(iter))
-            {
-                if (!Cast<UGizmoBaseComponent>(iter))
-                    Resources.Components.PrimitiveObjs.Add(pStaticMeshComp);
-            }
+            if (!Cast<UGizmoBaseComponent>(iter))
+                Resources.Components.PrimitiveObjs.Add(iter);
         }
 
     }
@@ -626,19 +623,20 @@ void FEditorRenderer::RenderPointlightInstanced(const UWorld* World)
         }
 
         // Fireball 합치면 헤더랑 여기 풀기
-        /*
-        if (UFireBallComponent* FireballComp = Cast<UFireBallComponent>(PrimComp))
+        
+        if (UFireBallComponent* FireBallComp = Cast<UFireBallComponent>(PrimComp))
         {
-            FConstantBufferDebugAABB b;
-            b.Position = FireballComp->GetComponentLocation();
-            b.Extent = FireballComp->Radius;
+            FConstantBufferDebugSphere b;
+            b.Position = FireBallComp->GetComponentLocation();
+            FVector extent0 = FireBallComp->Radius;
+            b.Radius = extent0.Magnitude();
             BufferAll.Add(b);
 
-            b.Position = FireballComp->GetComponentLocation();
-            b.Extent = FireballComp->RadiusFallOff;
+            b.Position = FireBallComp->GetComponentLocation();
+            FVector extent1 = FireBallComp->RadiusFallOff;
+            b.Radius = extent1.Magnitude();
             BufferAll.Add(b);
         }
-        */
 
     }
 
