@@ -348,7 +348,7 @@ void PostEffect::Render(ID3D11DeviceContext*& DeviceContext, ID3D11ShaderResourc
     // Draw
     // Sampler
     //ClearCommBreak
-
+    GEngine->graphicDevice.ChangeRasterizer(EViewModeIndex::VMI_Lit);
     DeviceContext->OMSetRenderTargets(1, &finalRTV, nullptr);
     DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     DeviceContext->VSSetShader(PostEffectVS, nullptr, 0);

@@ -85,7 +85,8 @@ float4 mainPS(SamplingPixelShaderInput input) : SV_TARGET
     }
     else if (renderMode == 5)
     {
-        return float4(worldPosTex.Sample(Sampler, input.texcoord).rgb,1.0f);
+        float3 normalWorldPos = normalize(worldPosTex.Sample(Sampler, input.texcoord).rgb);
+        return float4( normalWorldPos,1.0f);
     }
     else // 모드 1: 렌더링 이미지에 안개 효과 적용
     {
