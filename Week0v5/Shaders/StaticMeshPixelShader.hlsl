@@ -20,6 +20,8 @@ struct PS_OUTPUT
     float4 UUID : SV_Target1;
     float4 worldPos : SV_Target2;
     float4 worldNormal : SV_Target3;
+    float4 Albedo : SV_Target4;
+    float4 SpecularColor_Power : SV_Target5;
 };
 
 float noise(float3 p)
@@ -77,8 +79,10 @@ PS_OUTPUT mainPS(PS_INPUT input)
     output.UUID = UUID;
     output.worldPos = input.worldPos;
     output.worldNormal = float4(input.normal, 1.0);
+    output.SpecularColor_Power = float4(Material.SpecularColor, Material.SpecularScalar);
     
     float3 texColor = Textures.Sample(Sampler, input.texcoord + UVOffset);
+    output.Albedo = float4(Material.DiffuseColor + texColor, 1.0f);
     float3 color;
     if (texColor.g == 0) // TODO: boolean으로 변경
         color = saturate(Material.DiffuseColor);
