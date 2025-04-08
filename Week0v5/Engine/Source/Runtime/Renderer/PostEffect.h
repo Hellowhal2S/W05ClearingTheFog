@@ -84,7 +84,6 @@ namespace PostEffect
     extern ID3D11InputLayout* PostEffectInputLayout;
     extern ID3D11Buffer* FogConstantBuffer;
     extern ID3D11Buffer* CameraConstantBuffer;
-    extern ID3D11Buffer* LightConstantBuffer;
 
     extern ID3D11RenderTargetView* finalRTV;
     extern ID3D11Texture2D* finalTexture;

@@ -86,7 +86,6 @@ namespace PostEffect
     ID3D11PixelShader* PostEffectPS;
     ID3D11Buffer* FogConstantBuffer = nullptr;
     ID3D11Buffer* CameraConstantBuffer = nullptr;
-    ID3D11Buffer* LightConstantBuffer = nullptr;
 
 
     ID3D11RenderTargetView* finalRTV;
@@ -135,20 +134,6 @@ void PostEffect::InitBuffers(ID3D11Device*& Device)
     if (FAILED(hr))
     {
         UE_LOG(LogLevel::Error, "Failed to create GlobalConstantBuffer\n");
-    }
-
-    // Light 관련 Constant Buffer 생성
-    D3D11_BUFFER_DESC cbLightDesc;
-    ZeroMemory(&cbLightDesc, sizeof(cbLightDesc));
-    cbLightDesc.ByteWidth = sizeof(FConstantBufferLights);
-    cbLightDesc.Usage = D3D11_USAGE_DYNAMIC;
-    cbLightDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-    cbLightDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-    cbLightDesc.MiscFlags = 0;
-    hr = Device->CreateBuffer(&cbLightDesc, nullptr, &LightConstantBuffer);
-    if (FAILED(hr))
-    {
-        UE_LOG(LogLevel::Error, "Failed to create LightConstantBuffer\n");
     }
 }
 void PostEffect::InitShaders(ID3D11Device*& Device)
@@ -296,9 +281,11 @@ void PostEffect::Render(ID3D11DeviceContext*& DeviceContext, ID3D11ShaderResourc
     };
     DeviceContext->PSSetShaderResources(10, 6, ppSRV);                      // SRV
 
+    ID3D11Buffer* LightConstantBuffer = GEngine->RenderEngine.Renderer.GetLightConstantBuffer();
     DeviceContext->PSSetConstantBuffers(1, 1, &LightConstantBuffer);        // Light Constant Buffer
     DeviceContext->PSSetConstantBuffers(10, 1, &CameraConstantBuffer);      // Camera 
     DeviceContext->PSSetConstantBuffers(11, 1, &FogConstantBuffer);         // Fog  
+
 
     UpdateFogConstantBuffer(DeviceContext, GEngine->GetWorld()->Fog);
     UpdateCameraConstantBuffer(DeviceContext);
