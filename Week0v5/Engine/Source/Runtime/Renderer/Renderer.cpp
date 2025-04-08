@@ -22,6 +22,8 @@
 #include "Components/SkySphereComponent.h"
 #include "PostEffect.h"
 
+#define SAFE_RELEASE(x) if (x) { x->Release(); x = nullptr; }
+
 void FRenderer::Initialize(FGraphicsDevice* graphics)
 {
     Graphics = graphics;
@@ -68,55 +70,17 @@ void FRenderer::CreateMeshShader()
 
 void FRenderer::ReleaseShaders()
 {
-    if (RenderResources.Shaders.StaticMesh.Pixel)
-    {
-        RenderResources.Shaders.StaticMesh.Pixel->Release();
-        RenderResources.Shaders.StaticMesh.Pixel = nullptr;
-    }
-    if (RenderResources.Shaders.StaticMesh.Vertex)
-    {
-        RenderResources.Shaders.StaticMesh.Vertex->Release();
-        RenderResources.Shaders.StaticMesh.Vertex = nullptr;
-    }
-    if (RenderResources.Shaders.StaticMesh.Layout)
-    {
-        RenderResources.Shaders.StaticMesh.Layout->Release();
-        RenderResources.Shaders.StaticMesh.Layout = nullptr;
-    }
+    SAFE_RELEASE(RenderResources.Shaders.StaticMesh.Pixel);
+    SAFE_RELEASE(RenderResources.Shaders.StaticMesh.Vertex);
+    SAFE_RELEASE(RenderResources.Shaders.StaticMesh.Layout);
 
-    if (RenderResources.Shaders.Text.Pixel)
-    {
-        RenderResources.Shaders.Text.Pixel->Release();
-        RenderResources.Shaders.Text.Pixel = nullptr;
-    }
-    if (RenderResources.Shaders.Text.Vertex)
-    {
-        RenderResources.Shaders.Text.Vertex->Release();
-        RenderResources.Shaders.Text.Vertex = nullptr;
-    }
-    if (RenderResources.Shaders.Text.Layout)
-    {
-        RenderResources.Shaders.Text.Layout->Release();
-        RenderResources.Shaders.Text.Layout = nullptr;
-    }
+    SAFE_RELEASE(RenderResources.Shaders.Text.Pixel);
+    SAFE_RELEASE(RenderResources.Shaders.Text.Vertex);
+    SAFE_RELEASE(RenderResources.Shaders.Text.Layout);
 
-    if (RenderResources.Shaders.Texture.Pixel)
-    {
-        RenderResources.Shaders.Texture.Pixel->Release();
-        RenderResources.Shaders.Texture.Pixel = nullptr;
-    }
-    if (RenderResources.Shaders.Texture.Vertex)
-    {
-        RenderResources.Shaders.Texture.Vertex->Release();
-        RenderResources.Shaders.Texture.Vertex = nullptr;
-    }
-    if (RenderResources.Shaders.Texture.Layout)
-    {
-        RenderResources.Shaders.Texture.Layout->Release();
-        RenderResources.Shaders.Texture.Layout = nullptr;
-    }
-
-  
+    SAFE_RELEASE(RenderResources.Shaders.Texture.Pixel);
+    SAFE_RELEASE(RenderResources.Shaders.Texture.Vertex);
+    SAFE_RELEASE(RenderResources.Shaders.Texture.Layout);  
 }
 
 void FRenderer::PrepareShader(FShaderResource ShaderResource) const
