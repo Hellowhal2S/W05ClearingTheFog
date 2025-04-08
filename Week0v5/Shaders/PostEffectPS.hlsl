@@ -10,7 +10,7 @@ Texture2D g_specularTex : register(t15); // Depth Map SRV
 
 SamplerState g_Sampler : register(s0); // Linear Clamp Sampler
 
-cbuffer CameraConstants : register(b0)
+cbuffer CameraConstants : register(b10)
 {
     row_major float4x4 invProj; // Projection matrix의 역행렬
     row_major float4x4 invView;
@@ -20,7 +20,7 @@ cbuffer CameraConstants : register(b0)
     float3 Camerapadding;
 };
 
-cbuffer FogConstants : register(b1)
+cbuffer FogConstants : register(b11)
 {
     float depthStart;
     float depthFalloff;

@@ -448,6 +448,9 @@
     <Natvis Include="Week0v5.natvis" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Shaders\LightConstants.hlsli">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </None>
     <None Include="Shaders\ShaderConstants.hlsli">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </None>
