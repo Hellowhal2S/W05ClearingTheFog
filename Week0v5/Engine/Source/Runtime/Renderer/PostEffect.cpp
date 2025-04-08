@@ -221,17 +221,17 @@ void PostEffect::InitRenderTargetViews(FGraphicsDevice* Graphics)
     HRESULT hr = Graphics->Device->CreateRenderTargetView(finalTexture, &finalRTVDesc, &finalRTV);
     if (FAILED(hr))
     {
-        OutputDebugString(L"Failed to create finalRTV in InitRenderTargetViews\n");
+        UE_LOG(LogLevel::Display, TEXT("finalRTV is null"));
         finalTexture->Release();
         finalTexture = nullptr;
-        return;
+        return; 
     }
 
     // World Position Render Target 생성
     if (!CreateRenderTargetResources(Graphics->Device, Graphics->screenWidth, Graphics->screenHeight,
         DXGI_FORMAT_R32G32B32A32_FLOAT, &WorldPosTexture, &WorldPosRTV, &WorldPosSRV))
     {
-        OutputDebugString(L"Failed to create World Position render target resources\n");
+        UE_LOG(LogLevel::Error, TEXT("WorldPosRTV is null"));
         return;
     }
 
@@ -239,7 +239,7 @@ void PostEffect::InitRenderTargetViews(FGraphicsDevice* Graphics)
     if (!CreateRenderTargetResources(Graphics->Device, Graphics->screenWidth, Graphics->screenHeight,
         DXGI_FORMAT_R32G32B32A32_FLOAT, &WorldNormalTexture, &WorldNormalRTV, &WorldNormalSRV))
     {
-        OutputDebugString(L"Failed to create World Normal render target resources\n");
+        UE_LOG(LogLevel::Error, TEXT("WorldNormalRTV is null"));
         return;
     }
 
@@ -247,7 +247,7 @@ void PostEffect::InitRenderTargetViews(FGraphicsDevice* Graphics)
     if (!CreateRenderTargetResources(Graphics->Device, Graphics->screenWidth, Graphics->screenHeight,
         DXGI_FORMAT_R32G32B32A32_FLOAT, &AlbedoTexture, &AlbedoRTV, &AlbedoSRV))
     {
-        OutputDebugString(L"Failed to create Albedo render target resources\n");
+        UE_LOG(LogLevel::Error, TEXT("AlbedoRTV is null"));
         return;
     }
 
@@ -255,7 +255,7 @@ void PostEffect::InitRenderTargetViews(FGraphicsDevice* Graphics)
     if (!CreateRenderTargetResources(Graphics->Device, Graphics->screenWidth, Graphics->screenHeight,
         DXGI_FORMAT_R32G32B32A32_FLOAT, &SpecularTexture, &SpecularRTV, &SpecularSRV))
     {
-        OutputDebugString(L"Failed to create Specular render target resources\n");
+        UE_LOG(LogLevel::Error, TEXT("SpecularRTV is null"));
         return;
     }
 }
@@ -268,8 +268,6 @@ void PostEffect::Render(ID3D11DeviceContext*& DeviceContext, ID3D11ShaderResourc
     // Draw
     // Sampler
     //ClearCommBreak
-    FLOAT ClearColor[4] = { 1.0f, 0.025f, 0.025f, 1.0f };
-    //DeviceContext->ClearRenderTargetView(finalRTV, ClearColor); // Clear Color
     DeviceContext->OMSetRenderTargets(1, &finalRTV, nullptr);
     DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     DeviceContext->VSSetShader(PostEffectVS, nullptr, 0);
@@ -386,13 +384,22 @@ void PostEffect::CopyBackBufferToColorSRV(ID3D11DeviceContext*& DeviceContext, I
     //DeviceContext->ResolveSubresource(ColorTexture, 0, FrameBuffer, 0, DXGI_FORMAT_R8G8B8A8_UNORM);
 }
 
+void PostEffect::ClearRTV(ID3D11DeviceContext*& DeviceContext)
+{
+    static FLOAT ClearColor[4] = { 0.025f, 0.025f, 0.025f, 1.0f };
+    DeviceContext->ClearRenderTargetView(WorldPosRTV, ClearColor);
+    DeviceContext->ClearRenderTargetView(WorldNormalRTV, ClearColor);
+    DeviceContext->ClearRenderTargetView(AlbedoRTV, ClearColor);
+    DeviceContext->ClearRenderTargetView(SpecularRTV, ClearColor);
+    DeviceContext->ClearRenderTargetView(finalRTV, ClearColor);
+}
+
 void PostEffect::CopyDepthBufferToDepthOnlySRV(ID3D11DeviceContext*& DeviceContext, ID3D11Texture2D*& SrcDepthTexture)
 {
     DeviceContext->CopyResource(DepthOnlyTexture, SrcDepthTexture);
 }
 
-static bool PostEffect::CreateRenderTargetResources(
-    ID3D11Device* Device,
+static bool PostEffect::CreateRenderTargetResources(ID3D11Device*& Device,
     UINT Width,
     UINT Height,
     DXGI_FORMAT Format,
@@ -413,7 +420,7 @@ static bool PostEffect::CreateRenderTargetResources(
     HRESULT Hr = Device->CreateTexture2D(&TexDesc, nullptr, OutTexture);
     if (FAILED(Hr))
     {
-        OutputDebugString(L"Failed to create texture in CreateRenderTargetResources\n");
+        UE_LOG(LogLevel::Display, "Failed to create texture in CreateRenderTargetResources\n");
         return false;
     }
 
@@ -423,9 +430,8 @@ static bool PostEffect::CreateRenderTargetResources(
     Hr = Device->CreateRenderTargetView(*OutTexture, &RtvDesc, OutRTV);
     if (FAILED(Hr))
     {
-        OutputDebugString(L"Failed to create RTV in CreateRenderTargetResources\n");
-        (*OutTexture)->Release();
-        *OutTexture = nullptr;
+        UE_LOG(LogLevel::Display, "Failed to create RTV in CreateRenderTargetResources\n");
+        SAFE_RELEASE((*OutTexture));
         return false;
     }
 
@@ -437,13 +443,10 @@ static bool PostEffect::CreateRenderTargetResources(
     Hr = Device->CreateShaderResourceView(*OutTexture, &SrvDesc, OutSRV);
     if (FAILED(Hr))
     {
-        OutputDebugString(L"Failed to create SRV in CreateRenderTargetResources\n");
-        (*OutRTV)->Release();
-        (*OutTexture)->Release();
-        *OutTexture = nullptr;
-        *OutRTV = nullptr;
+        UE_LOG(LogLevel::Display, "Failed to create SRV in CreateRenderTargetResources\n");
+        SAFE_RELEASE((*OutRTV)); // RTV는 Release
+        SAFE_RELEASE((*OutTexture)); // Texture는 Release
         return false;
     }
-
     return true;
 }

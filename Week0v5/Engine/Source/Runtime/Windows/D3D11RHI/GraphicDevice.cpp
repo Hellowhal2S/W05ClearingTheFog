@@ -3,6 +3,8 @@
 #include "Core/HAL/PlatformType.h"
 #include "Renderer/PostEffect.h"
 
+#define SAFE_RELEASE(x) if (x) { x->Release(); x = nullptr; }
+
 void FGraphicsDevice::Initialize(HWND hWindow) {
     CreateDeviceAndSwapChain(hWindow);
     CreateFrameBuffer();
@@ -246,36 +248,17 @@ void FGraphicsDevice::CreateFrameBuffer()
     // Post Effect
     RTVs[2] = PostEffect::WorldPosRTV;
     RTVs[3] = PostEffect::WorldNormalRTV;
-    RTVs[3] = PostEffect::AlbedoRTV;
-    RTVs[3] = PostEffect::SpecularRTV;
+    RTVs[4] = PostEffect::AlbedoRTV;
+    RTVs[5] = PostEffect::SpecularRTV;
 
 }
 
 void FGraphicsDevice::ReleaseFrameBuffer()
 {
-    if (FrameBuffer)
-    {
-        FrameBuffer->Release();
-        FrameBuffer = nullptr;
-    }
-
-    if (FrameBufferRTV)
-    {
-        FrameBufferRTV->Release();
-        FrameBufferRTV = nullptr;
-    }
-
-    if (UUIDFrameBuffer)
-    {
-        UUIDFrameBuffer->Release();
-        UUIDFrameBuffer = nullptr;
-    }
-
-    if (UUIDFrameBufferRTV)
-    {
-        UUIDFrameBufferRTV->Release();
-        UUIDFrameBufferRTV = nullptr;
-    }
+    SAFE_RELEASE(FrameBuffer);
+    SAFE_RELEASE(FrameBufferRTV);
+    SAFE_RELEASE(UUIDFrameBuffer);
+    SAFE_RELEASE(UUIDFrameBufferRTV);
 }
 
 void FGraphicsDevice::ReleaseRasterizerState()
@@ -332,8 +315,7 @@ void FGraphicsDevice::SwapBuffer() {
 void FGraphicsDevice::Prepare()
 {
     // 후처리용 RTV 클리어
-    DeviceContext->ClearRenderTargetView(PostEffect::WorldPosRTV, ClearColor);
-    DeviceContext->ClearRenderTargetView(PostEffect::WorldNormalRTV, ClearColor);
+    PostEffect::ClearRTV(DeviceContext);
 
     DeviceContext->ClearRenderTargetView(FrameBufferRTV, ClearColor); // 렌더 타겟 뷰에 저장된 이전 프레임 데이터를 삭제
     DeviceContext->ClearRenderTargetView(UUIDFrameBufferRTV, ClearColor); // 렌더 타겟 뷰에 저장된 이전 프레임 데이터를 삭제
@@ -347,17 +329,11 @@ void FGraphicsDevice::Prepare()
     DeviceContext->OMSetDepthStencilState(DepthStencilState, 0);
 
     DeviceContext->OMSetRenderTargets(6, RTVs, DepthStencilView); // 렌더 타겟 설정(백버퍼를 가르킴)
-    DeviceContext->OMSetBlendState(nullptr, nullptr, 0xffffffff); // 블렌뎅 상태 설정, 기본블렌딩 상태임
+    DeviceContext->OMSetBlendState(nullptr, nullptr, 0xffffffff); // 블렌딩 상태 설정, 기본블렌딩 상태임
 }
 
 void FGraphicsDevice::OnResize(HWND hWindow) {
     DeviceContext->OMSetRenderTargets(0, RTVs, 0);
-    
-    FrameBufferRTV->Release();
-    FrameBufferRTV = nullptr;
-
-    UUIDFrameBufferRTV->Release();
-    UUIDFrameBufferRTV = nullptr;
 
     if (DepthStencilView) {
         DepthStencilView->Release();

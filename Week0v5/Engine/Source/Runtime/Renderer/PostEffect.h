@@ -104,10 +104,12 @@ namespace PostEffect
     void UpdateCameraConstantBuffer(ID3D11DeviceContext*& DeviceContext);
     void CopyBackBufferToColorSRV(ID3D11DeviceContext*& DeviceContext, ID3D11Texture2D*& ColorTexture, ID3D11Texture2D*& FrameBuffer);
 
+    void ClearRTV(ID3D11DeviceContext*& DeviceContext);
+
     // Depth Stencil Buffer를 Depth Map Texture에 복사
     void CopyDepthBufferToDepthOnlySRV(ID3D11DeviceContext*& DeviceContext, ID3D11Texture2D*& SrcDepthTexture);
 
-    static bool CreateRenderTargetResources(ID3D11Device* Device, UINT Width, UINT Height, DXGI_FORMAT Format, ID3D11Texture2D** OutTexture, ID3D11RenderTargetView** OutRTV, ID3D11ShaderResourceView** OutSRV);
+    static bool CreateRenderTargetResources(ID3D11Device *& Device, UINT Width, UINT Height, DXGI_FORMAT Format, ID3D11Texture2D** OutTexture, ID3D11RenderTargetView** OutRTV, ID3D11ShaderResourceView** OutSRV);
 
     
 }

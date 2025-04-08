@@ -6,7 +6,6 @@ Texture2D g_worldPosTex : register(t12); // Depth Map SRV
 Texture2D g_worldNormalTex : register(t13); // Depth Map SRV
 Texture2D g_albedoTex : register(t14); // Depth Map SRV
 Texture2D g_specularTex : register(t15); // Depth Map SRV
-//Texture2D worldPosTex : register(t12); // World Position SRV
 
 SamplerState g_Sampler : register(s0); // Linear Clamp Sampler
 
@@ -47,7 +46,7 @@ float4 TexcoordToView(float2 texcoord)
     // [0, 1]x[0, 1] -> [-1, 1]x[-1, 1]
     posProj.xy = texcoord * 2.0 - 1.0;
     posProj.y *= -1; // 주의: y 방향을 뒤집어줘야 합니다.
-    posProj.z = g_depthOnlyTex.Sample(Sampler, texcoord).r;
+    posProj.z = g_depthOnlyTex.Sample(g_Sampler, texcoord).r;
     posProj.w = 1.0;
 
     // ProjectSpace -> ViewSpace
@@ -70,22 +69,30 @@ float4 mainPS(SamplingPixelShaderInput input) : SV_TARGET
     //return float4(1.0f, 0.0f, 0.0f, 1.0f); // TODO: 수정 필요)
     //return float4(renderTex.Sample(Sampler, input.texcoord).rgb,1.0f);
     
-    if (mode ==1)
+    if (mode == 1)       // 모드 1 : World Normal
     {
         return float4(g_worldNormalTex.Sample(g_Sampler, input.texcoord).rgb, 1.0f);
     }
-    else if (mode == 2)
+    else if (mode == 2) // 모드 2 : Depth Only
     {
         float depth = g_depthOnlyTex.Sample(g_Sampler, input.texcoord).r;
         depth = LinearizeAndNormalizeDepth(depth, 0.1f, 100.0f);
         
-        return float4(depth.rrr, 1.0f);
+        return float4(depth,depth, depth, 1.0f);
     }
-    else if (mode == 3)
+    else if (mode == 3) // 모드 3 : World Position
     {
         return float4(g_worldPosTex.Sample(g_Sampler, input.texcoord).rgb, 1.0f);
     }
-    else // 모드 1: 렌더링 이미지에 안개 효과 적용
+    else if (mode == 4) // 모드 4: Albedo (Diffuse)
+    {
+        return float4(g_albedoTex.Sample(g_Sampler, input.texcoord).rgb, 1.0f);
+    }
+    else if (mode == 5) // 모드 5: Specular
+    {
+        return float4(g_specularTex.Sample(g_Sampler, input.texcoord).rgb, 1.0f);
+    }
+    else // 기본 모드 0: 렌더링 이미지에 안개 효과 적용
     {
         // // 뷰 공간 좌표 복원 (거리 기반 안개 계산용)
         if (fogEnabled)
@@ -96,7 +103,7 @@ float4 mainPS(SamplingPixelShaderInput input) : SV_TARGET
             //float distFog = saturate((dist - depthStart) / (depthFalloff - depthStart));
             float rawDepth = g_depthOnlyTex.Sample(g_Sampler, input.texcoord).r;
             float linearDepth = LinearizeAndNormalizeDepth(rawDepth, 0.1f, 100.0f);
-            float fogFactor = 1.0 - exp(-fogDensity* linearDepth);
+            float fogFactor = 1.0 - exp(-fogDensity * linearDepth);
             float3 color = g_renderTex.Sample(g_Sampler, input.texcoord).rgb;
         
             float worldHeight = g_worldPosTex.Sample(g_Sampler, input.texcoord).z;
@@ -108,4 +115,6 @@ float4 mainPS(SamplingPixelShaderInput input) : SV_TARGET
         else
             return float4(g_renderTex.Sample(g_Sampler, input.texcoord).rgb, 1.0f);
     }
+    
+
 }
