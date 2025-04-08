@@ -1,4 +1,6 @@
 ﻿#include "UnrealEd.h"
+
+#include "EditorEngine.h"
 #include "EditorPanel.h"
 
 #include "PropertyEditor/ControlEditorPanel.h"
@@ -15,6 +17,7 @@ void UnrealEd::Initialize()
     
     auto PropertyPanel = std::make_shared<PropertyEditorPanel>();
     Panels["PropertyPanel"] = PropertyPanel;
+    OnResize(GEngine->hWnd);
 }
 
 void UnrealEd::Render() const

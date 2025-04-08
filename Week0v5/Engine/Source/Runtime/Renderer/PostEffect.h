@@ -8,11 +8,6 @@
 #include "Math/Matrix.h"
 
 class FGraphicsDevice;
-
-struct FPostEffectConstant
-{
-    // fog strength, fog color, inverse projection matrix... 등 추가 요망
-};
 class AExponentialHeightFog;
 namespace PostEffect
 {
@@ -104,7 +99,6 @@ namespace PostEffect
 
 
     void CopyBackBufferToColorSRV(ID3D11DeviceContext*& DeviceContext, ID3D11Texture2D*& ColorTexture, ID3D11Texture2D*& FrameBuffer);
-
     // Depth Stencil Buffer를 Depth Map Texture에 복사
     void CopyDepthBufferToDepthOnlySRV(ID3D11DeviceContext*& DeviceContext, ID3D11Texture2D*& SrcDepthTexture);
 
