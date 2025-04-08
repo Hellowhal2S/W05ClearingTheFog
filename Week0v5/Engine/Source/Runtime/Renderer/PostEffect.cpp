@@ -284,7 +284,6 @@ void PostEffect::Render(ID3D11DeviceContext*& DeviceContext, ID3D11ShaderResourc
     DeviceContext->PSSetConstantBuffers(0, 1, &CameraConstantBuffer);       // 상수 버퍼
     DeviceContext->PSSetConstantBuffers(1, 1, &FogConstantBuffer);
 
-
     UpdateFogConstantBuffer(DeviceContext, GEngine->GetWorld()->Fog);
     UpdateCameraConstantBuffer(DeviceContext);
     DeviceContext->PSSetSamplers(0, 1, &PostEffectSampler);                 // Sampler      

@@ -115,10 +115,10 @@ PS_OUTPUT mainPS(PS_INPUT input)
     output.UUID = UUID;
     output.worldPos = input.worldPos;
     output.worldNormal = float4(input.normal, 1.0);
-    output.Albedo = float4(Material.DiffuseColor, 1.0f);
     output.SpecularColor_Power = float4(Material.SpecularColor, Material.SpecularScalar);
     
     float3 texColor = Textures.Sample(Sampler, input.texcoord + UVOffset);
+    output.Albedo = float4(Material.DiffuseColor + texColor, 1.0f);
     float3 color;
     if (texColor.g == 0) // TODO: boolean으로 변경
         color = saturate(Material.DiffuseColor);
