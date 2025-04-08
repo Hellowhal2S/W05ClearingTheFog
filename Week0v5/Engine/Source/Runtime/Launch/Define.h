@@ -139,8 +139,8 @@ struct FVertexTexture
 struct FGridParameters
 {
 	float gridSpacing;
-	int   numGridLines;
 	FVector gridOrigin;
+	int   numGridLines;
 	float pad;
 };
 struct FSimpleVertex
@@ -271,51 +271,40 @@ struct FPrimitiveCounts
 	int ConeCount; 
 	int pad1;
 };
-struct FLighting
-{
-	float lightDirX, lightDirY, lightDirZ; // 조명 방향
-	float pad1;                      // 16바이트 정렬용 패딩
-	float lightColorX, lightColorY, lightColorZ;    // 조명 색상
-	float pad2;                      // 16바이트 정렬용 패딩
-	float AmbientFactor;             // ambient 계수
-	float pad3; // 16바이트 정렬 맞춤 추가 패딩
-	float pad4; // 16바이트 정렬 맞춤 추가 패딩
-	float pad5; // 16바이트 정렬 맞춤 추가 패딩
-};
 
-struct FMaterialConstants {
-    FVector DiffuseColor;
-    float TransparencyScalar;
-    FVector AmbientColor;
-    float DensityScalar;
-    FVector SpecularColor;
-    float SpecularScalar;
-    FVector EmmisiveColor;
-    float MaterialPad0;
-};
 
-struct FConstants {
-    FMatrix Model;      // 모델
-    FMatrix View;      // 뷰
-    FMatrix Projection; // 프로젝션
-    FMatrix ModelMatrixInverseTranspose; // normal 변환을 위한 행렬
-    FVector4 UUIDColor;
-    bool IsSelected;
-    FVector pad;
-};
-struct FLitUnlitConstants {
-    int isLit; // 1 = Lit, 0 = Unlit 
-    FVector pad;
-};
+//
+//
+//
+//struct FConstantLight
+//{
+//    FConstantLightColor Color;
+//    FVector Position;
+//    float Pad0;
+//    FVector Specular;
+//    float Pad1;
+//    FVector Diffuse;
+//    float Pad2;
+//    FVector Ambient;
+//    float Pad3;
+//
+//    float Intensity;
+//    float
+//};
+//
+//struct FLitUnlitConstants {
+//    int isLit; // 1 = Lit, 0 = Unlit 
+//    FVector pad;
+//};
+//
+//struct FSubMeshConstants {
+//    float isSelectedSubMesh;
+//    FVector pad;
+//};
 
-struct FSubMeshConstants {
-    float isSelectedSubMesh;
-    FVector pad;
-};
-
-struct FTextureConstants {
-    float UOffset;
-    float VOffset;
-    float pad0;
-    float pad1;
-};
+//struct FTextureConstants {
+//    float UOffset;
+//    float VOffset;
+//    float pad0;
+//    float pad1;
+//};

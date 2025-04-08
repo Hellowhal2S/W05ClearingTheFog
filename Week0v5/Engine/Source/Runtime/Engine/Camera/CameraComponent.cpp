@@ -15,7 +15,7 @@ UCameraComponent::~UCameraComponent()
 void UCameraComponent::InitializeComponent()
 {
 	Super::InitializeComponent();
-	RelativeLocation = FVector(0.0f, 0.0f, 0.5f);
+    SetRelativeLocation(FVector(0, 0, 0.5f));
 	FOV = 60.f;
 }
 
@@ -24,7 +24,8 @@ void UCameraComponent::TickComponent(float DeltaTime)
     Super::TickComponent(DeltaTime);
 
 	Input();
-	QuatRotation = JungleMath::EulerToQuaternion(RelativeRotation);
+    
+	//QuatRotation = JungleMath::EulerToQuaternion(RelativeRotation);
 }
 
 void UCameraComponent::Input()
@@ -89,31 +90,36 @@ void UCameraComponent::Input()
 
 void UCameraComponent::MoveForward(float _Value)
 {
-	RelativeLocation = RelativeLocation + GetForwardVector() * GetEngine()->GetLevelEditor()->GetActiveViewportClient()->GetCameraSpeedScalar() * _Value;
+    AddLocation(GetForwardVector() * GetEngine()->GetLevelEditor()->GetActiveViewportClient()->GetCameraSpeedScalar() * _Value);
 }
 
 void UCameraComponent::MoveRight(float _Value)
 {
 	//FVector newRight = FVector(GetRightVector().x, GetRightVector().y, 0.0f);
-	RelativeLocation = RelativeLocation + GetRightVector() * GetEngine()->GetLevelEditor()->GetActiveViewportClient()->GetCameraSpeedScalar() * _Value;
+    AddLocation(GetRightVector() * GetEngine()->GetLevelEditor()->GetActiveViewportClient()->GetCameraSpeedScalar() * _Value);
 }
 
 void UCameraComponent::MoveUp(float _Value)
 {
-	RelativeLocation.z += _Value * GetEngine()->GetLevelEditor()->GetActiveViewportClient()->GetCameraSpeedScalar();
+    FVector PrevLoc = GetRelativeLocation();
+    PrevLoc.z += _Value * GetEngine()->GetLevelEditor()->GetActiveViewportClient()->GetCameraSpeedScalar();
+    SetRelativeLocation(PrevLoc);
 }
 
 void UCameraComponent::RotateYaw(float _Value)
 {
-	RelativeRotation.z += _Value * GetEngine()->GetLevelEditor()->GetActiveViewportClient()->GetCameraSpeedScalar();
+    FVector PrevRot = GetRelativeRotation();
+    PrevRot.z += _Value * GetEngine()->GetLevelEditor()->GetActiveViewportClient()->GetCameraSpeedScalar();
+    SetRelativeRotation(PrevRot);
 }
 
 void UCameraComponent::RotatePitch(float _Value)
 {
-
-	RelativeRotation.y += _Value;
-	if (RelativeRotation.y < -90.0f)
-		RelativeRotation.y = -90.0f;
-	if (RelativeRotation.y > 90.0f)
-		RelativeRotation.y = 90.0f;
+    FVector PrevRot = GetRelativeRotation();
+        PrevRot.y += _Value;
+	if (PrevRot.y < -90.0f)
+        PrevRot.y = -90.0f;
+	if (PrevRot.y > 90.0f)
+        PrevRot.y = 90.0f;
+    SetRelativeRotation(PrevRot);
 }

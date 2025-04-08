@@ -1,21 +1,10 @@
-
-cbuffer MatrixBuffer : register(b0)
-{
-    row_major float4x4 Model;
-    row_major float4x4 View;
-    row_major float4x4 Projection;
-    row_major float4x4 MInverseTranspose;
-    float4 UUID;
-    bool isSelected;
-    float3 MatrixPad0;
-};
-
+#include "ShaderConstants.hlsli"
 
 cbuffer GridParametersData : register(b1)
 {
     float GridSpacing;
-    int GridCount; // 총 grid 라인 수
     float3 GridOrigin; // Grid의 중심
+    int GridCount; // 총 grid 라인 수
     float Padding;
 };
 cbuffer PrimitiveCounts : register(b3)
@@ -66,6 +55,14 @@ static const int BB_EdgeIndices[12][2] =
     { 1, 5 },
     { 2, 6 },
     { 3, 7 } // 측면
+};
+
+const static matrix Identity =
+{
+    1, 0, 0, 0,
+    0, 1, 0, 0,
+    0, 0, 1, 0,
+    0, 0, 0, 1
 };
 
 struct VS_INPUT
@@ -315,11 +312,11 @@ PS_INPUT mainVS(VS_INPUT input)
 
     // 출력 변환
     float4 outPos = float4(pos, 1.0);
-    outPos = mul(outPos, Model);
+    //outPos = mul(outPos, ModelMatrix);
     output.worldPos = outPos;
     
-    outPos = mul(outPos, View);
-    outPos = mul(outPos, Projection);
+    outPos = mul(outPos, ViewMatrix);
+    outPos = mul(outPos, ProjMatrix);
     
     output.Position = outPos;
     

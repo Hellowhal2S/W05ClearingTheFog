@@ -83,7 +83,7 @@ void PropertyEditorPanel::Render()
                     UBillboardComponent* BillboardComponent = PickedActor->AddComponent<UBillboardComponent>();
                     PickedComponent = BillboardComponent;
                     BillboardComponent->SetTexture(L"Assets/Texture/Pawn_64x.png");
-                    BillboardComponent->SetLocation(FVector(0.0f, 0.0f, 3.0f));
+                    BillboardComponent->SetRelativeLocation(FVector(0.0f, 0.0f, 3.0f));
                 }
                 if (ImGui::Selectable("LightComponent"))
                 {
@@ -96,7 +96,7 @@ void PropertyEditorPanel::Render()
                     PickedComponent = ParticleComponent;
                     ParticleComponent->SetTexture(L"Assets/Texture/T_Explosion_SubUV.png");
                     ParticleComponent->SetRowColumnCount(6, 6);
-                    ParticleComponent->SetScale(FVector(10.0f, 10.0f, 1.0f));
+                    ParticleComponent->SetRelativeScale(FVector(10.0f, 10.0f, 1.0f));
                     ParticleComponent->Activate();
                 }
                 if (ImGui::Selectable("StaticMeshComponent"))
@@ -131,9 +131,9 @@ void PropertyEditorPanel::Render()
             {
                 LastComponent = PickedComponent;
                 bFirstFrame = true;
-                Location = SceneComp->GetWorldLocation();
-                Rotation = SceneComp->GetWorldRotation();
-                Scale = SceneComp->GetWorldScale();
+                Location = SceneComp->GetRelativeLocation();
+                Rotation = SceneComp->GetRelativeRotation();
+                Scale = SceneComp->GetRelativeScale();
             }
 
             bool bChanged = false;
@@ -149,9 +149,9 @@ void PropertyEditorPanel::Render()
 
             if (bChanged && !bFirstFrame)
             {
-                SceneComp->SetLocation(Location);
-                SceneComp->SetRotation(Rotation);
-                SceneComp->SetScale(Scale);
+                SceneComp->SetRelativeLocation(Location);
+                SceneComp->SetRelativeRotation(Rotation);
+                SceneComp->SetRelativeScale(Scale);
             }
 
             std::string coordiButtonLabel;
@@ -181,7 +181,7 @@ void PropertyEditorPanel::Render()
             float r = currColor.x;
             float g = currColor.y;
             float b = currColor.z;
-            float a = currColor.a;
+            float a = currColor.w;
             float h, s, v;
             float lightColor[4] = { r, g, b, a };
 

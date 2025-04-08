@@ -77,45 +77,133 @@ void USceneComponent::AddScale(FVector _added)
 
 }
 
-FVector USceneComponent::GetWorldRotation()
+//FVector USceneComponent::GetWorldRotation()
+//{
+//	if (AttachParent)
+//	{
+//		return FVector(AttachParent->GetLocalRotation() + GetLocalRotation());
+//	}
+//	else
+//		return GetLocalRotation();
+//}
+//
+//FVector USceneComponent::GetWorldScale()
+//{
+//	return GetLocalScale();
+//}
+//
+//FVector USceneComponent::GetWorldLocation()
+//{
+//		return GetLocalLocation();
+//}
+//
+//FVector USceneComponent::GetLocalRotation()
+//{
+//	return JungleMath::QuaternionToEuler(QuatRotation);
+//}
+
+FMatrix USceneComponent::GetRelativeTransform() const
 {
-	if (AttachParent)
-	{
-		return FVector(AttachParent->GetLocalRotation() + GetLocalRotation());
-	}
-	else
-		return GetLocalRotation();
+    return JungleMath::CreateModelMatrix(RelativeLocation, RelativeRotation, RelativeScale3D);
 }
 
-FVector USceneComponent::GetWorldScale()
+FVector USceneComponent::GetComponentLocation() const
 {
-	if (AttachParent)
-	{
-		return FVector(AttachParent->GetWorldScale() + GetLocalScale());
-	}
-	else
-		return GetLocalScale();
+    if (AttachParent)
+    {
+        FVector4 CompLoc = AttachParent->GetComponentTransform().TransformFVector4(FVector4(RelativeLocation, 1.0f));
+        return FVector(CompLoc.xyz() / CompLoc.w);
+    }
+    else
+    {
+        return GetRelativeLocation();
+    }
 }
 
-FVector USceneComponent::GetWorldLocation()
+FVector USceneComponent::GetComponentRotation() const
 {
-	if (AttachParent)
-	{
-		return FVector(AttachParent->GetWorldLocation() + GetLocalLocation());
-	}
-	else
-		return GetLocalLocation();
+    return JungleMath::QuaternionToEuler(GetComponentQuat());
 }
 
-FVector USceneComponent::GetLocalRotation()
+FQuat USceneComponent::GetComponentQuat() const
 {
-	return JungleMath::QuaternionToEuler(QuatRotation);
+    if (AttachParent)
+    {
+        return AttachParent->GetComponentQuat() * QuatRotation;
+    }
+    else
+    {
+        return QuatRotation;
+    }
 }
 
-void USceneComponent::SetRotation(FVector _newRot)
+FVector USceneComponent::GetComponentScale() const
+{
+    if (AttachParent)
+    {
+        return GetComponentScale() * RelativeScale3D;
+    }
+    else
+    {
+        return RelativeScale3D;
+    }
+}
+
+FMatrix USceneComponent::GetComponentTransform() const
+{
+    if (AttachParent)
+    {
+        return GetRelativeTransform() * AttachParent->GetComponentTransform();
+    }
+    else
+    {
+        return GetRelativeTransform();
+    }
+}
+
+FMatrix USceneComponent::GetComponentTranslateMatrix() const
+{
+    FMatrix LocMat = FMatrix::CreateTranslationMatrix(RelativeLocation);
+    if (AttachParent)
+    {
+        FMatrix ParentLocMat = AttachParent->GetComponentTranslateMatrix();
+        LocMat = LocMat * ParentLocMat;
+    }
+    return LocMat;
+}
+
+FMatrix USceneComponent::GetComponentRotationMatrix() const
+{
+    FMatrix RotMat = FMatrix::CreateRotation(RelativeRotation.x, RelativeRotation.y, RelativeRotation.z);
+    if (AttachParent)
+    {
+        FMatrix ParentRotMat = AttachParent->GetComponentRotationMatrix();
+        RotMat = RotMat * ParentRotMat;
+    }
+    return RotMat;
+}
+
+FMatrix USceneComponent::GetComponentScaleMatrix() const
+{
+    FMatrix ScaleMat = FMatrix::CreateScale(RelativeScale3D.x, RelativeScale3D.y, RelativeScale3D.z);
+    if (AttachParent)
+    {
+        FMatrix ParentScaleMat = AttachParent->GetComponentScaleMatrix();
+        ScaleMat = ScaleMat * ParentScaleMat;
+    }
+    return ScaleMat;
+}
+
+void USceneComponent::SetRelativeRotation(FVector _newRot)
 {
 	RelativeRotation = _newRot;
 	QuatRotation = JungleMath::EulerToQuaternion(_newRot);
+}
+
+void USceneComponent::SetRelativeQuat(FQuat _newRot)
+{ 
+    QuatRotation = _newRot; 
+    RelativeRotation = JungleMath::QuaternionToEuler(_newRot);
 }
 
 void USceneComponent::SetupAttachment(USceneComponent* InParent)

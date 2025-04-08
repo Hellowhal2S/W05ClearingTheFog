@@ -1,4 +1,4 @@
-﻿#include "Actor.h"
+#include "Actor.h"
 
 #include "Engine/World.h"
 
@@ -33,7 +33,6 @@ void AActor::Tick(float DeltaTime)
         if (Comp && Comp->IsComponentTickEnabled())
             Comp->TickComponent(DeltaTime);
     }
-    // SetActorLocation(GetActorLocation() + FVector(1.0f, 0.0f, 0.0f));
 }
 
 void AActor::Destroyed()
@@ -134,7 +133,7 @@ bool AActor::SetActorLocation(const FVector& NewLocation)
 {
     if (RootComponent)
     {
-        RootComponent->SetLocation(NewLocation);
+        RootComponent->SetRelativeLocation(NewLocation);
         return true;
     }
     return false;
@@ -144,7 +143,7 @@ bool AActor::SetActorRotation(const FVector& NewRotation)
 {
     if (RootComponent)
     {
-        RootComponent->SetRotation(NewRotation);
+        RootComponent->SetRelativeRotation(NewRotation);
         return true;
     }
     return false;
@@ -154,7 +153,7 @@ bool AActor::SetActorScale(const FVector& NewScale)
 {
     if (RootComponent)
     {
-        RootComponent->SetScale(NewScale);
+        RootComponent->SetRelativeScale(NewScale);
         return true;
     }
     return false;

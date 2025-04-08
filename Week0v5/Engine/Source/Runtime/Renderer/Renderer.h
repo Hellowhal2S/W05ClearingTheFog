@@ -8,6 +8,7 @@
 #include "EngineBaseTypes.h"
 #include "Define.h"
 #include "Container/Set.h"
+#include "ShaderConstants.h"
 
 class ULightComponentBase;
 class UWorld;
@@ -23,23 +24,22 @@ class FRenderer
 {
 
 private:
-    float litFlag = 0;
+    float litFlag =1;
 public:
     FGraphicsDevice* Graphics;
     ID3D11VertexShader* VertexShader = nullptr;
     ID3D11PixelShader* PixelShader = nullptr;
     ID3D11InputLayout* InputLayout = nullptr;
-    ID3D11Buffer* ConstantBuffer = nullptr;
-    ID3D11Buffer* LightingBuffer = nullptr;
-    ID3D11Buffer* FlagBuffer = nullptr;
-    ID3D11Buffer* MaterialConstantBuffer = nullptr;
-    ID3D11Buffer* SubMeshConstantBuffer = nullptr;
-    ID3D11Buffer* TextureConstantBufer = nullptr;
 
-    FLighting lightingData;
+    //ID3D11Buffer* ConstantBuffer = nullptr;
+    //ID3D11Buffer* LightingBuffer = nullptr;
+    //ID3D11Buffer* FlagBuffer = nullptr;
+    //ID3D11Buffer* MaterialConstantBuffer = nullptr;
+    //ID3D11Buffer* SubMeshConstantBuffer = nullptr;
+    //ID3D11Buffer* TextureConstantBufer = nullptr;
+    //ID3D11Buffer* SubUVConstantBuffer = nullptr;
 
     uint32 Stride;
-    uint32 Stride2;
 
 public:
     void Initialize(FGraphicsDevice* graphics);
@@ -49,14 +49,14 @@ public:
     //Render
     void RenderPrimitive(ID3D11Buffer* pBuffer, UINT numVertices) const;
     void RenderPrimitive(ID3D11Buffer* pVertexBuffer, UINT numVertices, ID3D11Buffer* pIndexBuffer, UINT numIndices) const;
-    void RenderPrimitive(OBJ::FStaticMeshRenderData* renderData, TArray<FStaticMaterial*> materials, TArray<UMaterial*> overrideMaterial, int selectedSubMeshIndex) const;
+    void RenderPrimitive(const FMatrix& ModelMatrix, OBJ::FStaticMeshRenderData* renderData, TArray<FStaticMaterial*> materials, TArray<UMaterial*> overrideMaterial, int selectedSubMeshIndex) const;
    
     void RenderTexturedModelPrimitive(ID3D11Buffer* pVertexBuffer, UINT numVertices, ID3D11Buffer* pIndexBuffer, UINT numIndices, ID3D11ShaderResourceView* InTextureSRV, ID3D11SamplerState* InSamplerState) const;
     //Release
     void Release();
     void ReleaseShader();
     void ReleaseBuffer(ID3D11Buffer*& Buffer) const;
-    void ReleaseConstantBuffer();
+    void ReleaseConstantBuffers();
 
     void ResetVertexShader() const;
     void ResetPixelShader() const;
@@ -65,24 +65,28 @@ public:
     void SetVertexShader(const FWString& filename, const FString& funcname, const FString& version);
     void SetPixelShader(const FWString& filename, const FString& funcname, const FString& version);
     
-    void ChangeViewMode(EViewModeIndex evi) const;
+    void ChangeViewMode(EViewModeIndex evi);
     
     // CreateBuffer
-    void CreateConstantBuffer();
-    void CreateLightingBuffer();
-    void CreateLitUnlitBuffer();
+    void CreateConstantBuffers();
     ID3D11Buffer* CreateVertexBuffer(FVertexSimple* vertices, UINT byteWidth) const;
     ID3D11Buffer* CreateVertexBuffer(const TArray<FVertexSimple>& vertices, UINT byteWidth) const;
     ID3D11Buffer* CreateIndexBuffer(uint32* indices, UINT byteWidth) const;
     ID3D11Buffer* CreateIndexBuffer(const TArray<uint32>& indices, UINT byteWidth) const;
 
-    // update
+    //  Constant Buffers
+    FConstantBuffers ConstantBuffers;
+
     void UpdateLightBuffer() const;
-    void UpdateConstant(const FMatrix& Model, const FMatrix& View, const FMatrix& Projection, const FMatrix& NormalMatrix, FVector4 UUIDColor, bool IsSelected) const;
-    void UpdateMaterial(const FObjMaterialInfo& MaterialInfo) const;
-    void UpdateLitUnlitConstant(int isLit) const;
-    void UpdateSubMeshConstant(bool isSelected) const;
-    void UpdateTextureConstant(float UOffset, float VOffset);
+    void UpdateConstantbufferMesh(FConstantBufferMesh Buffer) const;
+    void UpdateConstantbufferTexture(FConstantBufferTexture Buffer) const;
+    void UpdateConstantbufferActor(FConstantBufferActor Buffer) const;
+    void UpdateConstantbufferLights(FConstantBufferLights Buffer) const;
+    void UpdateConstantbufferCamera(FConstantBufferCamera Buffer) const;
+    //void UpdateMaterial(const FObjMaterialInfo& MaterialInfo) const;
+    //void UpdateLitUnlitConstant(int isLit) const;
+    //void UpdateSubMeshConstant(bool isSelected) const;
+    //void UpdateTextureConstant(float UOffset, float VOffset);
 
 public://텍스쳐용 기능 추가
     ID3D11VertexShader* VertexTextureShader = nullptr;
@@ -90,12 +94,11 @@ public://텍스쳐용 기능 추가
     ID3D11InputLayout* TextureInputLayout = nullptr;
 
     uint32 TextureStride;
-    struct FSubUVConstant
-    {
-        float indexU;
-        float indexV;
-    };
-    ID3D11Buffer* SubUVConstantBuffer = nullptr;
+    //struct FSubUVConstant
+    //{
+    //    float indexU;
+    //    float indexV;
+    //};
 
 public:
     void CreateTextureShader();
