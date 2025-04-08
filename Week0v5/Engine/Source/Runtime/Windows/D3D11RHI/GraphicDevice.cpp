@@ -246,6 +246,8 @@ void FGraphicsDevice::CreateFrameBuffer()
     // Post Effect
     RTVs[2] = PostEffect::WorldPosRTV;
     RTVs[3] = PostEffect::WorldNormalRTV;
+    RTVs[3] = PostEffect::AlbedoRTV;
+    RTVs[3] = PostEffect::SpecularRTV;
 
 }
 
@@ -344,7 +346,7 @@ void FGraphicsDevice::Prepare()
 
     DeviceContext->OMSetDepthStencilState(DepthStencilState, 0);
 
-    DeviceContext->OMSetRenderTargets(4, RTVs, DepthStencilView); // 렌더 타겟 설정(백버퍼를 가르킴)
+    DeviceContext->OMSetRenderTargets(6, RTVs, DepthStencilView); // 렌더 타겟 설정(백버퍼를 가르킴)
     DeviceContext->OMSetBlendState(nullptr, nullptr, 0xffffffff); // 블렌뎅 상태 설정, 기본블렌딩 상태임
 }
 

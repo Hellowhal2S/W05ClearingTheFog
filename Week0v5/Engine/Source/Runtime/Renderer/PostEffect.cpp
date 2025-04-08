@@ -72,6 +72,12 @@ namespace PostEffect
     ID3D11RenderTargetView* WorldNormalRTV;
     ID3D11Texture2D* WorldNormalTexture;
     ID3D11ShaderResourceView* WorldNormalSRV;
+    ID3D11RenderTargetView* AlbedoRTV;
+    ID3D11Texture2D* AlbedoTexture;
+    ID3D11ShaderResourceView* AlbedoSRV;
+    ID3D11RenderTargetView* SpecularRTV;
+    ID3D11Texture2D* SpecularTexture;
+    ID3D11ShaderResourceView* SpecularSRV;
     
     ID3D11InputLayout* PostEffectInputLayout;
     ID3D11ShaderResourceView* PostEffectSRV;
@@ -236,6 +242,22 @@ void PostEffect::InitRenderTargetViews(FGraphicsDevice* Graphics)
         OutputDebugString(L"Failed to create World Normal render target resources\n");
         return;
     }
+
+    // Albedo Render Target 생성
+    if (!CreateRenderTargetResources(Graphics->Device, Graphics->screenWidth, Graphics->screenHeight,
+        DXGI_FORMAT_R32G32B32A32_FLOAT, &AlbedoTexture, &AlbedoRTV, &AlbedoSRV))
+    {
+        OutputDebugString(L"Failed to create Albedo render target resources\n");
+        return;
+    }
+
+    // Specular Render Target 생성
+    if (!CreateRenderTargetResources(Graphics->Device, Graphics->screenWidth, Graphics->screenHeight,
+        DXGI_FORMAT_R32G32B32A32_FLOAT, &SpecularTexture, &SpecularRTV, &SpecularSRV))
+    {
+        OutputDebugString(L"Failed to create Specular render target resources\n");
+        return;
+    }
 }
 
 void PostEffect::Render(ID3D11DeviceContext*& DeviceContext, ID3D11ShaderResourceView*& ColorSRV)
@@ -254,8 +276,10 @@ void PostEffect::Render(ID3D11DeviceContext*& DeviceContext, ID3D11ShaderResourc
     DeviceContext->PSSetShader(PostEffectPS, nullptr, 0);
     DeviceContext->IASetInputLayout(PostEffectInputLayout);
 
-    ID3D11ShaderResourceView* ppSRV[4] = { ColorSRV, DepthOnlySRV, WorldPosSRV, WorldNormalSRV };
-    DeviceContext->PSSetShaderResources(10, 4, ppSRV);                      // SRV
+    ID3D11ShaderResourceView* ppSRV[6] = { 
+        ColorSRV, DepthOnlySRV, WorldPosSRV, WorldNormalSRV, AlbedoSRV, SpecularSRV
+    };
+    DeviceContext->PSSetShaderResources(10, 6, ppSRV);                      // SRV
 
     DeviceContext->PSSetConstantBuffers(0, 1, &CameraConstantBuffer);       // 상수 버퍼
     DeviceContext->PSSetConstantBuffers(1, 1, &FogConstantBuffer);
@@ -285,22 +309,33 @@ void PostEffect::Release()
 
 void PostEffect::ReleaseRTVDepth()
 {
-    SAFE_RELEASE(finalRTV);
+    SAFE_RELEASE(finalRTV);                         // Final Render Target View
     SAFE_RELEASE(finalTexture);
 
-    SAFE_RELEASE(WorldPosRTV);
+    SAFE_RELEASE(WorldPosRTV);                      // World Position Texture RTV  
     SAFE_RELEASE(WorldPosTexture);
     SAFE_RELEASE(WorldPosSRV);
 
-    SAFE_RELEASE(WorldNormalRTV);
+    SAFE_RELEASE(WorldNormalRTV);                   // World Normal Texture RTV
     SAFE_RELEASE(WorldNormalTexture);
     SAFE_RELEASE(WorldNormalSRV);
 
-    
+    SAFE_RELEASE(AlbedoRTV);                        // Albedo Texture RTV
+    SAFE_RELEASE(AlbedoTexture);    
+    SAFE_RELEASE(AlbedoSRV);
+
+    SAFE_RELEASE(SpecularRTV);                      // Specular Texture RTV  
+    SAFE_RELEASE(SpecularTexture);
+    SAFE_RELEASE(SpecularSRV);
+
     SAFE_RELEASE(DepthOnlyRTV);                     // Depth Texture RTV    
     SAFE_RELEASE(DepthOnlyTexture);                 // Depth Texture
     SAFE_RELEASE(DepthOnlySRV);                     // Depth Only Texture
     SAFE_RELEASE(DepthOnlyDSV);                     // Depth Only Stencil View
+
+    SAFE_RELEASE(PostEffectInputLayout);            // Input Layout
+    SAFE_RELEASE(PostEffectSampler);                // Sampler
+    SAFE_RELEASE(PostEffectPS);                     // Pixel Shader
 }
 
 void PostEffect::UpdateFogConstantBuffer(ID3D11DeviceContext*& DeviceContext, AExponentialHeightFog* newFog)

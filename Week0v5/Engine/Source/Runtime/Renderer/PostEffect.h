@@ -69,6 +69,11 @@ namespace PostEffect
     extern ID3D11Texture2D* AlbedoTexture;
     extern ID3D11ShaderResourceView* AlbedoSRV;
 
+    extern ID3D11RenderTargetView* SpecularRTV;
+    extern ID3D11Texture2D* SpecularTexture;
+    extern ID3D11ShaderResourceView* SpecularSRV;
+
+
     // 원본 컬러 값 (Texture)를 변환시켜 SRV로 사용
     extern ID3D11ShaderResourceView* PostEffectSRV;
 
