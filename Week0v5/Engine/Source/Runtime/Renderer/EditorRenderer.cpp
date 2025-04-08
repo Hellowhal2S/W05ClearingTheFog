@@ -548,7 +548,7 @@ void FEditorRenderer::Render(UWorld* World, std::shared_ptr<FEditorViewportClien
     RenderPointlightInstanced(World);
     RenderSpotlightInstanced(World);
     RenderAxis();
-    //RenderGrid(ActiveViewport);
+    RenderGrid(ActiveViewport);
 
     // 기즈모는 depth 무시
     ID3D11DepthStencilState* DepthStateDisable = Renderer->Graphics->DepthStateDisable;
@@ -878,14 +878,22 @@ void FEditorRenderer::UdpateConstantbufferSpotlightInstanced(TArray<FConstantBuf
 void FEditorRenderer::RenderGrid(std::shared_ptr<FEditorViewportClient> ActiveViewport)
 {
     PrepareShader(Resources.Shaders.Grid);
+    PrepareConstantbufferGlobal();
     PrepareConstantbufferGrid();
+    Renderer->Graphics->DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
     FMatrix view = ActiveViewport->GetViewMatrix();
     FMatrix proj = ActiveViewport->GetProjectionMatrix();
     FConstantBufferDebugGrid buf;
     buf.InverseViewProj = FMatrix::Inverse(view * proj);
+
+    FConstantBufferCamera cameraBuf;
+    cameraBuf.ViewMatrix = view;
+    cameraBuf.ProjMatrix = proj;
+    cameraBuf.CameraPos = ActiveViewport->ViewTransformPerspective.GetLocation();
+    UpdateConstantbufferGlobal(cameraBuf);
     UdpateConstantbufferGrid(buf);
-    Renderer->Graphics->DeviceContext->Draw(6, 0); // 내부에서 버텍스 사용중
+    Renderer->Graphics->DeviceContext->Draw(12, 0); // 내부에서 버텍스 사용중
 }
 
 void FEditorRenderer::PrepareConstantbufferGrid()

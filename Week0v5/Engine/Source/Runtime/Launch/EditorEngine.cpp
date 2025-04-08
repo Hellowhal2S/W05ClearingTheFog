@@ -56,6 +56,7 @@ int32 UEditorEngine::Init(HWND hwnd)
     
     UnrealEditor = new UnrealEd();
     UnrealEditor->Initialize();
+    UnrealEditor->OnResize(hwnd);
     
     LevelEditor = new SLevelEditor();
     LevelEditor->Initialize();
