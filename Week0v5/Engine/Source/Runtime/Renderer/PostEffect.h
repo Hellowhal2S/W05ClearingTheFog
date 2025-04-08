@@ -24,8 +24,7 @@ namespace PostEffect
         float heightFalloff = 50.0f;
         float fogDensity = 0.1f;
         float heightDensity =0.3f;
-        int mode; // 0: Rendered image, 1: Normal, 2: DepthOnly, 3: WorldPos
-        bool fogEnabled;
+        FVector2D fogPadding;
         FVector4 fogColor  = { 1.0f,1.0f,1.0f,1.0f};
     };
     struct FCameraConstants
@@ -47,6 +46,12 @@ namespace PostEffect
         float spotPower;
         uint32 type;
         FVector dummy;
+    };
+    struct FPostEffectSettingConstants
+    {
+        int renderMode =0;// 0: Rendered image, 1: Normal, 2: DepthOnly, 3: WorldPos
+        bool fogEnabled =true;
+        FVector2D padding;
     };
     // Depth만 담는 Texture
     extern ID3D11RenderTargetView* DepthOnlyRTV;
@@ -74,7 +79,9 @@ namespace PostEffect
     extern ID3D11InputLayout* PostEffectInputLayout;
     extern ID3D11Buffer* FogConstantBuffer;
     extern ID3D11Buffer* CameraConstantBuffer;
-
+    extern ID3D11Buffer* SettingConstantBuffer;
+    extern ID3D11Buffer* LightConstantBuffer;
+    
     extern ID3D11RenderTargetView* finalRTV;
     extern ID3D11Texture2D* finalTexture;
     
@@ -92,6 +99,10 @@ namespace PostEffect
     void ReleaseRTVDepth();
     void UpdateFogConstantBuffer(ID3D11DeviceContext*& DeviceContext, AExponentialHeightFog* newFog);
     void UpdateCameraConstantBuffer(ID3D11DeviceContext*& DeviceContext);
+    void UpdateSettingConstantBuffer(ID3D11DeviceContext*& DeviceContext);
+
+
+
     void CopyBackBufferToColorSRV(ID3D11DeviceContext*& DeviceContext, ID3D11Texture2D*& ColorTexture, ID3D11Texture2D*& FrameBuffer);
 
     // Depth Stencil Buffer를 Depth Map Texture에 복사

@@ -80,11 +80,12 @@ namespace PostEffect
     ID3D11PixelShader* PostEffectPS;
     ID3D11Buffer* FogConstantBuffer = nullptr;
     ID3D11Buffer* CameraConstantBuffer = nullptr;
-
-
+    ID3D11Buffer* SettingConstantBuffer;
+    ID3D11Buffer* LightConstantBuffer;
+    
     ID3D11RenderTargetView* finalRTV;
     ID3D11Texture2D* finalTexture;
-    int renderMode;
+    int renderMode = 0;
 } // namespace PostEffect
 
 void PostEffect::InitCommonStates(FGraphicsDevice*& Graphics)
@@ -116,19 +117,34 @@ void PostEffect::InitBuffers(ID3D11Device*& Device)
         OutputDebugString(L"Failed to create PostEffectsConstantBuffer\n");
     }
     
-    D3D11_BUFFER_DESC cbGlobalDesc;
-    ZeroMemory(&cbGlobalDesc, sizeof(cbGlobalDesc));
-    cbGlobalDesc.ByteWidth = sizeof(FCameraConstants); // 64바이트
-    cbGlobalDesc.Usage = D3D11_USAGE_DYNAMIC;
-    cbGlobalDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-    cbGlobalDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-    cbGlobalDesc.MiscFlags = 0;
+    D3D11_BUFFER_DESC cbCameraDesc;
+    ZeroMemory(&cbCameraDesc, sizeof(cbCameraDesc));
+    cbCameraDesc.ByteWidth = sizeof(FCameraConstants); // 64바이트
+    cbCameraDesc.Usage = D3D11_USAGE_DYNAMIC;
+    cbCameraDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    cbCameraDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    cbCameraDesc.MiscFlags = 0;
     
-    hr = Device->CreateBuffer(&cbGlobalDesc, nullptr, &CameraConstantBuffer);
+    hr = Device->CreateBuffer(&cbCameraDesc, nullptr, &CameraConstantBuffer);
     if (FAILED(hr))
     {
-        OutputDebugString(L"Failed to create GlobalConstantBuffer\n");
+        OutputDebugString(L"Failed to create CameraConstantBuffer\n");
     }
+    
+    D3D11_BUFFER_DESC cbSettingDesc;
+    ZeroMemory(&cbSettingDesc, sizeof(cbSettingDesc));
+    cbSettingDesc.ByteWidth = sizeof(FPostEffectSettingConstants);
+    cbSettingDesc.Usage = D3D11_USAGE_DYNAMIC;
+    cbSettingDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    cbSettingDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    cbSettingDesc.MiscFlags = 0;
+    
+    hr = Device->CreateBuffer(&cbSettingDesc, nullptr, &SettingConstantBuffer);
+    if (FAILED(hr))
+    {
+        OutputDebugString(L"Failed to create PostSettingConstantBuffer\n");
+    }
+    
 }
 void PostEffect::InitShaders(ID3D11Device*& Device)
 {
@@ -329,10 +345,12 @@ void PostEffect::Render(ID3D11DeviceContext*& DeviceContext, ID3D11ShaderResourc
 
     DeviceContext->PSSetConstantBuffers(0, 1, &CameraConstantBuffer);       // 상수 버퍼
     DeviceContext->PSSetConstantBuffers(1, 1, &FogConstantBuffer);
-
+    DeviceContext->PSSetConstantBuffers(2, 1, &SettingConstantBuffer);
 
     UpdateFogConstantBuffer(DeviceContext, GEngine->GetWorld()->Fog);
     UpdateCameraConstantBuffer(DeviceContext);
+    UpdateSettingConstantBuffer(DeviceContext);
+    
     DeviceContext->PSSetSamplers(0, 1, &PostEffectSampler);                 // Sampler      
     DeviceContext->Draw(6, 0);
 }
@@ -346,7 +364,8 @@ void PostEffect::Release()
     SAFE_RELEASE(PostEffectInputLayout);            // Input Layout
     SAFE_RELEASE(FogConstantBuffer);                // Vertex Buffer
     SAFE_RELEASE(CameraConstantBuffer);             // 역투영 등의 Constant Buffer
-
+    SAFE_RELEASE(SettingConstantBuffer);
+    SAFE_RELEASE(LightConstantBuffer);
     
     SAFE_RELEASE(PostEffectSampler);                // Sampler
     SAFE_RELEASE(PostEffectPS);                     // Pixel Shader
@@ -387,9 +406,7 @@ void PostEffect::UpdateFogConstantBuffer(ID3D11DeviceContext*& DeviceContext, AE
         constants->heightFalloff =  newFog->GetFogComponent()->GetHeightFalloff();
         constants->heightDensity =  newFog->GetFogComponent()->GetHeightDensity();
         constants->fogDensity =  newFog->GetFogComponent()->GetFogDensity();
-        constants->mode = renderMode; // TODO : 분리 요망 
         constants->fogColor =  newFog->GetFogComponent()->GetFogColor();
-        constants->fogEnabled = static_cast<bool>(GEngine->GetWorld()->Fog);
     }
     DeviceContext->Unmap(FogConstantBuffer, 0);
 }
@@ -404,15 +421,24 @@ void PostEffect::UpdateCameraConstantBuffer(ID3D11DeviceContext*& DeviceContext)
         FCameraConstants* constants = static_cast<FCameraConstants*>(mappedResource.pData);
         constants->invProj = FMatrix::Transpose(FMatrix::Inverse(EditorViewport->GetProjectionMatrix()));
         constants->invView = FMatrix::Transpose(FMatrix::Inverse(EditorViewport->GetViewMatrix()));
-        // constants->invProj = FMatrix::Identity;
-        // constants->invView = FMatrix::Identity;
         constants->eyeWorld = EditorViewport->ViewTransformPerspective.GetLocation();
         constants->camNear = EditorViewport->nearPlane;
         constants->camFar = EditorViewport->farPlane;
     }
     DeviceContext->Unmap(CameraConstantBuffer, 0);
 }
-
+void PostEffect::UpdateSettingConstantBuffer(ID3D11DeviceContext*& DeviceContext)
+{
+    if (!SettingConstantBuffer) return;
+    D3D11_MAPPED_SUBRESOURCE mappedResource;
+    DeviceContext->Map(SettingConstantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+    {
+        FPostEffectSettingConstants* constants = static_cast<FPostEffectSettingConstants*>(mappedResource.pData);
+        constants->renderMode = renderMode;
+        constants->fogEnabled = static_cast<bool>(GEngine->GetWorld()->Fog);
+    }
+    DeviceContext->Unmap(SettingConstantBuffer, 0);
+}
 
 void PostEffect::CopyBackBufferToColorSRV(ID3D11DeviceContext*& DeviceContext, ID3D11Texture2D*& ColorTexture, ID3D11Texture2D*& FrameBuffer)
 {
