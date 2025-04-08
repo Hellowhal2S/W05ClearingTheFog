@@ -10,6 +10,7 @@
 #include "Components/UParticleSubUVComp.h"
 #include "Components/UText.h"
 #include "Components/Material/Material.h"
+#include "Components/FireBallComponent.h"
 #include "D3D11RHI/GraphicDevice.h"
 #include "Launch/EditorEngine.h"
 #include "Math/JungleMath.h"
@@ -22,36 +23,35 @@
 #include "Components/SkySphereComponent.h"
 #include "PostEffect.h"
 
+#define SAFE_RELEASE(x) if (x) { x->Release(); x = nullptr; }
+
 void FRenderer::Initialize(FGraphicsDevice* graphics)
 {
     Graphics = graphics;
-    CreateShader();
-    CreateTextureShader();
-    CreateLineShader();
+    CreateShaders();
+
     CreateConstantBuffers();
     PostEffect::InitCommonStates(Graphics);
 }
 
 void FRenderer::Release()
 {
-    ReleaseShader();
-    ReleaseTextureShader();
-    ReleaseLineShader();
+    ReleaseShaders();
     ReleaseConstantBuffers();
 
     PostEffect::Release();
 }
 
-void FRenderer::CreateShader()
+void FRenderer::CreateMeshShader()
 {
     ID3DBlob* VertexShaderCSO;
     ID3DBlob* PixelShaderCSO;
 
     D3DCompileFromFile(L"Shaders/StaticMeshVertexShader.hlsl", defines, D3D_COMPILE_STANDARD_FILE_INCLUDE, "mainVS", "vs_5_0", 0, 0, &VertexShaderCSO, nullptr);
-    Graphics->Device->CreateVertexShader(VertexShaderCSO->GetBufferPointer(), VertexShaderCSO->GetBufferSize(), nullptr, &VertexShader);
+    Graphics->Device->CreateVertexShader(VertexShaderCSO->GetBufferPointer(), VertexShaderCSO->GetBufferSize(), nullptr, &RenderResources.Shaders.StaticMesh.Vertex);
 
     D3DCompileFromFile(L"Shaders/StaticMeshPixelShader.hlsl", defines, D3D_COMPILE_STANDARD_FILE_INCLUDE, "mainPS", "ps_5_0", 0, 0, &PixelShaderCSO, nullptr);
-    Graphics->Device->CreatePixelShader(PixelShaderCSO->GetBufferPointer(), PixelShaderCSO->GetBufferSize(), nullptr, &PixelShader);
+    Graphics->Device->CreatePixelShader(PixelShaderCSO->GetBufferPointer(), PixelShaderCSO->GetBufferSize(), nullptr, &RenderResources.Shaders.StaticMesh.Pixel);
 
     D3D11_INPUT_ELEMENT_DESC layout[] = {
         {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
@@ -62,108 +62,60 @@ void FRenderer::CreateShader()
     };
 
     Graphics->Device->CreateInputLayout(
-        layout, ARRAYSIZE(layout), VertexShaderCSO->GetBufferPointer(), VertexShaderCSO->GetBufferSize(), &InputLayout
+        layout, ARRAYSIZE(layout), VertexShaderCSO->GetBufferPointer(), VertexShaderCSO->GetBufferSize(), &RenderResources.Shaders.StaticMesh.Layout
     );
 
-    Stride = sizeof(FVertexSimple);
     VertexShaderCSO->Release();
     PixelShaderCSO->Release();
 }
 
-void FRenderer::ReleaseShader()
+void FRenderer::ReleaseShaders()
 {
-    if (InputLayout)
-    {
-        InputLayout->Release();
-        InputLayout = nullptr;
-    }
+    SAFE_RELEASE(RenderResources.Shaders.StaticMesh.Pixel);
+    SAFE_RELEASE(RenderResources.Shaders.StaticMesh.Vertex);
+    SAFE_RELEASE(RenderResources.Shaders.StaticMesh.Layout);
 
-    if (PixelShader)
-    {
-        PixelShader->Release();
-        PixelShader = nullptr;
-    }
+    SAFE_RELEASE(RenderResources.Shaders.Text.Pixel);
+    SAFE_RELEASE(RenderResources.Shaders.Text.Vertex);
+    SAFE_RELEASE(RenderResources.Shaders.Text.Layout);
 
-    if (VertexShader)
-    {
-        VertexShader->Release();
-        VertexShader = nullptr;
-    }
+    SAFE_RELEASE(RenderResources.Shaders.Texture.Pixel);
+    SAFE_RELEASE(RenderResources.Shaders.Texture.Vertex);
+    SAFE_RELEASE(RenderResources.Shaders.Texture.Layout);  
 }
 
-void FRenderer::PrepareShader() const
+void FRenderer::PrepareShader(FShaderResource ShaderResource) const
 {
-    Graphics->DeviceContext->VSSetShader(VertexShader, nullptr, 0);
-    Graphics->DeviceContext->PSSetShader(PixelShader, nullptr, 0);
-    Graphics->DeviceContext->IASetInputLayout(InputLayout);
-
-    // 추후 필요한 상태만 업데이트로 변경필요
-    if (ConstantBuffers.Camera00)
-    {
-        Graphics->DeviceContext->VSSetConstantBuffers(0, 1, &ConstantBuffers.Camera00);
-        Graphics->DeviceContext->PSSetConstantBuffers(0, 1, &ConstantBuffers.Camera00);
-    }
-    if (ConstantBuffers.Light01)
-    {
-        Graphics->DeviceContext->VSSetConstantBuffers(1, 1, &ConstantBuffers.Light01);
-        Graphics->DeviceContext->PSSetConstantBuffers(1, 1, &ConstantBuffers.Light01);
-    }
-    if (ConstantBuffers.Actor03)
-    {
-        Graphics->DeviceContext->VSSetConstantBuffers(3, 1, &ConstantBuffers.Actor03);
-        Graphics->DeviceContext->PSSetConstantBuffers(3, 1, &ConstantBuffers.Actor03);
-    }
-    if (ConstantBuffers.Texture05)
-    {
-        Graphics->DeviceContext->PSSetConstantBuffers(5, 1, &ConstantBuffers.Texture05);
-    }
-    if (ConstantBuffers.Mesh06)
-    {
-        Graphics->DeviceContext->VSSetConstantBuffers(6, 1, &ConstantBuffers.Mesh06);
-        Graphics->DeviceContext->PSSetConstantBuffers(6, 1, &ConstantBuffers.Mesh06);
-    }
+    Graphics->DeviceContext->VSSetShader(ShaderResource.Vertex, nullptr, 0);
+    Graphics->DeviceContext->PSSetShader(ShaderResource.Pixel, nullptr, 0);
+    Graphics->DeviceContext->IASetInputLayout(ShaderResource.Layout);
+    Graphics->DeviceContext->IASetPrimitiveTopology(ShaderResource.Topology);
 }
 
-void FRenderer::ResetVertexShader() const
+void FRenderer::PrepareConstantbufferStaticMesh()
 {
-    Graphics->DeviceContext->VSSetShader(nullptr, nullptr, 0);
-    VertexShader->Release();
-}
-
-void FRenderer::ResetPixelShader() const
-{
-    Graphics->DeviceContext->PSSetShader(nullptr, nullptr, 0);
-    PixelShader->Release();
-}
-
-void FRenderer::SetVertexShader(const FWString& filename, const FString& funcname, const FString& version)
-{
-    // ���� �߻��� ���ɼ��� ����
-    if (Graphics == nullptr)
-        assert(0);
-    if (VertexShader != nullptr)
-        ResetVertexShader();
-    if (InputLayout != nullptr)
-        InputLayout->Release();
-    ID3DBlob* vertexshaderCSO;
-
-    D3DCompileFromFile(filename.c_str(), defines, D3D_COMPILE_STANDARD_FILE_INCLUDE, *funcname, *version, 0, 0, &vertexshaderCSO, nullptr);
-    Graphics->Device->CreateVertexShader(vertexshaderCSO->GetBufferPointer(), vertexshaderCSO->GetBufferSize(), nullptr, &VertexShader);
-    vertexshaderCSO->Release();
-}
-
-void FRenderer::SetPixelShader(const FWString& filename, const FString& funcname, const FString& version)
-{
-    // ���� �߻��� ���ɼ��� ����
-    if (Graphics == nullptr)
-        assert(0);
-    if (VertexShader != nullptr)
-        ResetVertexShader();
-    ID3DBlob* pixelshaderCSO;
-    D3DCompileFromFile(filename.c_str(), defines, D3D_COMPILE_STANDARD_FILE_INCLUDE, *funcname, *version, 0, 0, &pixelshaderCSO, nullptr);
-    Graphics->Device->CreatePixelShader(pixelshaderCSO->GetBufferPointer(), pixelshaderCSO->GetBufferSize(), nullptr, &PixelShader);
-
-    pixelshaderCSO->Release();
+    if (RenderResources.ConstantBuffers.StaticMesh.Camera00)
+    {
+        Graphics->DeviceContext->VSSetConstantBuffers(0, 1, &RenderResources.ConstantBuffers.StaticMesh.Camera00);
+    }
+    if (RenderResources.ConstantBuffers.StaticMesh.Light01)
+    {
+        Graphics->DeviceContext->PSSetConstantBuffers(1, 1, &RenderResources.ConstantBuffers.StaticMesh.Light01);
+    }
+    if (RenderResources.ConstantBuffers.StaticMesh.Actor03)
+    {
+        Graphics->DeviceContext->VSSetConstantBuffers(3, 1, &RenderResources.ConstantBuffers.StaticMesh.Actor03);
+        Graphics->DeviceContext->PSSetConstantBuffers(3, 1, &RenderResources.ConstantBuffers.StaticMesh.Actor03);
+    }
+    if (RenderResources.ConstantBuffers.StaticMesh.Texture05)
+    {
+        Graphics->DeviceContext->PSSetConstantBuffers(5, 1, &RenderResources.ConstantBuffers.StaticMesh.Texture05);
+    }
+    if (RenderResources.ConstantBuffers.StaticMesh.Mesh06)
+    {
+        Graphics->DeviceContext->VSSetConstantBuffers(6, 1, &RenderResources.ConstantBuffers.StaticMesh.Mesh06);
+        Graphics->DeviceContext->PSSetConstantBuffers(6, 1, &RenderResources.ConstantBuffers.StaticMesh.Mesh06);
+    }
 }
 
 void FRenderer::ChangeViewMode(EViewModeIndex evi)
@@ -181,26 +133,28 @@ void FRenderer::ChangeViewMode(EViewModeIndex evi)
     }
 }
 
-void FRenderer::RenderPrimitive(ID3D11Buffer* pBuffer, UINT numVertices) const
-{
-    UINT offset = 0;
-    Graphics->DeviceContext->IASetVertexBuffers(0, 1, &pBuffer, &Stride, &offset);
-    Graphics->DeviceContext->Draw(numVertices, 0);
-}
-
-void FRenderer::RenderPrimitive(ID3D11Buffer* pVertexBuffer, UINT numVertices, ID3D11Buffer* pIndexBuffer, UINT numIndices) const
-{
-    UINT offset = 0;
-    Graphics->DeviceContext->IASetVertexBuffers(0, 1, &pVertexBuffer, &Stride, &offset);
-    Graphics->DeviceContext->IASetIndexBuffer(pIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
-
-    Graphics->DeviceContext->DrawIndexed(numIndices, 0, 0);
-}
+// legacy 지원용.
+//void FRenderer::RenderPrimitive(ID3D11Buffer* pBuffer, UINT numVertices) const
+//{
+//    UINT offset = 0;
+//    Graphics->DeviceContext->IASetVertexBuffers(0, 1, &pBuffer, &Stride, &offset);
+//    Graphics->DeviceContext->Draw(numVertices, 0);
+//}
+//
+//// legacy 지원용.
+//void FRenderer::RenderPrimitive(ID3D11Buffer* pVertexBuffer, UINT numVertices, ID3D11Buffer* pIndexBuffer, UINT numIndices) const
+//{
+//    UINT offset = 0;
+//    Graphics->DeviceContext->IASetVertexBuffers(0, 1, &pVertexBuffer, &Stride, &offset);
+//    Graphics->DeviceContext->IASetIndexBuffer(pIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+//
+//    Graphics->DeviceContext->DrawIndexed(numIndices, 0, 0);
+//}
 
 void FRenderer::RenderPrimitive(const FMatrix& ModelMatrix, OBJ::FStaticMeshRenderData* renderData, TArray<FStaticMaterial*> materials, TArray<UMaterial*> overrideMaterial, int selectedSubMeshIndex = -1) const
 {
     UINT offset = 0;
-    Graphics->DeviceContext->IASetVertexBuffers(0, 1, &renderData->VertexBuffer, &Stride, &offset);
+    Graphics->DeviceContext->IASetVertexBuffers(0, 1, &renderData->VertexBuffer, &renderData->Stride, &offset);
 
     if (renderData->IndexBuffer)
         Graphics->DeviceContext->IASetIndexBuffer(renderData->IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
@@ -274,29 +228,29 @@ void FRenderer::RenderPrimitive(const FMatrix& ModelMatrix, OBJ::FStaticMeshRend
     }
 }
 
-void FRenderer::RenderTexturedModelPrimitive(
-    ID3D11Buffer* pVertexBuffer, UINT numVertices, ID3D11Buffer* pIndexBuffer, UINT numIndices, ID3D11ShaderResourceView* InTextureSRV,
-    ID3D11SamplerState* InSamplerState
-) const
-{
-    if (!InTextureSRV || !InSamplerState)
-    {
-        Console::GetInstance().AddLog(LogLevel::Warning, "SRV, Sampler Error");
-    }
-    if (numIndices <= 0)
-    {
-        Console::GetInstance().AddLog(LogLevel::Warning, "numIndices Error");
-    }
-    UINT offset = 0;
-    Graphics->DeviceContext->IASetVertexBuffers(0, 1, &pVertexBuffer, &Stride, &offset);
-    Graphics->DeviceContext->IASetIndexBuffer(pIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
-
-    //Graphics->DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    Graphics->DeviceContext->PSSetShaderResources(0, 1, &InTextureSRV);
-    Graphics->DeviceContext->PSSetSamplers(0, 1, &InSamplerState);
-
-    Graphics->DeviceContext->DrawIndexed(numIndices, 0, 0);
-}
+//void FRenderer::RenderTexturedModelPrimitive(
+//    ID3D11Buffer* pVertexBuffer, UINT numVertices, ID3D11Buffer* pIndexBuffer, UINT numIndices, ID3D11ShaderResourceView* InTextureSRV,
+//    ID3D11SamplerState* InSamplerState
+//) const
+//{
+//    if (!InTextureSRV || !InSamplerState)
+//    {
+//        Console::GetInstance().AddLog(LogLevel::Warning, "SRV, Sampler Error");
+//    }
+//    if (numIndices <= 0)
+//    {
+//        Console::GetInstance().AddLog(LogLevel::Warning, "numIndices Error");
+//    }
+//    UINT offset = 0;
+//    Graphics->DeviceContext->IASetVertexBuffers(0, 1, &pVertexBuffer, &Stride, &offset);
+//    Graphics->DeviceContext->IASetIndexBuffer(pIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+//
+//    //Graphics->DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+//    Graphics->DeviceContext->PSSetShaderResources(0, 1, &InTextureSRV);
+//    Graphics->DeviceContext->PSSetSamplers(0, 1, &InSamplerState);
+//
+//    Graphics->DeviceContext->DrawIndexed(numIndices, 0, 0);
+//}
 
 ID3D11Buffer* FRenderer::CreateVertexBuffer(FVertexSimple* vertices, UINT byteWidth) const
 {
@@ -394,117 +348,111 @@ void FRenderer::CreateConstantBuffers()
 
     ConstantBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
     ConstantBufferDesc.ByteWidth = sizeof(FConstantBufferMesh);
-    Graphics->Device->CreateBuffer(&ConstantBufferDesc, nullptr, &ConstantBuffers.Mesh06);
+    Graphics->Device->CreateBuffer(&ConstantBufferDesc, nullptr, &RenderResources.ConstantBuffers.StaticMesh.Mesh06);
 
     ConstantBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
     ConstantBufferDesc.ByteWidth = sizeof(FConstantBufferTexture);
-    Graphics->Device->CreateBuffer(&ConstantBufferDesc, nullptr, &ConstantBuffers.Texture05);
+    Graphics->Device->CreateBuffer(&ConstantBufferDesc, nullptr, &RenderResources.ConstantBuffers.StaticMesh.Texture05);
 
     ConstantBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
     ConstantBufferDesc.ByteWidth = sizeof(FConstantBufferActor);
-    Graphics->Device->CreateBuffer(&ConstantBufferDesc, nullptr, &ConstantBuffers.Actor03);
+    Graphics->Device->CreateBuffer(&ConstantBufferDesc, nullptr, &RenderResources.ConstantBuffers.StaticMesh.Actor03);
 
     ConstantBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
     ConstantBufferDesc.ByteWidth = sizeof(FConstantBufferLights);
-    Graphics->Device->CreateBuffer(&ConstantBufferDesc, nullptr, &ConstantBuffers.Light01);
+    Graphics->Device->CreateBuffer(&ConstantBufferDesc, nullptr, &RenderResources.ConstantBuffers.StaticMesh.Light01);
     
     ConstantBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
     ConstantBufferDesc.ByteWidth = sizeof(FConstantBufferCamera);
-    Graphics->Device->CreateBuffer(&ConstantBufferDesc, nullptr, &ConstantBuffers.Camera00);
+    Graphics->Device->CreateBuffer(&ConstantBufferDesc, nullptr, &RenderResources.ConstantBuffers.StaticMesh.Camera00);
 
-    // grid line 용
-    ConstantBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-    ConstantBufferDesc.ByteWidth = sizeof(FGridParameters) + 0xf & 0xfffffff0;
-    Graphics->Device->CreateBuffer(&ConstantBufferDesc, nullptr, &GridConstantBuffer);
+    // Debug로 넘겨야함
+    //// grid line 용
+    //ConstantBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+    //ConstantBufferDesc.ByteWidth = sizeof(FGridParameters) + 0xf & 0xfffffff0;
+    //Graphics->Device->CreateBuffer(&ConstantBufferDesc, nullptr, &RenderResources.ConstantBuffers.BatchLine.Grid01);
 
-    ConstantBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-    ConstantBufferDesc.ByteWidth = sizeof(FPrimitiveCounts) + 0xf & 0xfffffff0;
-    Graphics->Device->CreateBuffer(&ConstantBufferDesc, nullptr, &LinePrimitiveBuffer);
+    //ConstantBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+    //ConstantBufferDesc.ByteWidth = sizeof(FPrimitiveCounts) + 0xf & 0xfffffff0;
+    //Graphics->Device->CreateBuffer(&ConstantBufferDesc, nullptr, &RenderResources.ConstantBuffers.BatchLine.Counts03);
 
 
 }
 
 void FRenderer::ReleaseConstantBuffers()
 {
-    ReleaseBuffer(ConstantBuffers.Camera00);
-    ReleaseBuffer(ConstantBuffers.Light01);
-    ReleaseBuffer(ConstantBuffers.Actor03);
-    ReleaseBuffer(ConstantBuffers.Texture05);
-    ReleaseBuffer(ConstantBuffers.Mesh06);
+    ReleaseBuffer(RenderResources.ConstantBuffers.StaticMesh.Camera00);
+    ReleaseBuffer(RenderResources.ConstantBuffers.StaticMesh.Light01);
+    ReleaseBuffer(RenderResources.ConstantBuffers.StaticMesh.Actor03);
+    ReleaseBuffer(RenderResources.ConstantBuffers.StaticMesh.Texture05);
+    ReleaseBuffer(RenderResources.ConstantBuffers.StaticMesh.Mesh06);
 }
 
-void FRenderer::UpdateLightBuffer() const
+void FRenderer::CreateShaders()
 {
-    if (!ConstantBuffers.Light01) return;
-    FConstantBufferLights buf;
-    buf.DirLights[0].Color.Ambient = FVector(1.0f, 1.0f, 1.0f) * 0.06f;
-    buf.DirLights[0].Color.Diffuse = FVector(1.0f, 1.0f, 1.0f);
-    buf.DirLights[0].Color.Specular = FVector(1.0f, 1.0f, 1.0f);
-    static float time = 0;
-    time += 0.1;
-    buf.DirLights[0].Direction = FVector(sin(time), cos(time), -10.0f).Normalize();
-    buf.isLit = litFlag;
-
-    UpdateConstantbufferLights(buf);
+    CreateMeshShader();
+    CreateTextureShader();
+    CreateLineShader();
 }
+
 
 void FRenderer::UpdateConstantbufferMesh(FConstantBufferMesh Buffer) const
 {
-    if (ConstantBuffers.Mesh06)
+    if (RenderResources.ConstantBuffers.StaticMesh.Mesh06)
     {
         D3D11_MAPPED_SUBRESOURCE ConstantBufferMSR; // GPU�� �޸� �ּ� ����
 
-        Graphics->DeviceContext->Map(ConstantBuffers.Mesh06, 0, D3D11_MAP_WRITE_DISCARD, 0, &ConstantBufferMSR); // update constant buffer every frame
+        Graphics->DeviceContext->Map(RenderResources.ConstantBuffers.StaticMesh.Mesh06, 0, D3D11_MAP_WRITE_DISCARD, 0, &ConstantBufferMSR); // update constant buffer every frame
         memcpy(ConstantBufferMSR.pData, &Buffer, sizeof(Buffer));
-        Graphics->DeviceContext->Unmap(ConstantBuffers.Mesh06, 0); // GPU�� �ٽ� ��밡���ϰ� �����
+        Graphics->DeviceContext->Unmap(RenderResources.ConstantBuffers.StaticMesh.Mesh06, 0); // GPU�� �ٽ� ��밡���ϰ� �����
     }
 }
 
 void FRenderer::UpdateConstantbufferTexture(FConstantBufferTexture Buffer) const
 {
-    if (ConstantBuffers.Texture05)
+    if (RenderResources.ConstantBuffers.StaticMesh.Texture05)
     {
         D3D11_MAPPED_SUBRESOURCE ConstantBufferMSR; // GPU�� �޸� �ּ� ����
 
-        Graphics->DeviceContext->Map(ConstantBuffers.Texture05, 0, D3D11_MAP_WRITE_DISCARD, 0, &ConstantBufferMSR); // update constant buffer every frame
+        Graphics->DeviceContext->Map(RenderResources.ConstantBuffers.StaticMesh.Texture05, 0, D3D11_MAP_WRITE_DISCARD, 0, &ConstantBufferMSR); // update constant buffer every frame
         memcpy(ConstantBufferMSR.pData, &Buffer, sizeof(Buffer));
-        Graphics->DeviceContext->Unmap(ConstantBuffers.Texture05, 0); // GPU�� �ٽ� ��밡���ϰ� �����
+        Graphics->DeviceContext->Unmap(RenderResources.ConstantBuffers.StaticMesh.Texture05, 0); // GPU�� �ٽ� ��밡���ϰ� �����
     }
 }
 
 void FRenderer::UpdateConstantbufferActor(FConstantBufferActor Buffer) const
 {
-    if (ConstantBuffers.Actor03)
+    if (RenderResources.ConstantBuffers.StaticMesh.Actor03)
     {
         D3D11_MAPPED_SUBRESOURCE ConstantBufferMSR; // GPU�� �޸� �ּ� ����
 
-        Graphics->DeviceContext->Map(ConstantBuffers.Actor03, 0, D3D11_MAP_WRITE_DISCARD, 0, &ConstantBufferMSR); // update constant buffer every frame
+        Graphics->DeviceContext->Map(RenderResources.ConstantBuffers.StaticMesh.Actor03, 0, D3D11_MAP_WRITE_DISCARD, 0, &ConstantBufferMSR); // update constant buffer every frame
         memcpy(ConstantBufferMSR.pData, &Buffer, sizeof(Buffer));
-        Graphics->DeviceContext->Unmap(ConstantBuffers.Actor03, 0); // GPU�� �ٽ� ��밡���ϰ� �����
+        Graphics->DeviceContext->Unmap(RenderResources.ConstantBuffers.StaticMesh.Actor03, 0); // GPU�� �ٽ� ��밡���ϰ� �����
     }
 }
 
 void FRenderer::UpdateConstantbufferLights(FConstantBufferLights Buffer) const
 {
-    if (ConstantBuffers.Light01)
+    if (RenderResources.ConstantBuffers.StaticMesh.Light01)
     {
         D3D11_MAPPED_SUBRESOURCE ConstantBufferMSR; // GPU�� �޸� �ּ� ����
 
-        Graphics->DeviceContext->Map(ConstantBuffers.Light01, 0, D3D11_MAP_WRITE_DISCARD, 0, &ConstantBufferMSR); // update constant buffer every frame
+        Graphics->DeviceContext->Map(RenderResources.ConstantBuffers.StaticMesh.Light01, 0, D3D11_MAP_WRITE_DISCARD, 0, &ConstantBufferMSR); // update constant buffer every frame
         memcpy(ConstantBufferMSR.pData, &Buffer, sizeof(Buffer));
-        Graphics->DeviceContext->Unmap(ConstantBuffers.Light01, 0); // GPU�� �ٽ� ��밡���ϰ� �����
+        Graphics->DeviceContext->Unmap(RenderResources.ConstantBuffers.StaticMesh.Light01, 0); // GPU�� �ٽ� ��밡���ϰ� �����
     }
 }
 
 void FRenderer::UpdateConstantbufferCamera(FConstantBufferCamera Buffer) const
 {
-    if (ConstantBuffers.Camera00)
+    if (RenderResources.ConstantBuffers.StaticMesh.Camera00)
     {
         D3D11_MAPPED_SUBRESOURCE ConstantBufferMSR; // GPU�� �޸� �ּ� ����
 
-        Graphics->DeviceContext->Map(ConstantBuffers.Camera00, 0, D3D11_MAP_WRITE_DISCARD, 0, &ConstantBufferMSR); // update constant buffer every frame
+        Graphics->DeviceContext->Map(RenderResources.ConstantBuffers.StaticMesh.Camera00, 0, D3D11_MAP_WRITE_DISCARD, 0, &ConstantBufferMSR); // update constant buffer every frame
         memcpy(ConstantBufferMSR.pData, &Buffer, sizeof(Buffer));
-        Graphics->DeviceContext->Unmap(ConstantBuffers.Camera00, 0); // GPU�� �ٽ� ��밡���ϰ� �����
+        Graphics->DeviceContext->Unmap(RenderResources.ConstantBuffers.StaticMesh.Camera00, 0); // GPU�� �ٽ� ��밡���ϰ� �����
     }
 }
 //
@@ -597,7 +545,7 @@ void FRenderer::CreateTextureShader()
         Console::GetInstance().AddLog(LogLevel::Warning, "VertexShader Error");
     }
     Graphics->Device->CreateVertexShader(
-        vertextextureshaderCSO->GetBufferPointer(), vertextextureshaderCSO->GetBufferSize(), nullptr, &VertexTextureShader
+        vertextextureshaderCSO->GetBufferPointer(), vertextextureshaderCSO->GetBufferSize(), nullptr, &RenderResources.Shaders.Texture.Vertex
     );
 
     hr = D3DCompileFromFile(L"Shaders/PixelTextureShader.hlsl", defines, D3D_COMPILE_STANDARD_FILE_INCLUDE, "main", "ps_5_0", 0, 0, &pixeltextureshaderCSO, nullptr);
@@ -606,7 +554,7 @@ void FRenderer::CreateTextureShader()
         Console::GetInstance().AddLog(LogLevel::Warning, "PixelShader Error");
     }
     Graphics->Device->CreatePixelShader(
-        pixeltextureshaderCSO->GetBufferPointer(), pixeltextureshaderCSO->GetBufferSize(), nullptr, &PixelTextureShader
+        pixeltextureshaderCSO->GetBufferPointer(), pixeltextureshaderCSO->GetBufferSize(), nullptr, &RenderResources.Shaders.Texture.Pixel
     );
 
     D3D11_INPUT_ELEMENT_DESC layout[] = {
@@ -614,7 +562,7 @@ void FRenderer::CreateTextureShader()
         {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0}
     };
     Graphics->Device->CreateInputLayout(
-        layout, ARRAYSIZE(layout), vertextextureshaderCSO->GetBufferPointer(), vertextextureshaderCSO->GetBufferSize(), &TextureInputLayout
+        layout, ARRAYSIZE(layout), vertextextureshaderCSO->GetBufferPointer(), vertextextureshaderCSO->GetBufferSize(), &RenderResources.Shaders.Texture.Layout
     );
 
     //�ڷᱸ�� ���� �ʿ�
@@ -623,32 +571,12 @@ void FRenderer::CreateTextureShader()
     pixeltextureshaderCSO->Release();
 }
 
-void FRenderer::ReleaseTextureShader()
-{
-    if (TextureInputLayout)
-    {
-        TextureInputLayout->Release();
-        TextureInputLayout = nullptr;
-    }
-
-    if (PixelTextureShader)
-    {
-        PixelTextureShader->Release();
-        PixelTextureShader = nullptr;
-    }
-
-    if (VertexTextureShader)
-    {
-        VertexTextureShader->Release();
-        VertexTextureShader = nullptr;
-    }
-}
 
 void FRenderer::PrepareTextureShader() const
 {
-    Graphics->DeviceContext->VSSetShader(VertexTextureShader, nullptr, 0);
-    Graphics->DeviceContext->PSSetShader(PixelTextureShader, nullptr, 0);
-    Graphics->DeviceContext->IASetInputLayout(TextureInputLayout);
+    Graphics->DeviceContext->VSSetShader(RenderResources.Shaders.Texture.Vertex, nullptr, 0);
+    Graphics->DeviceContext->PSSetShader(RenderResources.Shaders.Texture.Pixel, nullptr, 0);
+    Graphics->DeviceContext->IASetInputLayout(RenderResources.Shaders.Texture.Layout);
 }
 
 ID3D11Buffer* FRenderer::CreateVertexTextureBuffer(FVertexTexture* vertices, UINT byteWidth) const
@@ -758,7 +686,7 @@ ID3D11Buffer* FRenderer::CreateVertexBuffer(FVertexTexture* vertices, UINT byteW
 
 void FRenderer::UpdateSubUVConstant(float _indexU, float _indexV) const
 {
-    if (ConstantBuffers.Texture05)
+    if (RenderResources.ConstantBuffers.StaticMesh.Texture05)
     {
         FConstantBufferTexture buf;
         buf.UVOffset = { _indexU, _indexV };
@@ -768,65 +696,57 @@ void FRenderer::UpdateSubUVConstant(float _indexU, float _indexV) const
 
 void FRenderer::PrepareSubUVConstant() const
 {
-    if (ConstantBuffers.Texture05)
+    if (RenderResources.ConstantBuffers.StaticMesh.Texture05)
     {
-        //Graphics->DeviceContext->VSSetConstantBuffers(5, 1, &ConstantBuffers.Texture05);
-        Graphics->DeviceContext->PSSetConstantBuffers(5, 1, &ConstantBuffers.Texture05);
+        //Graphics->DeviceContext->VSSetConstantBuffers(5, 1, &RenderResources.ConstantBuffers.StaticMesh.Texture05);
+        Graphics->DeviceContext->PSSetConstantBuffers(5, 1, &RenderResources.ConstantBuffers.StaticMesh.Texture05);
     }
 }
 
-void FRenderer::PrepareLineShader() const
-{
-    // ���̴��� �Է� ���̾ƿ� ����
-    Graphics->DeviceContext->VSSetShader(VertexLineShader, nullptr, 0);
-    Graphics->DeviceContext->PSSetShader(PixelLineShader, nullptr, 0);
-
-    // ��� ���� ���ε�: 
-    // - MatrixBuffer�� register(b0)��, Vertex Shader�� ���ε�
-    // - GridConstantBuffer�� register(b1)��, Vertex�� Pixel Shader�� ���ε� (�ȼ� ���̴��� �ʿ信 ����)
-    if (ConstantBuffers.Mesh06 && GridConstantBuffer)
-    {
-        //Graphics->DeviceContext->VSSetConstantBuffers(0, 1, &ConstantBuffers.Mesh06);     // MatrixBuffer (b0)
-        Graphics->DeviceContext->VSSetConstantBuffers(1, 1, &GridConstantBuffer); // GridParameters (b1)
-        Graphics->DeviceContext->PSSetConstantBuffers(1, 1, &GridConstantBuffer);
-        Graphics->DeviceContext->VSSetConstantBuffers(3, 1, &LinePrimitiveBuffer);
-        Graphics->DeviceContext->VSSetShaderResources(2, 1, &pBBSRV);
-        Graphics->DeviceContext->VSSetShaderResources(3, 1, &pConeSRV);
-        Graphics->DeviceContext->VSSetShaderResources(4, 1, &pOBBSRV);
-    }
-}
+//void FRenderer::PrepareLineShader() const
+//{
+//    // ���̴��� �Է� ���̾ƿ� ����
+//    Graphics->DeviceContext->VSSetShader(VertexLineShader, nullptr, 0);
+//    Graphics->DeviceContext->PSSetShader(PixelLineShader, nullptr, 0);
+//
+//    // ��� ���� ���ε�: 
+//    // - MatrixBuffer�� register(b0)��, Vertex Shader�� ���ε�
+//    // - GridConstantBuffer�� register(b1)��, Vertex�� Pixel Shader�� ���ε� (�ȼ� ���̴��� �ʿ信 ����)
+//    if (RenderResources.ConstantBuffers.StaticMesh.Mesh06 && GridConstantBuffer)
+//    {
+//        //Graphics->DeviceContext->VSSetConstantBuffers(0, 1, &RenderResources.ConstantBuffers.StaticMesh.Mesh06);     // MatrixBuffer (b0)
+//        Graphics->DeviceContext->VSSetConstantBuffers(1, 1, &GridConstantBuffer); // GridParameters (b1)
+//        Graphics->DeviceContext->PSSetConstantBuffers(1, 1, &GridConstantBuffer);
+//        Graphics->DeviceContext->VSSetConstantBuffers(3, 1, &LinePrimitiveBuffer);
+//        Graphics->DeviceContext->VSSetShaderResources(2, 1, &pBBSRV);
+//        Graphics->DeviceContext->VSSetShaderResources(3, 1, &pConeSRV);
+//        Graphics->DeviceContext->VSSetShaderResources(4, 1, &pOBBSRV);
+//    }
+//}
 
 void FRenderer::CreateLineShader()
 {
-    ID3DBlob* VertexShaderLine;
-    ID3DBlob* PixelShaderLine;
+    //ID3DBlob* VertexShaderLine;
+    //ID3DBlob* PixelShaderLine;
 
-    HRESULT hr;
-    hr = D3DCompileFromFile(L"Shaders/ShaderLine.hlsl", defines, D3D_COMPILE_STANDARD_FILE_INCLUDE, "mainVS", "vs_5_0", 0, 0, &VertexShaderLine, nullptr);
-    if (FAILED(hr))
-    {
-        Console::GetInstance().AddLog(LogLevel::Warning, "VertexShader Error");
-    }
-    Graphics->Device->CreateVertexShader(VertexShaderLine->GetBufferPointer(), VertexShaderLine->GetBufferSize(), nullptr, &VertexLineShader);
+    //HRESULT hr;
+    //hr = D3DCompileFromFile(L"Shaders/ShaderLine.hlsl", defines, D3D_COMPILE_STANDARD_FILE_INCLUDE, "mainVS", "vs_5_0", 0, 0, &VertexShaderLine, nullptr);
+    //if (FAILED(hr))
+    //{
+    //    Console::GetInstance().AddLog(LogLevel::Warning, "VertexShader Error");
+    //}
+    //Graphics->Device->CreateVertexShader(VertexShaderLine->GetBufferPointer(), VertexShaderLine->GetBufferSize(), nullptr, &RenderResources.Shaders.Line.Vertex);
 
-    hr = D3DCompileFromFile(L"Shaders/ShaderLine.hlsl", defines, D3D_COMPILE_STANDARD_FILE_INCLUDE, "mainPS", "ps_5_0", 0, 0, &PixelShaderLine, nullptr);
-    if (FAILED(hr))
-    {
-        Console::GetInstance().AddLog(LogLevel::Warning, "PixelShader Error");
-    }
-    Graphics->Device->CreatePixelShader(PixelShaderLine->GetBufferPointer(), PixelShaderLine->GetBufferSize(), nullptr, &PixelLineShader);
+    //hr = D3DCompileFromFile(L"Shaders/ShaderLine.hlsl", defines, D3D_COMPILE_STANDARD_FILE_INCLUDE, "mainPS", "ps_5_0", 0, 0, &PixelShaderLine, nullptr);
+    //if (FAILED(hr))
+    //{
+    //    Console::GetInstance().AddLog(LogLevel::Warning, "PixelShader Error");
+    //}
+    //Graphics->Device->CreatePixelShader(PixelShaderLine->GetBufferPointer(), PixelShaderLine->GetBufferSize(), nullptr, &RenderResources.Shaders.Line.Pixel);
 
 
-    VertexShaderLine->Release();
-    PixelShaderLine->Release();
-}
-
-void FRenderer::ReleaseLineShader() const
-{
-    if (GridConstantBuffer) GridConstantBuffer->Release();
-    if (LinePrimitiveBuffer) LinePrimitiveBuffer->Release();
-    if (VertexLineShader) VertexLineShader->Release();
-    if (PixelLineShader) PixelLineShader->Release();
+    //VertexShaderLine->Release();
+    //PixelShaderLine->Release();
 }
 
 ID3D11Buffer* FRenderer::CreateStaticVerticesBuffer() const
@@ -892,39 +812,42 @@ ID3D11Buffer* FRenderer::CreateConeBuffer(UINT numCones) const
 
 ID3D11ShaderResourceView* FRenderer::CreateBoundingBoxSRV(ID3D11Buffer* pBoundingBoxBuffer, UINT numBoundingBoxes)
 {
-    D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
-    srvDesc.Format = DXGI_FORMAT_UNKNOWN; // ����ü ������ ��� UNKNOWN
-    srvDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
-    srvDesc.Buffer.ElementOffset = 0;
-    srvDesc.Buffer.NumElements = numBoundingBoxes;
+    //D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
+    //srvDesc.Format = DXGI_FORMAT_UNKNOWN; // ����ü ������ ��� UNKNOWN
+    //srvDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
+    //srvDesc.Buffer.ElementOffset = 0;
+    //srvDesc.Buffer.NumElements = numBoundingBoxes;
 
 
-    Graphics->Device->CreateShaderResourceView(pBoundingBoxBuffer, &srvDesc, &pBBSRV);
-    return pBBSRV;
+    //Graphics->Device->CreateShaderResourceView(pBoundingBoxBuffer, &srvDesc, &RenderResources.ShaderResourceView.AABB);
+    //return RenderResources.ShaderResourceView.AABB;
+    return nullptr;
 }
 
 ID3D11ShaderResourceView* FRenderer::CreateOBBSRV(ID3D11Buffer* pBoundingBoxBuffer, UINT numBoundingBoxes)
 {
-    D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
-    srvDesc.Format = DXGI_FORMAT_UNKNOWN; // ����ü ������ ��� UNKNOWN
-    srvDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
-    srvDesc.Buffer.ElementOffset = 0;
-    srvDesc.Buffer.NumElements = numBoundingBoxes;
-    Graphics->Device->CreateShaderResourceView(pBoundingBoxBuffer, &srvDesc, &pOBBSRV);
-    return pOBBSRV;
+    //D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
+    //srvDesc.Format = DXGI_FORMAT_UNKNOWN; // ����ü ������ ��� UNKNOWN
+    //srvDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
+    //srvDesc.Buffer.ElementOffset = 0;
+    //srvDesc.Buffer.NumElements = numBoundingBoxes;
+    //Graphics->Device->CreateShaderResourceView(pBoundingBoxBuffer, &srvDesc, &RenderResources.ShaderResourceView.OBB);
+    //return RenderResources.ShaderResourceView.OBB;
+    return nullptr;
 }
 
 ID3D11ShaderResourceView* FRenderer::CreateConeSRV(ID3D11Buffer* pConeBuffer, UINT numCones)
 {
-    D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
-    srvDesc.Format = DXGI_FORMAT_UNKNOWN; // ����ü ������ ��� UNKNOWN
-    srvDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
-    srvDesc.Buffer.ElementOffset = 0;
-    srvDesc.Buffer.NumElements = numCones;
+    //D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
+    //srvDesc.Format = DXGI_FORMAT_UNKNOWN; // ����ü ������ ��� UNKNOWN
+    //srvDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
+    //srvDesc.Buffer.ElementOffset = 0;
+    //srvDesc.Buffer.NumElements = numCones;
 
 
-    Graphics->Device->CreateShaderResourceView(pConeBuffer, &srvDesc, &pConeSRV);
-    return pConeSRV;
+    //Graphics->Device->CreateShaderResourceView(pConeBuffer, &srvDesc, &RenderResources.ShaderResourceView.Cone);
+    //return RenderResources.ShaderResourceView.Cone;
+    return nullptr;
 }
 
 void FRenderer::UpdateBoundingBoxBuffer(ID3D11Buffer* pBoundingBoxBuffer, const TArray<FBoundingBox>& BoundingBoxes, int numBoundingBoxes) const
@@ -968,27 +891,27 @@ void FRenderer::UpdateConesBuffer(ID3D11Buffer* pConeBuffer, const TArray<FCone>
 
 void FRenderer::UpdateGridConstantBuffer(const FGridParameters& gridParams) const
 {
-    D3D11_MAPPED_SUBRESOURCE mappedResource;
-    HRESULT hr = Graphics->DeviceContext->Map(GridConstantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-    if (SUCCEEDED(hr))
-    {
-        memcpy(mappedResource.pData, &gridParams, sizeof(FGridParameters));
-        Graphics->DeviceContext->Unmap(GridConstantBuffer, 0);
-    }
-    else
-    {
-        UE_LOG(LogLevel::Warning, "gridParams ���� ����");
-    }
+    //D3D11_MAPPED_SUBRESOURCE mappedResource;
+    //HRESULT hr = Graphics->DeviceContext->Map(RenderResources.ConstantBuffers.BatchLine.Grid01, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+    //if (SUCCEEDED(hr))
+    //{
+    //    memcpy(mappedResource.pData, &gridParams, sizeof(FGridParameters));
+    //    Graphics->DeviceContext->Unmap(RenderResources.ConstantBuffers.BatchLine.Grid01, 0);
+    //}
+    //else
+    //{
+    //    UE_LOG(LogLevel::Warning, "gridParams ���� ����");
+    //}
 }
 
 void FRenderer::UpdateLinePrimitveCountBuffer(int numBoundingBoxes, int numCones) const
 {
-    D3D11_MAPPED_SUBRESOURCE mappedResource;
-    HRESULT hr = Graphics->DeviceContext->Map(LinePrimitiveBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-    auto pData = static_cast<FPrimitiveCounts*>(mappedResource.pData);
-    pData->BoundingBoxCount = numBoundingBoxes;
-    pData->ConeCount = numCones;
-    Graphics->DeviceContext->Unmap(LinePrimitiveBuffer, 0);
+    //D3D11_MAPPED_SUBRESOURCE mappedResource;
+    //HRESULT hr = Graphics->DeviceContext->Map(RenderResources.ConstantBuffers.BatchLine.Counts03, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+    //auto pData = static_cast<FPrimitiveCounts*>(mappedResource.pData);
+    //pData->BoundingBoxCount = numBoundingBoxes;
+    //pData->ConeCount = numCones;
+    //Graphics->DeviceContext->Unmap(RenderResources.ConstantBuffers.BatchLine.Counts03, 0);
 }
 
 void FRenderer::RenderBatch(
@@ -1006,30 +929,35 @@ void FRenderer::RenderBatch(
     Graphics->DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
-void FRenderer::PrepareRender()
+void FRenderer::PreparePrimitives()
 {
     if (GEngine->GetWorld()->WorldType == EWorldType::Editor)
     {
         for (const auto iter : TObjectRange<USceneComponent>())
         {
+                if (UFireBallComponent* pFireBallComp = Cast<UFireBallComponent>(iter))
+                {
+                    RenderResources.Components.FireBallObjs.Add(pFireBallComp);
+                }
                 if (UStaticMeshComponent* pStaticMeshComp = Cast<UStaticMeshComponent>(iter))
                 {
                     if (!Cast<UGizmoBaseComponent>(iter))
-                        StaticMeshObjs.Add(pStaticMeshComp);
+                        RenderResources.Components.StaticMeshObjs.Add(pStaticMeshComp);
                 }
-                if (UGizmoBaseComponent* pGizmoComp = Cast<UGizmoBaseComponent>(iter))
-                {
-                    GizmoObjs.Add(pGizmoComp);
-                }
+                //if (UGizmoBaseComponent* pGizmoComp = Cast<UGizmoBaseComponent>(iter))
+                //{
+                //    RenderResources.Primitives.GizmoObjs.Add(pGizmoComp);
+                //}
                 if (UBillboardComponent* pBillboardComp = Cast<UBillboardComponent>(iter))
                 {
-                    BillboardObjs.Add(pBillboardComp);
+                    RenderResources.Components.BillboardObjs.Add(pBillboardComp);
                 }
                 if (ULightComponentBase* pLightComp = Cast<ULightComponentBase>(iter))
                 {
-                    LightObjs.Add(pLightComp);
+                    RenderResources.Components.LightObjs.Add(pLightComp);
                 }
         }
+        
     }
     else if (GEngine->GetWorld()->WorldType == EWorldType::PIE)
     {
@@ -1038,18 +966,22 @@ void FRenderer::PrepareRender()
             
             for (const auto iter2 : iter->GetComponents())
             {
+                if (UFireBallComponent* pFireBallComp = Cast<UFireBallComponent>(iter2))
+                {
+                    RenderResources.Components.FireBallObjs.Add(pFireBallComp);
+                }
                 if (UStaticMeshComponent* pStaticMeshComp = Cast<UStaticMeshComponent>(iter2))
                 {
                     if (!Cast<UGizmoBaseComponent>(iter2))
-                        StaticMeshObjs.Add(pStaticMeshComp);
+                        RenderResources.Components.StaticMeshObjs.Add(pStaticMeshComp);
                 }
                 if (UBillboardComponent* pBillboardComp = Cast<UBillboardComponent>(iter2))
                 {
-                    BillboardObjs.Add(pBillboardComp);
+                    RenderResources.Components.BillboardObjs.Add(pBillboardComp);
                 }
                 if (ULightComponentBase* pLightComp = Cast<ULightComponentBase>(iter2))
                 {
-                    LightObjs.Add(pLightComp);
+                    RenderResources.Components.LightObjs.Add(pLightComp);
                 }
             }
         }
@@ -1058,15 +990,16 @@ void FRenderer::PrepareRender()
 
 void FRenderer::ClearRenderArr()
 {
-    StaticMeshObjs.Empty();
-    GizmoObjs.Empty();
-    BillboardObjs.Empty();
-    LightObjs.Empty();
+    RenderResources.Components.StaticMeshObjs.Empty();
+    //RenderResources.Primitives.GizmoObjs.Empty();
+    RenderResources.Components.BillboardObjs.Empty();
+    RenderResources.Components.LightObjs.Empty();
+    RenderResources.Components.FireBallObjs.Empty();
 }
 
 void FRenderer::Render(UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport)
 {
-    PrepareShader();
+    PreparePrimitives();
 
     Graphics->DeviceContext->RSSetViewports(1, &ActiveViewport->GetD3DViewport());
     Graphics->ChangeRasterizer(ActiveViewport->GetViewMode());
@@ -1077,29 +1010,57 @@ void FRenderer::Render(UWorld* World, std::shared_ptr<FEditorViewportClient> Act
         buf.ProjMatrix = ActiveViewport->GetProjectionMatrix();
         UpdateConstantbufferCamera(buf);
     }
-    UpdateLightBuffer();
-    UPrimitiveBatch::GetInstance().RenderBatch(ActiveViewport->GetViewMatrix(), ActiveViewport->GetProjectionMatrix());
+
+    if (!RenderResources.ConstantBuffers.StaticMesh.Light01) return;
+    FConstantBufferLights buf;
+    buf.DirLights[0].Color.Ambient = FVector(1.0f, 1.0f, 1.0f) * 0.06f;
+    buf.DirLights[0].Color.Diffuse = FVector(1.0f, 1.0f, 1.0f) * 0.06f;
+    buf.DirLights[0].Color.Specular = FVector(1.0f, 1.0f, 1.0f) * 0.06f;
+    static float time = 0;
+    time += 0.1;
+    buf.DirLights[0].Direction = FVector(sin(time), cos(time), -10.0f).Normalize();
+    buf.isLit = litFlag;
+
+    int32 LightIndex = 0;
+    for (UFireBallComponent* FireBallComp : RenderResources.Components.FireBallObjs)
+    {
+        if (LightIndex >= MACRO_FCONSTANT_NUM_MAX_POINTLIGHT)
+            break;
+
+        buf.PointLights[LightIndex].Color = FireBallComp->Color;
+        buf.PointLights[LightIndex].Position = FireBallComp->GetComponentLocation();
+        buf.PointLights[LightIndex].Intensity = FireBallComp->Intensity;
+        buf.PointLights[LightIndex].Radius = FireBallComp->Radius;
+        buf.PointLights[LightIndex].RadiusFallOff = FireBallComp->RadiusFallOff;
+        buf.NumPointLights = ++LightIndex;
+    }
+    UpdateConstantbufferLights(buf);
+
+
 
     if (ActiveViewport->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::SF_Primitives))
     {
         RenderStaticMeshes(World, ActiveViewport);
     }
-    RenderGizmos(World, ActiveViewport);
+    //RenderGizmos(World, ActiveViewport);
     if (ActiveViewport->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::SF_BillboardText))
     {
         RenderBillboards(World, ActiveViewport);
     }
-    if (LightObjs.Num() > 0)
+    if (RenderResources.Components.LightObjs.Num() > 0)
     {
         RenderLight(World, ActiveViewport);
     }
+    UPrimitiveBatch::GetInstance().RenderBatch(ActiveViewport->GetViewMatrix(), ActiveViewport->GetProjectionMatrix());
     
     ClearRenderArr();
 }
 
 void FRenderer::RenderStaticMeshes(UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport)
 {
-    for (UStaticMeshComponent* StaticMeshComp : StaticMeshObjs)
+    PrepareShader(RenderResources.Shaders.StaticMesh);
+    PrepareConstantbufferStaticMesh();
+    for (UStaticMeshComponent* StaticMeshComp : RenderResources.Components.StaticMeshObjs)
     {
         // Actor별 constantbuffer
         {
@@ -1125,7 +1086,7 @@ void FRenderer::RenderStaticMeshes(UWorld* World, std::shared_ptr<FEditorViewpor
         if (ActiveViewport->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::SF_AABB))
         {
             UPrimitiveBatch::GetInstance().RenderAABB(
-                StaticMeshComp->GetBoundingBox(),
+                StaticMeshComp->GetBoundingBoxLocal(),
                 StaticMeshComp->GetComponentLocation(),
                 Model);
         }
@@ -1139,83 +1100,83 @@ void FRenderer::RenderStaticMeshes(UWorld* World, std::shared_ptr<FEditorViewpor
     }
 }
 
-void FRenderer::RenderGizmos(const UWorld* World, const std::shared_ptr<FEditorViewportClient>& ActiveViewport)
-{
-    if (!World->GetSelectedActor())
-    {
-        return;
-    }
-
-    #pragma region GizmoDepth
-        ID3D11DepthStencilState* DepthStateDisable = Graphics->DepthStateDisable;
-        Graphics->DeviceContext->OMSetDepthStencilState(DepthStateDisable, 0);
-    #pragma endregion GizmoDepth
-
-    //  fill solid,  Wirframe 에서도 제대로 렌더링되기 위함
-    Graphics->DeviceContext->RSSetState(UEditorEngine::graphicDevice.RasterizerStateSOLID);
-    
-    for (auto GizmoComp : GizmoObjs)
-    {
-        
-        if ((GizmoComp->GetGizmoType()==UGizmoBaseComponent::ArrowX ||
-            GizmoComp->GetGizmoType()==UGizmoBaseComponent::ArrowY ||
-            GizmoComp->GetGizmoType()==UGizmoBaseComponent::ArrowZ)
-            && World->GetEditorPlayer()->GetControlMode() != CM_TRANSLATION)
-            continue;
-        else if ((GizmoComp->GetGizmoType()==UGizmoBaseComponent::ScaleX ||
-            GizmoComp->GetGizmoType()==UGizmoBaseComponent::ScaleY ||
-            GizmoComp->GetGizmoType()==UGizmoBaseComponent::ScaleZ)
-            && World->GetEditorPlayer()->GetControlMode() != CM_SCALE)
-            continue;
-        else if ((GizmoComp->GetGizmoType()==UGizmoBaseComponent::CircleX ||
-            GizmoComp->GetGizmoType()==UGizmoBaseComponent::CircleY ||
-            GizmoComp->GetGizmoType()==UGizmoBaseComponent::CircleZ)
-            && World->GetEditorPlayer()->GetControlMode() != CM_ROTATION)
-            continue;
-        FMatrix Model = GizmoComp->GetComponentTransform();
-        {
-            FConstantBufferActor buf;
-            buf.IsSelectedActor = 0;
-            buf.UUID = GizmoComp->EncodeUUID() / 255.0f;
-            UpdateConstantbufferActor(buf);
-        }
-        {
-            FConstantBufferMesh buf;
-            buf.ModelMatrix = Model;
-            if (GizmoComp == World->GetPickingGizmo())
-            {
-                buf.IsSelectedMesh = 1;
-            }
-            else
-            {
-                buf.IsSelectedMesh = 0;
-            }
-            UpdateConstantbufferMesh(buf);
-        }
-        // TODO: 기즈모 선택효과 안보임
-        // 현재 RenderPrimitive()에서 다시 SelectedMesh를 갱신하는데, 안에서 기즈모를 인식시킬 수 없음.
-
-        if (!GizmoComp->GetStaticMesh()) continue;
-
-        OBJ::FStaticMeshRenderData* renderData = GizmoComp->GetStaticMesh()->GetRenderData();
-        if (renderData == nullptr) continue;
-
-        RenderPrimitive(Model, renderData, GizmoComp->GetStaticMesh()->GetMaterials(), GizmoComp->GetOverrideMaterials());
-    }
-
-    Graphics->DeviceContext->RSSetState(Graphics->GetCurrentRasterizer());
-
-#pragma region GizmoDepth
-    ID3D11DepthStencilState* originalDepthState = Graphics->DepthStencilState;
-    Graphics->DeviceContext->OMSetDepthStencilState(originalDepthState, 0);
-#pragma endregion GizmoDepth
-}
+//void FRenderer::RenderGizmos(const UWorld* World, const std::shared_ptr<FEditorViewportClient>& ActiveViewport)
+//{
+//    if (!World->GetSelectedActor())
+//    {
+//        return;
+//    }
+//
+//    #pragma region GizmoDepth
+//        ID3D11DepthStencilState* DepthStateDisable = Graphics->DepthStateDisable;
+//        Graphics->DeviceContext->OMSetDepthStencilState(DepthStateDisable, 0);
+//    #pragma endregion GizmoDepth
+//
+//    //  fill solid,  Wirframe 에서도 제대로 렌더링되기 위함
+//    Graphics->DeviceContext->RSSetState(UEditorEngine::graphicDevice.RasterizerStateSOLID);
+//    
+//    for (auto GizmoComp : RenderResources.Primitives.GizmoObjs)
+//    {
+//        
+//        if ((GizmoComp->GetGizmoType()==UGizmoBaseComponent::ArrowX ||
+//            GizmoComp->GetGizmoType()==UGizmoBaseComponent::ArrowY ||
+//            GizmoComp->GetGizmoType()==UGizmoBaseComponent::ArrowZ)
+//            && World->GetEditorPlayer()->GetControlMode() != CM_TRANSLATION)
+//            continue;
+//        else if ((GizmoComp->GetGizmoType()==UGizmoBaseComponent::ScaleX ||
+//            GizmoComp->GetGizmoType()==UGizmoBaseComponent::ScaleY ||
+//            GizmoComp->GetGizmoType()==UGizmoBaseComponent::ScaleZ)
+//            && World->GetEditorPlayer()->GetControlMode() != CM_SCALE)
+//            continue;
+//        else if ((GizmoComp->GetGizmoType()==UGizmoBaseComponent::CircleX ||
+//            GizmoComp->GetGizmoType()==UGizmoBaseComponent::CircleY ||
+//            GizmoComp->GetGizmoType()==UGizmoBaseComponent::CircleZ)
+//            && World->GetEditorPlayer()->GetControlMode() != CM_ROTATION)
+//            continue;
+//        FMatrix Model = GizmoComp->GetComponentTransform();
+//        {
+//            FConstantBufferActor buf;
+//            buf.IsSelectedActor = 0;
+//            buf.UUID = GizmoComp->EncodeUUID() / 255.0f;
+//            UpdateConstantbufferActor(buf);
+//        }
+//        {
+//            FConstantBufferMesh buf;
+//            buf.ModelMatrix = Model;
+//            if (GizmoComp == World->GetPickingGizmo())
+//            {
+//                buf.IsSelectedMesh = 1;
+//            }
+//            else
+//            {
+//                buf.IsSelectedMesh = 0;
+//            }
+//            UpdateConstantbufferMesh(buf);
+//        }
+//        // TODO: 기즈모 선택효과 안보임
+//        // 현재 RenderPrimitive()에서 다시 SelectedMesh를 갱신하는데, 안에서 기즈모를 인식시킬 수 없음.
+//
+//        if (!GizmoComp->GetStaticMesh()) continue;
+//
+//        OBJ::FStaticMeshRenderData* renderData = GizmoComp->GetStaticMesh()->GetRenderData();
+//        if (renderData == nullptr) continue;
+//
+//        RenderPrimitive(Model, renderData, GizmoComp->GetStaticMesh()->GetMaterials(), GizmoComp->GetOverrideMaterials());
+//    }
+//
+//    Graphics->DeviceContext->RSSetState(Graphics->GetCurrentRasterizer());
+//
+//#pragma region GizmoDepth
+//    ID3D11DepthStencilState* originalDepthState = Graphics->DepthStencilState;
+//    Graphics->DeviceContext->OMSetDepthStencilState(originalDepthState, 0);
+//#pragma endregion GizmoDepth
+//}
 
 void FRenderer::RenderBillboards(UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport)
 {
     PrepareTextureShader();
     PrepareSubUVConstant();
-    for (auto BillboardComp : BillboardObjs)
+    for (auto BillboardComp : RenderResources.Components.BillboardObjs)
     {
         UpdateSubUVConstant(BillboardComp->finalIndexU, BillboardComp->finalIndexV);
         
@@ -1247,7 +1208,7 @@ void FRenderer::RenderBillboards(UWorld* World, std::shared_ptr<FEditorViewportC
         }
         else if (UText* Text = Cast<UText>(BillboardComp))
         {
-            UEditorEngine::renderer.RenderTextPrimitive(
+            UEditorEngine::RenderEngine.Renderer.RenderTextPrimitive(
                 Text->vertexTextBuffer, Text->numTextVertices,
                 Text->Texture->TextureSRV, Text->Texture->SamplerState
             );
@@ -1270,7 +1231,7 @@ void FRenderer::RenderPostProcess()
 
 void FRenderer::RenderLight(UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport)
 {
-    for (auto Light : LightObjs)
+    for (auto Light : RenderResources.Components.LightObjs)
     {
         FMatrix Model = JungleMath::CreateModelMatrix(Light->GetComponentLocation(), Light->GetComponentRotation(), {1, 1, 1});
         UPrimitiveBatch::GetInstance().AddCone(Light->GetComponentLocation(), Light->GetRadius(), 15, 140, Light->GetColor(), Model);

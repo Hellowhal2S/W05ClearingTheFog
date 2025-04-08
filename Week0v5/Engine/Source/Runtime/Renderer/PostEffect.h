@@ -74,6 +74,16 @@ namespace PostEffect
     extern ID3D11Texture2D* WorldNormalTexture;
     extern ID3D11ShaderResourceView* WorldNormalSRV;
 
+    // Light 관련 Texture / RTV / SRV
+    extern ID3D11RenderTargetView* AlbedoRTV;
+    extern ID3D11Texture2D* AlbedoTexture;
+    extern ID3D11ShaderResourceView* AlbedoSRV;
+
+    extern ID3D11RenderTargetView* SpecularRTV;
+    extern ID3D11Texture2D* SpecularTexture;
+    extern ID3D11ShaderResourceView* SpecularSRV;
+
+
     // 원본 컬러 값 (Texture)를 변환시켜 SRV로 사용
     extern ID3D11ShaderResourceView* PostEffectSRV;
 
@@ -114,6 +124,8 @@ namespace PostEffect
     void CopyBackBufferToColorSRV(ID3D11DeviceContext*& DeviceContext, ID3D11Texture2D*& ColorTexture, ID3D11Texture2D*& FrameBuffer);
     // Depth Stencil Buffer를 Depth Map Texture에 복사
     void CopyDepthBufferToDepthOnlySRV(ID3D11DeviceContext*& DeviceContext, ID3D11Texture2D*& SrcDepthTexture);
+
+    static bool CreateRenderTargetResources(ID3D11Device* Device, UINT Width, UINT Height, DXGI_FORMAT Format, ID3D11Texture2D** OutTexture, ID3D11RenderTargetView** OutRTV, ID3D11ShaderResourceView** OutSRV);
 
     
 }

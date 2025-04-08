@@ -1,6 +1,7 @@
 #include "PrimitiveBatch.h"
 #include "EditorEngine.h"
 #include "UnrealEd/EditorViewportClient.h"
+#include "Runtime/Renderer/ShaderConstants.h"
 extern UEditorEngine* GEngine;
 
 UPrimitiveBatch::UPrimitiveBatch()
@@ -36,7 +37,7 @@ void UPrimitiveBatch::GenerateGrid(float spacing, int gridCount)
 void UPrimitiveBatch::RenderBatch(const FMatrix& View, const FMatrix& Projection)
 {
     // week5 수정중
-    UEditorEngine::renderer.PrepareLineShader();
+    //UEditorEngine::RenderEngine.Renderer.PrepareShader(UEditorEngine::RenderEngine.Renderer.RenderResources.Shaders.Line);
 
     InitializeVertexBuffer();
 
@@ -44,8 +45,8 @@ void UPrimitiveBatch::RenderBatch(const FMatrix& View, const FMatrix& Projection
     FConstantBufferMesh buf;
     buf.ModelMatrix = Model;
 
-    UEditorEngine::renderer.UpdateConstantbufferMesh(buf);
-    UEditorEngine::renderer.UpdateGridConstantBuffer(GridParam);
+    UEditorEngine::RenderEngine.Renderer.UpdateConstantbufferMesh(buf);
+    UEditorEngine::RenderEngine.Renderer.UpdateGridConstantBuffer(GridParam);
 
     UpdateBoundingBoxResources();
     UpdateConeResources();
@@ -53,17 +54,17 @@ void UPrimitiveBatch::RenderBatch(const FMatrix& View, const FMatrix& Projection
     int boundingBoxSize = static_cast<int>(BoundingBoxes.Num());
     int coneSize = static_cast<int>(Cones.Num());
     int obbSize = static_cast<int>(OrientedBoundingBoxes.Num());
-    UEditorEngine::renderer.UpdateLinePrimitveCountBuffer(boundingBoxSize, coneSize);
-    UEditorEngine::renderer.RenderBatch(GridParam, pVertexBuffer, boundingBoxSize, coneSize, ConeSegmentCount, obbSize);
+    UEditorEngine::RenderEngine.Renderer.UpdateLinePrimitveCountBuffer(boundingBoxSize, coneSize);
+    UEditorEngine::RenderEngine.Renderer.RenderBatch(GridParam, pVertexBuffer, boundingBoxSize, coneSize, ConeSegmentCount, obbSize);
     BoundingBoxes.Empty();
     Cones.Empty();
     OrientedBoundingBoxes.Empty();
-    UEditorEngine::renderer.PrepareShader();
+    //UEditorEngine::RenderEngine.Renderer.PrepareShader();
 }
 void UPrimitiveBatch::InitializeVertexBuffer()
 {
     if (!pVertexBuffer)
-        pVertexBuffer = UEditorEngine::renderer.CreateStaticVerticesBuffer();
+        pVertexBuffer = UEditorEngine::RenderEngine.Renderer.CreateStaticVerticesBuffer();
 }
 
 void UPrimitiveBatch::UpdateBoundingBoxResources()
@@ -73,13 +74,13 @@ void UPrimitiveBatch::UpdateBoundingBoxResources()
 
         ReleaseBoundingBoxResources();
 
-        pBoundingBoxBuffer = UEditorEngine::renderer.CreateBoundingBoxBuffer(static_cast<UINT>(allocatedBoundingBoxCapacity));
-        pBoundingBoxSRV = UEditorEngine::renderer.CreateBoundingBoxSRV(pBoundingBoxBuffer, static_cast<UINT>(allocatedBoundingBoxCapacity));
+        pBoundingBoxBuffer = UEditorEngine::RenderEngine.Renderer.CreateBoundingBoxBuffer(static_cast<UINT>(allocatedBoundingBoxCapacity));
+        pBoundingBoxSRV = UEditorEngine::RenderEngine.Renderer.CreateBoundingBoxSRV(pBoundingBoxBuffer, static_cast<UINT>(allocatedBoundingBoxCapacity));
     }
 
     if (pBoundingBoxBuffer && pBoundingBoxSRV){
         int boundingBoxCount = static_cast<int>(BoundingBoxes.Num());
-        UEditorEngine::renderer.UpdateBoundingBoxBuffer(pBoundingBoxBuffer, BoundingBoxes, boundingBoxCount);
+        UEditorEngine::RenderEngine.Renderer.UpdateBoundingBoxBuffer(pBoundingBoxBuffer, BoundingBoxes, boundingBoxCount);
     }
 }
 
@@ -96,13 +97,13 @@ void UPrimitiveBatch::UpdateConeResources()
 
         ReleaseConeResources();
 
-        pConesBuffer = UEditorEngine::renderer.CreateConeBuffer(static_cast<UINT>(allocatedConeCapacity));
-        //pConesSRV = UEditorEngine::renderer.CreateConeSRV(pConesBuffer, static_cast<UINT>(allocatedConeCapacity));
+        pConesBuffer = UEditorEngine::RenderEngine.Renderer.CreateConeBuffer(static_cast<UINT>(allocatedConeCapacity));
+        //pConesSRV = UEditorEngine::RenderEngine.Renderer.CreateConeSRV(pConesBuffer, static_cast<UINT>(allocatedConeCapacity));
     }
 
     if (pConesBuffer && pConesSRV) {
         int coneCount = static_cast<int>(Cones.Num());
-        UEditorEngine::renderer.UpdateConesBuffer(pConesBuffer, Cones, coneCount);
+        UEditorEngine::RenderEngine.Renderer.UpdateConesBuffer(pConesBuffer, Cones, coneCount);
     }
 }
 
@@ -119,13 +120,13 @@ void UPrimitiveBatch::UpdateOBBResources()
 
         ReleaseOBBResources();
 
-        pOBBBuffer = UEditorEngine::renderer.CreateOBBBuffer(static_cast<UINT>(allocatedOBBCapacity));
-        pOBBSRV = UEditorEngine::renderer.CreateOBBSRV(pOBBBuffer, static_cast<UINT>(allocatedOBBCapacity));
+        pOBBBuffer = UEditorEngine::RenderEngine.Renderer.CreateOBBBuffer(static_cast<UINT>(allocatedOBBCapacity));
+        pOBBSRV = UEditorEngine::RenderEngine.Renderer.CreateOBBSRV(pOBBBuffer, static_cast<UINT>(allocatedOBBCapacity));
     }
 
     if (pOBBBuffer && pOBBSRV) {
         int obbCount = static_cast<int>(OrientedBoundingBoxes.Num());
-        UEditorEngine::renderer.UpdateOBBBuffer(pOBBBuffer, OrientedBoundingBoxes, obbCount);
+        UEditorEngine::RenderEngine.Renderer.UpdateOBBBuffer(pOBBBuffer, OrientedBoundingBoxes, obbCount);
     }
 }
 void UPrimitiveBatch::ReleaseOBBResources()

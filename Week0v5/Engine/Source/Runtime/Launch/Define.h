@@ -119,6 +119,7 @@ namespace OBJ
         
         TArray<FVertexSimple> Vertices;
         TArray<UINT> Indices;
+        UINT32 Stride = sizeof(FVertexSimple);
 
         ID3D11Buffer* VertexBuffer;
         ID3D11Buffer* IndexBuffer;
@@ -166,6 +167,8 @@ struct FPoint
 
     float x, y;
 };
+
+// 셰이더 직접 안들어가면 나중에 padding 빼기
 struct FBoundingBox
 {
     FBoundingBox(){}
@@ -174,6 +177,10 @@ struct FBoundingBox
 	float pad;
 	FVector max; // Maximum extents
 	float pad1;
+
+    FVector GetPosition() { return (min + max) / 2.f; }
+    FVector GetExtent() { return (max - min) / 2.f; }
+
     bool Intersect(const FVector& rayOrigin, const FVector& rayDir, float& outDistance)
     {
         float tmin = -FLT_MAX;
@@ -271,40 +278,3 @@ struct FPrimitiveCounts
 	int ConeCount; 
 	int pad1;
 };
-
-
-//
-//
-//
-//struct FConstantLight
-//{
-//    FConstantLightColor Color;
-//    FVector Position;
-//    float Pad0;
-//    FVector Specular;
-//    float Pad1;
-//    FVector Diffuse;
-//    float Pad2;
-//    FVector Ambient;
-//    float Pad3;
-//
-//    float Intensity;
-//    float
-//};
-//
-//struct FLitUnlitConstants {
-//    int isLit; // 1 = Lit, 0 = Unlit 
-//    FVector pad;
-//};
-//
-//struct FSubMeshConstants {
-//    float isSelectedSubMesh;
-//    FVector pad;
-//};
-
-//struct FTextureConstants {
-//    float UOffset;
-//    float VOffset;
-//    float pad0;
-//    float pad1;
-//};

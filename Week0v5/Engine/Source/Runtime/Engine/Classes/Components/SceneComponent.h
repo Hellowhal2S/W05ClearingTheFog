@@ -57,10 +57,10 @@ public:
     FVector GetLocalScale() const { return RelativeScale3D; }
     FVector GetLocalLocation() const { return RelativeLocation; }
 
-    void SetRelativeLocation(FVector _newLoc) { RelativeLocation = _newLoc; }
+    void SetRelativeLocation(FVector _newLoc);
     void SetRelativeRotation(FVector _newRot);
     void SetRelativeQuat(FQuat _newRot);
-    void SetRelativeScale(FVector _newScale) { RelativeScale3D = _newScale; }
+    void SetRelativeScale(FVector _newScale);
     void SetupAttachment(USceneComponent* InParent);
 public:
 
@@ -75,5 +75,7 @@ public:
 private:
     class UTextUUID* uuidText = nullptr;
 
-public:
+protected:
+    // AABB용 더티비트
+    bool bIsChangedForAABB : 1 = true;
 };

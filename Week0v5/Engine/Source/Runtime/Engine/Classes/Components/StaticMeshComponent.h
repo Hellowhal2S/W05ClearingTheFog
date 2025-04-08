@@ -30,12 +30,21 @@ public:
     { 
         staticMesh = value;
         OverrideMaterials.SetNum(value->GetMaterials().Num());
-        AABB = FBoundingBox(staticMesh->GetRenderData()->BoundingBoxMin, staticMesh->GetRenderData()->BoundingBoxMax);
+        LocalAABB = FBoundingBox(staticMesh->GetRenderData()->BoundingBoxMin, staticMesh->GetRenderData()->BoundingBoxMax);
+        WorldAABB = LocalAABB;
     }
+
+    // UScenecomponent에서 setter가 실행되었으면 changed bit를 변경해서
+    // AABB 조사 전에 값을 업데이트합니다.
+    FBoundingBox GetBoundingBoxWorld() { return WorldAABB; }
+    void UpdateWorldAABB();
 
 protected:
     UStaticMesh* staticMesh = nullptr;
     int selectedSubMeshIndex = -1;
 private:
     float Timer = 0.0f;
+
+private:
+    FBoundingBox WorldAABB;
 };

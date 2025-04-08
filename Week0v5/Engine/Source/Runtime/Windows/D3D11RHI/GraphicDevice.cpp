@@ -246,6 +246,8 @@ void FGraphicsDevice::CreateFrameBuffer()
     // Post Effect
     RTVs[2] = PostEffect::WorldPosRTV;
     RTVs[3] = PostEffect::WorldNormalRTV;
+    RTVs[4] = PostEffect::AlbedoRTV;
+    RTVs[5] = PostEffect::SpecularRTV;
 
 }
 
@@ -330,6 +332,8 @@ void FGraphicsDevice::SwapBuffer() {
 void FGraphicsDevice::Prepare()
 {
     // 후처리용 RTV 클리어
+    DeviceContext->ClearRenderTargetView(PostEffect::SpecularRTV, ClearColor);
+    DeviceContext->ClearRenderTargetView(PostEffect::AlbedoRTV, ClearColor);
     DeviceContext->ClearRenderTargetView(PostEffect::WorldPosRTV, ClearColor);
     DeviceContext->ClearRenderTargetView(PostEffect::WorldNormalRTV, ClearColor);
 
@@ -344,7 +348,7 @@ void FGraphicsDevice::Prepare()
 
     DeviceContext->OMSetDepthStencilState(DepthStencilState, 0);
 
-    DeviceContext->OMSetRenderTargets(4, RTVs, DepthStencilView); // 렌더 타겟 설정(백버퍼를 가르킴)
+    DeviceContext->OMSetRenderTargets(6, RTVs, DepthStencilView); // 렌더 타겟 설정(백버퍼를 가르킴)
     DeviceContext->OMSetBlendState(nullptr, nullptr, 0xffffffff); // 블렌뎅 상태 설정, 기본블렌딩 상태임
 }
 
@@ -453,10 +457,10 @@ uint32 FGraphicsDevice::GetPixelUUID(POINT pt)
     srcBox.back = 1;
     FVector4 UUIDColor{ 1, 1, 1, 1 }; 
 
-    if (stagingTexture == nullptr)
+    if (stagingTexture == nullptr) 
         return DecodeUUIDColor(UUIDColor);
 
-    // 3. 특정 좌표만 복사
+    // 3. 특정 좌표만 복사 
     DeviceContext->CopySubresourceRegion(
         stagingTexture, // 대상 텍스처
         0,              // 대상 서브리소스

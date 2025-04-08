@@ -2,7 +2,7 @@
 #include "Core/HAL/PlatformType.h"
 #include "D3D11RHI/GraphicDevice.h"
 #include "Engine/Engine.h"
-#include "Renderer/Renderer.h"
+#include "Renderer/RenderEngine.h"
 #include "Engine/ResourceMgr.h"
 
 
@@ -41,7 +41,7 @@ private:
 
 public:
     static FGraphicsDevice graphicDevice;
-    static FRenderer renderer;
+    static FRenderEngine RenderEngine;
     static FResourceMgr resourceMgr;
     
     HWND hWnd;

@@ -9,7 +9,7 @@ UPrimitiveComponent::UPrimitiveComponent()
 
 UPrimitiveComponent::UPrimitiveComponent(const UPrimitiveComponent& Other)
     : USceneComponent(Other)
-    , AABB(Other.AABB)
+    , LocalAABB(Other.LocalAABB)
     , m_Type(Other.m_Type)
 {
 }

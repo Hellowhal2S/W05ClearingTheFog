@@ -1,16 +1,16 @@
 #include "Actor.h"
 
 #include "Engine/World.h"
+#include "Components/SceneComponent.h"
+#include "Components/MovementComponent.h"
 
 AActor::AActor(const AActor& Other)
     : UObject(Other),
       RootComponent(nullptr),
       bTickInEditor(Other.bTickInEditor),
       bActorIsBeingDestroyed(Other.bActorIsBeingDestroyed),
-      ActorLabel(Other.ActorLabel),
-    OwnedComponents(Other.OwnedComponents)
+      ActorLabel(Other.ActorLabel)
 {
-    OwnedComponents.Empty();
 }
 void AActor::BeginPlay()
 {
@@ -121,8 +121,6 @@ bool AActor::SetRootComponent(USceneComponent* NewRootComponent)
         {
             USceneComponent* OldRootComponent = RootComponent;
             RootComponent = NewRootComponent;
-
-            OldRootComponent->SetupAttachment(RootComponent);
         }
         return true;
     }
@@ -179,7 +177,6 @@ void AActor::AddComponent(UActorComponent* Component)
     Component->InitializeComponent();
 }
 
-
 UObject* AActor::Duplicate() const
 {
     AActor* ClonedActor = FObjectFactory::ConstructObjectFrom<AActor>(this);
@@ -187,10 +184,9 @@ UObject* AActor::Duplicate() const
     ClonedActor->PostDuplicate();
     return ClonedActor;
 }
+
 void AActor::DuplicateSubObjects(const UObject* SourceObj)
 {
-    UObject::DuplicateSubObjects(SourceObj);
-
     const AActor* Source = Cast<AActor>(SourceObj);
     if (!Source) return;
 
@@ -201,7 +197,6 @@ void AActor::DuplicateSubObjects(const UObject* SourceObj)
         UActorComponent* dupComponent = static_cast<UActorComponent*>(Component->Duplicate());
         dupComponent->Owner = this;
         OwnedComponents.Add(dupComponent);
-        RootComponent = Cast<USceneComponent>(dupComponent);
         if (const USceneComponent* OldScene = Cast<USceneComponent>(Component))
         {
             if (USceneComponent* NewScene = Cast<USceneComponent>(dupComponent))
@@ -230,6 +225,14 @@ void AActor::DuplicateSubObjects(const UObject* SourceObj)
         if (USceneComponent** Found = SceneCloneMap.Find(Source->RootComponent))
         {
             SetRootComponent(*Found);
+        }
+    }
+
+    for (UActorComponent* Component : OwnedComponents)
+    {
+        if (UMovementComponent* Movement = Cast<UMovementComponent>(Component))
+        {
+            Movement->UpdatedComponent = RootComponent;
         }
     }
 }

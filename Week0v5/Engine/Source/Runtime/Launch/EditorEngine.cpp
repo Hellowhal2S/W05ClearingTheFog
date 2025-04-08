@@ -18,7 +18,7 @@
 class ULevel;
 
 FGraphicsDevice UEditorEngine::graphicDevice;
-FRenderer UEditorEngine::renderer;
+FRenderEngine UEditorEngine::RenderEngine;
 FResourceMgr UEditorEngine::resourceMgr;
 
 UEditorEngine::UEditorEngine()
@@ -36,10 +36,10 @@ int32 UEditorEngine::Init(HWND hwnd)
     /* must be initialized before window. */
     hWnd = hwnd;
     graphicDevice.Initialize(hWnd);
-    renderer.Initialize(&graphicDevice);
+    RenderEngine.Initialize(&graphicDevice);
     UIMgr = new UImGuiManager;
     UIMgr->Initialize(hWnd, graphicDevice.Device, graphicDevice.DeviceContext);
-    resourceMgr.Initialize(&renderer, &graphicDevice);
+    resourceMgr.Initialize(&RenderEngine.Renderer, &graphicDevice);
     
     FWorldContext EditorContext;
     EditorContext.WorldType = EWorldType::Editor;
@@ -76,8 +76,7 @@ void UEditorEngine::Render()
         {
             graphicDevice.Prepare();
             LevelEditor->SetViewportClient(i);
-            renderer.PrepareRender();
-            renderer.Render(GWorld,LevelEditor->GetActiveViewportClient());
+            RenderEngine.Render(GWorld,LevelEditor->GetActiveViewportClient());
             // graphicDevice.DeviceContext->RSSetViewports(1, &LevelEditor->GetActiveViewportClient()->GetD3DViewport());
 
             PostEffect::CopyBackBufferToColorSRV(graphicDevice.DeviceContext, graphicDevice.ColorTexture, graphicDevice.FrameBuffer);
@@ -89,8 +88,7 @@ void UEditorEngine::Render()
     else
     {
         graphicDevice.Prepare();
-        renderer.PrepareRender();
-        renderer.Render(GWorld,LevelEditor->GetActiveViewportClient());
+        RenderEngine.Render(GWorld,LevelEditor->GetActiveViewportClient());
         PostEffect::CopyBackBufferToColorSRV(graphicDevice.DeviceContext, graphicDevice.ColorTexture, graphicDevice.FrameBuffer);
         PostEffect::CopyDepthBufferToDepthOnlySRV(graphicDevice.DeviceContext, graphicDevice.DepthStencilBuffer);
         PostEffect::Render(graphicDevice.DeviceContext, graphicDevice.ColorSRV);
@@ -102,6 +100,24 @@ void UEditorEngine::Render()
     // 화면에 그려진 백버퍼의 내용을 SRV로 쓰기 위해 ColorTexture에 복사
 
 
+    if (LevelEditor->IsMultiViewport())
+    {
+        std::shared_ptr<FEditorViewportClient> viewportClient = GetLevelEditor()->GetActiveViewportClient();
+        for (int i = 0; i < 4; ++i)
+        {
+            LevelEditor->SetViewportClient(i);
+            RenderEngine.RenderDebug(GWorld, LevelEditor->GetActiveViewportClient());
+        }
+        GetLevelEditor()->SetViewportClient(viewportClient);
+    }
+    else
+    {
+        RenderEngine.RenderDebug(GWorld, LevelEditor->GetActiveViewportClient());
+    }
+
+    //graphicDevice.DeviceContext->OMSetRenderTargets(1, &graphicDevice.FrameBufferRTV, nullptr);
+    //graphicDevice.DeviceContext->CopyResource(graphicDevice.FrameBuffer, PostEffect::finalTexture);
+    // PostEffect::Render(ColorSRV, DepthOnlySRV, WorldPosSRV)
 }
 
 void UEditorEngine::Tick(float deltaSeconds)
@@ -235,8 +251,8 @@ void UEditorEngine::Exit()
     UIMgr->Shutdown();
     delete UIMgr;
     delete SceneMgr;
-    resourceMgr.Release(&renderer);
-    renderer.Release();
+    resourceMgr.Release(&RenderEngine.Renderer);
+    RenderEngine.Renderer.Release();
     graphicDevice.Release();
 }
 

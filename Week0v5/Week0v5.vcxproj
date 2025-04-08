@@ -184,6 +184,7 @@
     <ClCompile Include="Engine\Source\Editor\UnrealEd\UnrealEd.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Core\EngineStatics.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Core\HAL\PlatformMemory.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Core\Math\Color.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Core\Math\JungleMath.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Core\Math\Matrix.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Core\Math\Vector.cpp" />
@@ -193,6 +194,9 @@
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\ActorComponent.cpp" />
     <ClCompile Include="Engine\Source\Editor\UnrealEd\EditorViewportClient.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\HeightFogComponent.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\FireballComponent.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\MovementComponent.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\ProjectileMovementComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Engine\Engine.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Engine\Level.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Engine\StaticMeshActor.cpp" />
@@ -244,6 +248,9 @@
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\UTextUUID.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\QuadTexture.cpp" />
     <ClCompile Include="Engine\Source\ThirdParty\tinyfiledialogs\tinyfiledialogs.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Renderer\RenderResources.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Renderer\EditorRenderer.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Renderer\RenderEngine.cpp" />
     <ClCompile Include="UEditorStateManager.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -251,6 +258,10 @@
     <ClInclude Include="Engine\Source\Runtime\Core\Delegates\DelegateCombination.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Actors\AExponentialHeightFog.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\HeightFogComponent.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Math\Color.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\FireballComponent.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\MovementComponent.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\ProjectileMovementComponent.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\Engine.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\Level.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\StaticMeshActor.h" />
@@ -362,9 +373,15 @@
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\UParticleSubUVComp.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\UText.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\UTextUUID.h" />
+    <ClInclude Include="Engine\Source\Runtime\Renderer\RenderResources.h" />
+    <ClInclude Include="Engine\Source\Runtime\Renderer\EditorRenderer.h" />
+    <ClInclude Include="Engine\Source\Runtime\Renderer\RenderEngine.h" />
     <ClInclude Include="UEditorStateManager.h" />
   </ItemGroup>
   <ItemGroup>
+    <FxCompile Include="Shaders\EditorShader.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </FxCompile>
     <FxCompile Include="Shaders\PostEffectPS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>

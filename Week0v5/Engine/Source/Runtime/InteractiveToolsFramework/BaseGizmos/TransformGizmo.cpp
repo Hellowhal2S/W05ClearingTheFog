@@ -46,7 +46,7 @@ UTransformGizmo::UTransformGizmo()
     ScaleX->SetupAttachment(RootComponent);
     ScaleX->SetGizmoType(UGizmoBaseComponent::ScaleX);
     RectangleArr.Add(ScaleX);
-
+        
     UGizmoRectangleComponent* ScaleY = AddComponent<UGizmoRectangleComponent>();
     ScaleY->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"gizmo_scale_y.obj"));
     ScaleY->SetupAttachment(RootComponent);

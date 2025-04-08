@@ -8,7 +8,7 @@
 #include "EngineBaseTypes.h"
 #include "Define.h"
 #include "Container/Set.h"
-#include "ShaderConstants.h"
+#include "RenderResources.h"
 
 class ULightComponentBase;
 class UWorld;
@@ -22,79 +22,61 @@ class UStaticMeshComponent;
 class UGizmoBaseComponent;
 class FRenderer 
 {
-
-private:
-    float litFlag =1;
-public:
-    FGraphicsDevice* Graphics;
-    ID3D11VertexShader* VertexShader = nullptr;
-    ID3D11PixelShader* PixelShader = nullptr;
-    ID3D11InputLayout* InputLayout = nullptr;
-
-    uint32 Stride;
-
+    friend class UPrimitiveBatch;
+    friend class FEditorRenderer;
 public:
     void Initialize(FGraphicsDevice* graphics);
-   
-    void PrepareShader() const;
-    
-    //Render
-    void RenderPrimitive(ID3D11Buffer* pBuffer, UINT numVertices) const;
-    void RenderPrimitive(ID3D11Buffer* pVertexBuffer, UINT numVertices, ID3D11Buffer* pIndexBuffer, UINT numIndices) const;
-    void RenderPrimitive(const FMatrix& ModelMatrix, OBJ::FStaticMeshRenderData* renderData, TArray<FStaticMaterial*> materials, TArray<UMaterial*> overrideMaterial, int selectedSubMeshIndex) const;
-   
-    void RenderTexturedModelPrimitive(ID3D11Buffer* pVertexBuffer, UINT numVertices, ID3D11Buffer* pIndexBuffer, UINT numIndices, ID3D11ShaderResourceView* InTextureSRV, ID3D11SamplerState* InSamplerState) const;
-    //Release
     void Release();
-    void ReleaseShader();
-    void ReleaseBuffer(ID3D11Buffer*& Buffer) const;
-    void ReleaseConstantBuffers();
-
-    void ResetVertexShader() const;
-    void ResetPixelShader() const;
-    void CreateShader();
-
-    void SetVertexShader(const FWString& filename, const FString& funcname, const FString& version);
-    void SetPixelShader(const FWString& filename, const FString& funcname, const FString& version);
-    
+    void Render(UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport);
     void ChangeViewMode(EViewModeIndex evi);
-    
-    // CreateBuffer
-    void CreateConstantBuffers();
+
+
+    // 이거는 추후 RenderResources에 함수로 넣기
     ID3D11Buffer* CreateVertexBuffer(FVertexSimple* vertices, UINT byteWidth) const;
     ID3D11Buffer* CreateVertexBuffer(const TArray<FVertexSimple>& vertices, UINT byteWidth) const;
+    ID3D11Buffer* CreateVertexBuffer(FVertexTexture* vertices, UINT byteWidth) const;
     ID3D11Buffer* CreateIndexBuffer(uint32* indices, UINT byteWidth) const;
     ID3D11Buffer* CreateIndexBuffer(const TArray<uint32>& indices, UINT byteWidth) const;
 
-    //  Constant Buffers
-    FConstantBuffers ConstantBuffers;
 
-    void UpdateLightBuffer() const;
+private:
+    // Resources
+    FRenderResources RenderResources;
+
+    float litFlag =1;
+    FGraphicsDevice* Graphics;
+
+    //uint32 Stride;
+
+    void PrepareShader(FShaderResource ShaderResource) const;
+    void PrepareConstantbufferStaticMesh(/*FConstantBuffersStaticMesh Constantbuffers*/);
+    //Render
+    void RenderPrimitive(const FMatrix& ModelMatrix, OBJ::FStaticMeshRenderData* renderData, TArray<FStaticMaterial*> materials, TArray<UMaterial*> overrideMaterial, int selectedSubMeshIndex) const;
+    void RenderPrimitive(ID3D11Buffer* pBuffer, UINT numVertices) const;
+    void RenderPrimitive(ID3D11Buffer* pVertexBuffer, UINT numVertices, ID3D11Buffer* pIndexBuffer, UINT numIndices) const;
+   
+    void RenderTexturedModelPrimitive(ID3D11Buffer* pVertexBuffer, UINT numVertices, ID3D11Buffer* pIndexBuffer, UINT numIndices, ID3D11ShaderResourceView* InTextureSRV, ID3D11SamplerState* InSamplerState) const;
+    //Release
+    void ReleaseShaders();
+    void ReleaseBuffer(ID3D11Buffer*& Buffer) const;
+    void ReleaseConstantBuffers();
+
+    void CreateShaders();
+
+    void CreateMeshShader();
+    
+    //  Constant Buffers
+    void CreateConstantBuffers();
     void UpdateConstantbufferMesh(FConstantBufferMesh Buffer) const;
     void UpdateConstantbufferTexture(FConstantBufferTexture Buffer) const;
     void UpdateConstantbufferActor(FConstantBufferActor Buffer) const;
     void UpdateConstantbufferLights(FConstantBufferLights Buffer) const;
     void UpdateConstantbufferCamera(FConstantBufferCamera Buffer) const;
-    //void UpdateMaterial(const FObjMaterialInfo& MaterialInfo) const;
-    //void UpdateLitUnlitConstant(int isLit) const;
-    //void UpdateSubMeshConstant(bool isSelected) const;
-    //void UpdateTextureConstant(float UOffset, float VOffset);
-
-public://텍스쳐용 기능 추가
-    ID3D11VertexShader* VertexTextureShader = nullptr;
-    ID3D11PixelShader* PixelTextureShader = nullptr;
-    ID3D11InputLayout* TextureInputLayout = nullptr;
 
     uint32 TextureStride;
-    //struct FSubUVConstant
-    //{
-    //    float indexU;
-    //    float indexV;
-    //};
 
-public:
+
     void CreateTextureShader();
-    void ReleaseTextureShader();
     void PrepareTextureShader() const;
     ID3D11Buffer* CreateVertexTextureBuffer(FVertexTexture* vertices, UINT byteWidth) const;
     ID3D11Buffer* CreateIndexTextureBuffer(uint32* indices, UINT byteWidth) const;
@@ -105,16 +87,14 @@ public:
     void RenderTextPrimitive(ID3D11Buffer* pVertexBuffer, UINT numVertices,
         ID3D11ShaderResourceView* _TextureSRV,
         ID3D11SamplerState* _SamplerState) const;
-    ID3D11Buffer* CreateVertexBuffer(FVertexTexture* vertices, UINT byteWidth) const;
 
     void UpdateSubUVConstant(float _indexU, float _indexV) const;
     void PrepareSubUVConstant() const;
 
 
-public: // line shader
-    void PrepareLineShader() const;
+
+    //void PrepareLineShader() const;
     void CreateLineShader();
-    void ReleaseLineShader() const;
     void RenderBatch(const FGridParameters& gridParam, ID3D11Buffer* pVertexBuffer, int boundingBoxCount, int coneCount, int coneSegmentCount, int obbCount) const;
     void UpdateGridConstantBuffer(const FGridParameters& gridParams) const;
     void UpdateLinePrimitveCountBuffer(int numBoundingBoxes, int numCones) const;
@@ -131,27 +111,12 @@ public: // line shader
     void UpdateConesBuffer(ID3D11Buffer* pConeBuffer, const TArray<FCone>& Cones, int numCones) const;
 
     //Render Pass Demo
-    void PrepareRender();
+    void PreparePrimitives();
     void ClearRenderArr();
-    void Render(UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport);
     void RenderStaticMeshes(UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport);
-    void RenderGizmos(const UWorld* World, const std::shared_ptr<FEditorViewportClient>& ActiveViewport);
+    //void RenderGizmos(const UWorld* World, const std::shared_ptr<FEditorViewportClient>& ActiveViewport);
     void RenderLight(UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport);
     void RenderBillboards(UWorld* World,std::shared_ptr<FEditorViewportClient> ActiveViewport);
     void RenderPostProcess();
-private:
-    TArray<UStaticMeshComponent*> StaticMeshObjs;
-    TArray<UGizmoBaseComponent*> GizmoObjs;
-    TArray<UBillboardComponent*> BillboardObjs;
-    TArray<ULightComponentBase*> LightObjs;
-
-public:
-    ID3D11VertexShader* VertexLineShader = nullptr;
-    ID3D11PixelShader* PixelLineShader = nullptr;
-    ID3D11Buffer* GridConstantBuffer = nullptr;
-    ID3D11Buffer* LinePrimitiveBuffer = nullptr;
-    ID3D11ShaderResourceView* pBBSRV = nullptr;
-    ID3D11ShaderResourceView* pConeSRV = nullptr;
-    ID3D11ShaderResourceView* pOBBSRV = nullptr;
 };
 

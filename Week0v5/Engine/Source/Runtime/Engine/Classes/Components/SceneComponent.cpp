@@ -62,18 +62,20 @@ FVector USceneComponent::GetUpVector()
 void USceneComponent::AddLocation(FVector _added)
 {
 	RelativeLocation = RelativeLocation + _added;
-
+    bIsChangedForAABB = true;
 }
 
 void USceneComponent::AddRotation(FVector _added)
 {
 	RelativeRotation = RelativeRotation + _added;
+    bIsChangedForAABB = true;
 
 }
 
 void USceneComponent::AddScale(FVector _added)
 {
 	RelativeScale3D = RelativeScale3D + _added;
+    bIsChangedForAABB = true;
 
 }
 
@@ -194,16 +196,30 @@ FMatrix USceneComponent::GetComponentScaleMatrix() const
     return ScaleMat;
 }
 
+void USceneComponent::SetRelativeLocation(FVector _newLoc)
+{
+    RelativeLocation = _newLoc; 
+    bIsChangedForAABB = true;
+}
+
 void USceneComponent::SetRelativeRotation(FVector _newRot)
 {
-	RelativeRotation = _newRot;
+ 	RelativeRotation = _newRot;
 	QuatRotation = JungleMath::EulerToQuaternion(_newRot);
+    bIsChangedForAABB = true;
 }
 
 void USceneComponent::SetRelativeQuat(FQuat _newRot)
 { 
     QuatRotation = _newRot; 
     RelativeRotation = JungleMath::QuaternionToEuler(_newRot);
+    bIsChangedForAABB = true;
+}
+
+void USceneComponent::SetRelativeScale(FVector _newScale)
+{ 
+    RelativeScale3D = _newScale; 
+    bIsChangedForAABB = true;
 }
 
 void USceneComponent::SetupAttachment(USceneComponent* InParent)
@@ -243,8 +259,6 @@ UObject* USceneComponent::Duplicate() const
 
 void USceneComponent::DuplicateSubObjects(const UObject* Source)
 {
-    UActorComponent::DuplicateSubObjects(Source);
-    // AttachParent는 AActor::DuplicateSubObjects에서 복원
 }
 
 void USceneComponent::PostDuplicate() {}

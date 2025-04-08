@@ -123,8 +123,8 @@ void UBillboardComponent::CreateQuadTextureVertexBuffer()
 {
 	numVertices = sizeof(quadTextureVertices) / sizeof(FVertexTexture);
 	numIndices = sizeof(quadTextureInices) / sizeof(uint32);
-	vertexTextureBuffer = UEditorEngine::renderer.CreateVertexBuffer(quadTextureVertices, sizeof(quadTextureVertices));
-	indexTextureBuffer = UEditorEngine::renderer.CreateIndexBuffer(quadTextureInices, sizeof(quadTextureInices));
+	vertexTextureBuffer = UEditorEngine::RenderEngine.Renderer.CreateVertexBuffer(quadTextureVertices, sizeof(quadTextureVertices));
+	indexTextureBuffer = UEditorEngine::RenderEngine.Renderer.CreateIndexBuffer(quadTextureInices, sizeof(quadTextureInices));
 
 	if (!vertexTextureBuffer) {
 		Console::GetInstance().AddLog(LogLevel::Warning, "Buffer Error");
