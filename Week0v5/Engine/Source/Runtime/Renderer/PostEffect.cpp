@@ -474,7 +474,7 @@ void PostEffect::UpdateSettingConstantBuffer(ID3D11DeviceContext*& DeviceContext
     DeviceContext->Map(SettingConstantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
     {
         FPostEffectSettingConstants* constants = static_cast<FPostEffectSettingConstants*>(mappedResource.pData);
-        constants->renderMode = renderMode;
+        constants->renderMode = static_cast<int>(GEngine->GetLevelEditor()->GetActiveViewportClient()->GetViewMode());
         constants->fogEnabled = static_cast<bool>(GEngine->GetWorld()->Fog);
     }
     DeviceContext->Unmap(SettingConstantBuffer, 0);

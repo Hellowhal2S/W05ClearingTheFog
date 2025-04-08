@@ -72,18 +72,18 @@ float4 mainPS(SamplingPixelShaderInput input) : SV_TARGET
     //return float4(1.0f, 0.0f, 0.0f, 1.0f); // TODO: 수정 필요)
     //return float4(renderTex.Sample(Sampler, input.texcoord).rgb,1.0f);
     
-    if (renderMode ==1)
+    if (renderMode ==4)
     {
         return float4(worldNormalTex.Sample(Sampler, input.texcoord).rgb,1.0f);
     }
-    else if (renderMode == 2)
+    else if (renderMode == 3)
     {
         float depth = depthOnlyTex.Sample(Sampler, input.texcoord).r;
         depth = LinearizeAndNormalizeDepth(depth, 0.1f, 100.0f);
         
         return float4(depth.rrr, 1.0f);
     }
-    else if (renderMode == 3)
+    else if (renderMode == 5)
     {
         return float4(worldPosTex.Sample(Sampler, input.texcoord).rgb,1.0f);
     }
