@@ -1,3 +1,5 @@
+#include "LightConstants.hlsli"
+
 // 무지성으로 t10에서부터 시작
 
 Texture2D g_renderTex : register(t10);    // 원본 렌더링 결과
@@ -96,6 +98,34 @@ float4 mainPS(SamplingPixelShaderInput input) : SV_TARGET
 
     else // 모드 1: 렌더링 이미지에 안개 효과 적용
     {
+        if (isLit == 1)
+        {
+            float3 color = float3(0.0f, 0.0f, 0.0f);
+            float3 normal = g_worldNormalTex.Sample(g_Sampler, input.texcoord).rgb;
+            float3 materialDiffuseColor = g_albedoTex.Sample(g_Sampler, input.texcoord).rgb;
+            float3 materialSpecularColor = g_specularTex.Sample(g_Sampler, input.texcoord).rgb;
+            float3 worldPos = g_worldPosTex.Sample(g_Sampler, input.texcoord).rgb;
+
+            float lightDirection = -normalize(DirLights[0].Direction);
+            float diffuse = saturate(dot(normal, lightDirection));
+            float materialSpecularScalar = g_specularTex.Sample(g_Sampler, input.texcoord).a;
+                
+            float3 viewDirection = normalize(float3(eyeWorld - worldPos));
+            float3 halfVector = normalize(lightDirection + viewDirection);
+            float specular = pow(saturate(dot(normal, halfVector)), materialSpecularScalar * 32) * materialSpecularScalar;
+                
+            float3 diffuseLight = diffuse + DirLights[0].Color.Diffuse;
+            float3 specularLight = specular + materialSpecularColor * DirLights[0].Color.Specular;
+                
+            color = diffuseLight * color + specularLight;
+
+            for (int i = 0; i < NumPointLights; i++)
+            {
+                color += CalculatePointLight(PointLights[i], worldPos, normal, viewDirection, materialDiffuseColor, materialSpecularColor, materialSpecularScalar);
+            }
+            
+            return float4(color, 1.0);
+        }
         // // 뷰 공간 좌표 복원 (거리 기반 안개 계산용)
         if (fogEnabled)
         {
@@ -112,6 +142,9 @@ float4 mainPS(SamplingPixelShaderInput input) : SV_TARGET
             float heightFactor = 1.0 - saturate((worldHeight - heightStart) / heightFalloff);
             fogFactor += heightDensity * heightFactor;
             color = lerp(color, fogColor.rgb, fogFactor);
+            
+            
+            
             return float4(color, 1.0);
         }
         else

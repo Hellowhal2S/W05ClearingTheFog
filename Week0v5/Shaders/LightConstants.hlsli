@@ -1,3 +1,57 @@
+struct FConstantLightColor
+{
+    float3 Specular;
+    float _pad0;
+    
+    float3 Diffuse;
+    float _pad1;
+    
+    float3 Ambient;
+    float _pad2;
+};
+
+struct FConstantBufferLightDir
+{
+    FConstantLightColor Color;
+    float3 Direction;
+    float _pad0;
+};
+
+struct FConstantBufferLightPoint
+{
+    float4 Color;
+    float3 Position;
+    float _pad0;
+    
+    float Intensity;
+    float Radius;
+    float RadiusFallOff;
+    float _pad1;
+};
+
+struct FConstantBufferLightSpot
+{
+    FConstantLightColor Color;
+    float ConstantTerm;
+    float Linear;
+    float Quadratic;
+    float _pad0;
+    
+    float CutOff;
+    float OuterCutOff;
+    float _pad1;
+    float _pad2;
+};
+
+cbuffer ConstantBufferLights : register(b1)
+{
+    FConstantBufferLightDir DirLights[FCONSTANT_NUM_DIRLIGHT];
+    FConstantBufferLightPoint PointLights[FCONSTANT_NUM_POINTLIGHT];
+    FConstantBufferLightSpot SpotLights[FCONSTANT_NUM_SPOTLIGHT];
+    uint isLit;
+    int NumPointLights;
+}
+
 float3 CalculatePointLight(FConstantBufferLightPoint Light, float3 WorldPos, float3 Normal, float3 ViewDir, float3 DiffuseColor, float3 SpecularColor, float3 SpecularPower)
 {
     float3 LightDir = normalize(Light.Position - WorldPos);
@@ -16,55 +70,55 @@ float3 CalculatePointLight(FConstantBufferLightPoint Light, float3 WorldPos, flo
     return Diffuse + Specular;
 }
 
-float3 BlinnPhong(float3 lightStrength, float3 lightVec, float3 Normal,
-                   float3 toEye, Material mat)
-{
-    float3 Halfway = normalize(lightVec + toEye);
-    float HdotN = dot(Halfway, Normal);
-    float3 specular = mat.specular * pow(max(HdotN, 0.0f), mat.shininess);
+//float3 BlinnPhong(float3 lightStrength, float3 lightVec, float3 Normal,
+//                   float3 toEye, Material mat)
+//{
+//    float3 Halfway = normalize(lightVec + toEye);
+//    float HdotN = dot(Halfway, Normal);
+//    float3 specular = mat.specular * pow(max(HdotN, 0.0f), mat.shininess);
 
-    return mat.ambient + (mat.diffuse + specular) * lightStrength;
-}
+//    return mat.ambient + (mat.diffuse + specular) * lightStrength;
+//}
 
-float3 ComputeDirectionalLight(Light L, Material mat, float3 Normal, float3 toEye)
-{
-    // TODO:
-    float3 lightVec = -L.direction;
+//float3 ComputeDirectionalLight(Light L, Material mat, float3 Normal, float3 toEye)
+//{
+//    // TODO:
+//    float3 lightVec = -L.direction;
 
-    float3 NdotL = max(dot(lightVec, Normal), 0.0f);
+//    float3 NdotL = max(dot(lightVec, Normal), 0.0f);
 
-    float3 lightStrength = NdotL * L.strength;
-    return BlinnPhong(lightStrength, lightVec, Normal, toEye, mat);
-}
+//    float3 lightStrength = NdotL * L.strength;
+//    return BlinnPhong(lightStrength, lightVec, Normal, toEye, mat);
+//}
 
-float3 ComputeSpotLight(Light L, Material mat, float3 pos, float3 Normal, float3 toEye)
-{
-    float3 lightVec = L.position - pos;
+//float3 ComputeSpotLight(Light L, Material mat, float3 pos, float3 Normal, float3 toEye)
+//{
+//    float3 lightVec = L.position - pos;
 
-    // 쉐이딩할 지점부터 조명까지의 거리 계산
-    float Dist = length(lightVec);
+//    // 쉐이딩할 지점부터 조명까지의 거리 계산
+//    float Dist = length(lightVec);
 
-    // 너무 멀면 조명이 적용되지 않음
-    if (Dist > L.Radius)
-    {
-        return float3(0.0f, 0.0f, 0.0f);
-    }
-    else
-    {
-        lightVec /= Dist;
+//    // 너무 멀면 조명이 적용되지 않음
+//    if (Dist > L.Radius)
+//    {
+//        return float3(0.0f, 0.0f, 0.0f);
+//    }
+//    else
+//    {
+//        lightVec /= Dist;
         
-        float NdotL = max(dot(lightVec, Normal), 0.0);
-        float3 lightStrength = L.Intensity * NdotL;
+//        float NdotL = max(dot(lightVec, Normal), 0.0);
+//        float3 lightStrength = L.Intensity * NdotL;
         
-        float att = CalcAttenuation(d, L.fallOffStart, L.fallOffEnd);
-        lightStrength *= att;
+//        float att = CalcAttenuation(d, L.fallOffStart, L.fallOffEnd);
+//        lightStrength *= att;
         
-        float spotFactor = pow(max(dot(-lightVec, L.direction), 0.0), L.spotPower);
-        lightStrength *= spotFactor;
+//        float spotFactor = pow(max(dot(-lightVec, L.direction), 0.0), L.spotPower);
+//        lightStrength *= spotFactor;
 
-        return BlinnPhong(lightStrength, lightVec, Normal, toEye, mat);
-    }
+//        return BlinnPhong(lightStrength, lightVec, Normal, toEye, mat);
+//    }
     
-    // if에 else가 없을 경우 경고 발생
-    // warning X4000: use of potentially uninitialized variable
-}
+//    // if에 else가 없을 경우 경고 발생
+//    // warning X4000: use of potentially uninitialized variable
+//}

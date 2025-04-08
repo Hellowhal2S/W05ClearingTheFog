@@ -54,24 +54,6 @@ float4 PaperTexture(float3 originalColor)
     return float4(saturate(finalColor), 1.0);
 }
 
-float3 CalculatePointLight(FConstantBufferLightPoint Light, float3 WorldPos, float3 Normal, float3 ViewDir, float3 DiffuseColor, float3 SpecularColor, float3 SpecularPower)
-{
-    float3 LightDir = normalize(Light.Position - WorldPos);
-    float Distance = length(Light.Position - WorldPos);
-    if (Distance > Light.Radius)
-        return float3(0, 0, 0);
-    float NormalizedDistance = saturate(Distance / Light.Radius);
-    float RadiusAttenuation = 1.0 - NormalizedDistance * NormalizedDistance; // 부드러운 경계 추가
-    float DistanceAttenuation = 1.0f / (1.0f + Light.RadiusFallOff * Distance * Distance);
-    float Attenuation = RadiusAttenuation * DistanceAttenuation * Light.Intensity;
-    float Diff = max(dot(Normal, LightDir), 0.0f);
-    float3 Diffuse = Light.Color.rgb * Diff * DiffuseColor * Attenuation; // float3으로 수정
-    float3 ReflectDir = normalize(reflect(-LightDir, Normal));          // 눈으로 향하는 빛 반사 벡터
-    float Spec = pow(max(dot(ViewDir, ReflectDir), 0.0f), SpecularPower);
-    float3 Specular = Light.Color.rgb * SpecularColor * Spec * Attenuation;
-    return Diffuse + Specular;
-}
-
 PS_OUTPUT mainPS(PS_INPUT input)
 {
     PS_OUTPUT output;
@@ -97,55 +79,11 @@ PS_OUTPUT mainPS(PS_INPUT input)
         if (IsSelectedMesh)
             color = float3(1, 1, 1);
     }
-    
-    // 발광 색상 추가
-
-    if (isLit == 1) // 조명이 적용되는 경우
-    {
-        if (input.normalFlag > 0.5)
-        {
-            float3 N = normalize(input.normal);
-            float3 L = -normalize(DirLights[0].Direction); // point to lightsource
-            
-            // 기본 디퓨즈 계산
-            float diffuse = saturate(dot(N, L));
-            
-            // 스페큘러 계산 (간단한 Blinn-Phong)
-            float3 V = normalize(float3(CameraPos - input.worldPos)); // 카메라가 Z 방향을 향한다고 가정
-            float3 H = normalize(L + V);
-            float specular = pow(saturate(dot(N, H)), Material.SpecularScalar * 32) * Material.SpecularScalar;
-            
-            // 최종 라이팅 계산
-            float3 ambient = Material.AmbientColor * DirLights[0].Color.Ambient;
-            float3 diffuseLight = diffuse * DirLights[0].Color.Diffuse;
-            float3 specularLight = specular * Material.SpecularColor * DirLights[0].Color.Specular;
-            
-            color = ambient + (diffuseLight * color) + specularLight;
-            
-            // 포인트 라이트 계산 추가
-            for (int i = 0; i < NumPointLights; i++)
-            {
-                color += CalculatePointLight(PointLights[i], input.worldPos, N, V, Material.DiffuseColor, Material.SpecularColor, Material.SpecularScalar);
-            }
-        }
+ 
         
+    output.color = float4(color, 1);
         // 투명도 적용
-        color += Material.EmmisiveColor;
-        output.color = float4(color, Material.TransparencyScalar);
-        return output;
-    }
-    else // unlit 상태일 때 PaperTexture 효과 적용
-    {
-        if (input.normalFlag < 0.5)
-        {
-            output.color = float4(color, Material.TransparencyScalar);
-            return output;
-        }
-        
-        output.color = float4(color, 1);
-        // 투명도 적용
-        output.color.a = Material.TransparencyScalar;
+    output.color.a = Material.TransparencyScalar;
             
-        return output;
-    }
+    return output;
 }
