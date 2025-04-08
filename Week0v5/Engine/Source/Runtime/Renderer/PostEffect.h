@@ -8,14 +8,19 @@
 #include "Math/Matrix.h"
 
 class FGraphicsDevice;
-
-struct FPostEffectConstant
-{
-    // fog strength, fog color, inverse projection matrix... 등 추가 요망
-};
 class AExponentialHeightFog;
 namespace PostEffect
 {
+    struct ViewportConstants
+    {
+        float screenWidth;
+        float screenHeight;
+        float topLeftX;
+        float topLeftY;
+        float width;
+        float height;
+        FVector2D viewportPadding;
+    };
     struct FFogConstants
     {
         float depthStart = 0.0f;
@@ -24,8 +29,7 @@ namespace PostEffect
         float heightFalloff = 50.0f;
         float fogDensity = 0.1f;
         float heightDensity =0.3f;
-        int mode; // 0: Rendered image, 1: Normal, 2: DepthOnly, 3: WorldPos
-        bool fogEnabled;
+        FVector2D fogPadding;
         FVector4 fogColor  = { 1.0f,1.0f,1.0f,1.0f};
     };
     struct FCameraConstants
@@ -47,6 +51,12 @@ namespace PostEffect
         float spotPower;
         uint32 type;
         FVector dummy;
+    };
+    struct FPostEffectSettingConstants
+    {
+        int renderMode =0;// 0: Rendered image, 1: Normal, 2: DepthOnly, 3: WorldPos
+        bool fogEnabled =true;
+        FVector2D padding;
     };
     // Depth만 담는 Texture
     extern ID3D11RenderTargetView* DepthOnlyRTV;
@@ -82,9 +92,12 @@ namespace PostEffect
     extern ID3D11VertexShader* PostEffectVS;
     extern ID3D11PixelShader* PostEffectPS;
     extern ID3D11InputLayout* PostEffectInputLayout;
+    extern ID3D11Buffer* ViewportConstantBuffer;
     extern ID3D11Buffer* FogConstantBuffer;
     extern ID3D11Buffer* CameraConstantBuffer;
-
+    extern ID3D11Buffer* SettingConstantBuffer;
+    extern ID3D11Buffer* LightConstantBuffer;
+    
     extern ID3D11RenderTargetView* finalRTV;
     extern ID3D11Texture2D* finalTexture;
     
@@ -98,12 +111,17 @@ namespace PostEffect
     void InitDepthTextures(FGraphicsDevice * Graphics);
     void InitRenderTargetViews(FGraphicsDevice * Graphics);
     void Render(ID3D11DeviceContext*& DeviceContext, ID3D11ShaderResourceView*& ColorSRV);
+    void ClearRTV(ID3D11DeviceContext*& DeviceContext);
     void Release();
     void ReleaseRTVDepth();
+    void UpdateViewportConstantBuffer(ID3D11DeviceContext*& DeviceContext);
     void UpdateFogConstantBuffer(ID3D11DeviceContext*& DeviceContext, AExponentialHeightFog* newFog);
     void UpdateCameraConstantBuffer(ID3D11DeviceContext*& DeviceContext);
-    void CopyBackBufferToColorSRV(ID3D11DeviceContext*& DeviceContext, ID3D11Texture2D*& ColorTexture, ID3D11Texture2D*& FrameBuffer);
+    void UpdateSettingConstantBuffer(ID3D11DeviceContext*& DeviceContext);
 
+
+
+    void CopyBackBufferToColorSRV(ID3D11DeviceContext*& DeviceContext, ID3D11Texture2D*& ColorTexture, ID3D11Texture2D*& FrameBuffer);
     // Depth Stencil Buffer를 Depth Map Texture에 복사
     void CopyDepthBufferToDepthOnlySRV(ID3D11DeviceContext*& DeviceContext, ID3D11Texture2D*& SrcDepthTexture);
 

@@ -68,32 +68,37 @@ int32 UEditorEngine::Init(HWND hwnd)
 
 void UEditorEngine::Render()
 {
-    graphicDevice.Prepare();
     if (LevelEditor->IsMultiViewport())
     {
         std::shared_ptr<FEditorViewportClient> viewportClient = GetLevelEditor()->GetActiveViewportClient();
+        PostEffect::ClearRTV(graphicDevice.DeviceContext);
         for (int i = 0; i < 4; ++i)
         {
+            graphicDevice.Prepare();
             LevelEditor->SetViewportClient(i);
             RenderEngine.Render(GWorld,LevelEditor->GetActiveViewportClient());
+            // graphicDevice.DeviceContext->RSSetViewports(1, &LevelEditor->GetActiveViewportClient()->GetD3DViewport());
+
+            PostEffect::CopyBackBufferToColorSRV(graphicDevice.DeviceContext, graphicDevice.ColorTexture, graphicDevice.FrameBuffer);
+            PostEffect::CopyDepthBufferToDepthOnlySRV(graphicDevice.DeviceContext, graphicDevice.DepthStencilBuffer);
+            PostEffect::Render(graphicDevice.DeviceContext, graphicDevice.ColorSRV);
         }
         GetLevelEditor()->SetViewportClient(viewportClient);
     }   
     else
     {
+        graphicDevice.Prepare();
         RenderEngine.Render(GWorld,LevelEditor->GetActiveViewportClient());
+        PostEffect::CopyBackBufferToColorSRV(graphicDevice.DeviceContext, graphicDevice.ColorTexture, graphicDevice.FrameBuffer);
+        PostEffect::CopyDepthBufferToDepthOnlySRV(graphicDevice.DeviceContext, graphicDevice.DepthStencilBuffer);
+        PostEffect::Render(graphicDevice.DeviceContext, graphicDevice.ColorSRV);
     }
 
     // OMSEtrender - depth용 pass
 
 
     // 화면에 그려진 백버퍼의 내용을 SRV로 쓰기 위해 ColorTexture에 복사
-    //graphicDevice.DeviceContext->ClearRenderTargetView(graphicDevice.FrameBufferRTV, graphicDevice.ClearColor);
-    PostEffect::CopyBackBufferToColorSRV(graphicDevice.DeviceContext, graphicDevice.ColorTexture, graphicDevice.FrameBuffer);
-    PostEffect::CopyDepthBufferToDepthOnlySRV(graphicDevice.DeviceContext, graphicDevice.DepthStencilBuffer);
 
-    //graphicDevice.DeviceContext->ClearRenderTargetView(graphicDevice.FrameBufferRTV, graphicDevice.ClearColor); // 비동기이므로 위험함
-    PostEffect::Render(graphicDevice.DeviceContext, graphicDevice.ColorSRV);
 
     if (LevelEditor->IsMultiViewport())
     {
@@ -102,6 +107,7 @@ void UEditorEngine::Render()
         {
             LevelEditor->SetViewportClient(i);
             RenderEngine.RenderDebug(GWorld, LevelEditor->GetActiveViewportClient());
+
         }
         GetLevelEditor()->SetViewportClient(viewportClient);
     }

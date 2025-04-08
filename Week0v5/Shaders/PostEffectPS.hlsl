@@ -30,11 +30,15 @@ cbuffer FogConstants : register(b11)
     float heightFalloff;
     float fogDensity;
     float heightDensity;
-    int mode; // 1: Rendered image, 2: DepthOnly
-    bool fogEnabled;
+    float2 padding;
     float4 fogColor;
 };
-
+cbuffer SettingConstants : register(b2)
+{
+    int renderMode;
+    bool fogEnabled;
+    float2 settingPadding;
+};
 
 struct SamplingPixelShaderInput
 {
@@ -69,29 +73,30 @@ float LinearizeAndNormalizeDepth(float z_buffer, float nearZ, float farZ)
 
 float4 mainPS(SamplingPixelShaderInput input) : SV_TARGET
 {
-    float2 EncodedNormal = g_worldNormalTex.Sample(g_Sampler, input.texcoord).rg;
-    float3 normal = DecodeNormalOctahedral(EncodedNormal);
-    
-    if (mode ==1)
-    {
-        return float4(normal, 1.0f);
-    }
-    else if (mode == 2)
+    //return float4(1.0f, 0.0f, 0.0f, 1.0f); // TODO: 수정 필요)
+    //return float4(renderTex.Sample(Sampler, input.texcoord).rgb,1.0f);
+
+    if (renderMode == 3)
     {
         float depth = g_depthOnlyTex.Sample(g_Sampler, input.texcoord).r;
         depth = LinearizeAndNormalizeDepth(depth, 0.1f, 100.0f);
         
         return float4(depth.rrr, 1.0f);
     }
-    else if (mode == 3)
+    else if (renderMode ==4)
     {
-        return float4(g_worldPosTex.Sample(g_Sampler, input.texcoord).rgb, 1.0f);
+        return float4(g_worldNormalTex.Sample(g_Sampler, input.texcoord).rgb,1.0f);
     }
-    else if (mode == 4)
+    else if (renderMode == 5)
+    {
+        float3 normalWorldPos = normalize(g_worldPosTex.Sample(g_Sampler, input.texcoord).rgb);
+        return float4( normalWorldPos,1.0f);
+    }
+    else if (renderMode == 6)
     {
         return float4(g_albedoTex.Sample(g_Sampler, input.texcoord).rgb, 1.0f);
     }
-    else if (mode == 5)
+    else if (renderMode == 7)
     {
         return float4(g_specularTex.Sample(g_Sampler, input.texcoord).rgb, 1.0f);
     }
