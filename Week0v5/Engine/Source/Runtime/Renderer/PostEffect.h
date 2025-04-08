@@ -11,6 +11,16 @@ class FGraphicsDevice;
 class AExponentialHeightFog;
 namespace PostEffect
 {
+    struct ViewportConstants
+    {
+        float screenWidth;
+        float screenHeight;
+        float topLeftX;
+        float topLeftY;
+        float width;
+        float height;
+        FVector2D viewportPadding;
+    };
     struct FFogConstants
     {
         float depthStart = 0.0f;
@@ -72,6 +82,7 @@ namespace PostEffect
     extern ID3D11VertexShader* PostEffectVS;
     extern ID3D11PixelShader* PostEffectPS;
     extern ID3D11InputLayout* PostEffectInputLayout;
+    extern ID3D11Buffer* ViewportConstantBuffer;
     extern ID3D11Buffer* FogConstantBuffer;
     extern ID3D11Buffer* CameraConstantBuffer;
     extern ID3D11Buffer* SettingConstantBuffer;
@@ -93,6 +104,7 @@ namespace PostEffect
     void ClearRTV(ID3D11DeviceContext*& DeviceContext);
     void Release();
     void ReleaseRTVDepth();
+    void UpdateViewportConstantBuffer(ID3D11DeviceContext*& DeviceContext);
     void UpdateFogConstantBuffer(ID3D11DeviceContext*& DeviceContext, AExponentialHeightFog* newFog);
     void UpdateCameraConstantBuffer(ID3D11DeviceContext*& DeviceContext);
     void UpdateSettingConstantBuffer(ID3D11DeviceContext*& DeviceContext);
