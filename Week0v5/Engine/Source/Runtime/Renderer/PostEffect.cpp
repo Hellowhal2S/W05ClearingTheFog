@@ -352,7 +352,7 @@ void PostEffect::UpdateFogConstantBuffer(ID3D11DeviceContext*& DeviceContext, AE
             constants->fogColor =  newFog->GetFogComponent()->GetFogColor();
             constants->fogEnabled = static_cast<bool>(GEngine->GetWorld()->Fog);
         }
-        constants->mode = renderMode; // TODO : 분리 요망 
+        constants->mode = renderMode;  // TODO : 분리 요망 
     }
     DeviceContext->Unmap(FogConstantBuffer, 0);
 }
