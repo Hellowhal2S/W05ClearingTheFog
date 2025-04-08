@@ -1,49 +1,42 @@
 #include "FireBallComponent.h"
 
-#include "UObject/ObjectFactory.h"
 
-UFireBallComponent::UFireBallComponent()
+UPointlightComponent::UPointlightComponent()
 {
-    SetType(StaticClass()->GetName());
     Intensity = 1000.0f;
     Radius = 500.0f;
     RadiusFallOff = 2.0f;
     Color = FLinearColor::Red;
 }
 
-UFireBallComponent::~UFireBallComponent()
+UPointlightComponent::~UPointlightComponent()
 {
 }
 
-UFireBallComponent::UFireBallComponent(const UFireBallComponent& other) : UPrimitiveComponent(other),
-Intensity(other.Intensity), Radius(other.Radius), RadiusFallOff(other.RadiusFallOff), Color(other.Color)
-{
-}
-
-void UFireBallComponent::InitializeComponent()
+void UPointlightComponent::InitializeComponent()
 {
     Super::InitializeComponent();
 }
 
-void UFireBallComponent::TickComponent(float DeltaTime)
+void UPointlightComponent::TickComponent(float DeltaTime)
 {
     Super::TickComponent(DeltaTime);
 }
 
-UObject* UFireBallComponent::Duplicate() const
+UObject* UPointlightComponent::Duplicate() const
 {
-    UFireBallComponent* ClonedActor = FObjectFactory::ConstructObjectFrom<UFireBallComponent>(this);
+    UPointlightComponent* ClonedActor = FObjectFactory::ConstructObjectFrom<UPointlightComponent>(this);
     ClonedActor->DuplicateSubObjects(this);
     ClonedActor->PostDuplicate();
     return ClonedActor;
 }
 
-void UFireBallComponent::DuplicateSubObjects(const UObject* Source)
+void UPointlightComponent::DuplicateSubObjects(const UObject* Source)
 {
-    UPrimitiveComponent::DuplicateSubObjects(Source);
+    Super::DuplicateSubObjects(Source);
 }
 
-void UFireBallComponent::PostDuplicate()
+void UPointlightComponent::PostDuplicate()
 {
-    UPrimitiveComponent::PostDuplicate();
+    Super::PostDuplicate();
 }

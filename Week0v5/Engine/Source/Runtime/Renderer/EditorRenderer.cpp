@@ -703,11 +703,11 @@ void FEditorRenderer::RenderPointlightInstanced(const UWorld* World)
     {
         // Fireball 합치면 헤더랑 여기 풀기
         
-        if (UFireBallComponent* FireBallComp = Cast<UFireBallComponent>(PrimComp))
+        if (UPointlightComponent* FireBallComp = Cast<UPointlightComponent>(PrimComp))
         {
             FConstantBufferDebugSphere b;
             b.Position = FireBallComp->GetComponentLocation();
-            b.Radius = FireBallComp->Radius;
+            b.Radius = FireBallComp->GetRadius();
             BufferAll.Add(b);
         }
 
@@ -776,14 +776,17 @@ void FEditorRenderer::RenderSpotlightInstanced(const UWorld* World)
     // 위치랑 bounding box 크기 정보 가져오기
     TArray<FConstantBufferDebugCone> BufferAll;
     for (ULightComponentBase* LightComp : Resources.Components.LightObjs)
-        //for (UPrimitiveComponent* StaticComp : Resources.Components.PrimitiveObjs)
     {
-        FConstantBufferDebugCone b;
-        b.ApexPosiiton = LightComp->GetComponentLocation();
-        b.Radius = LightComp->GetRadius();
-        b.Height = 10.f;
-        b.Direction = LightComp->GetUpVector();
-        BufferAll.Add(b);
+        if (USpotLightComponent* SpotComp = Cast< USpotLightComponent>(LightComp))
+        {
+            FConstantBufferDebugCone b;
+            b.ApexPosiiton = LightComp->GetComponentLocation();
+            b.Radius = LightComp->
+            b.Height = 10.f;
+            b.Direction = LightComp->();
+            BufferAll.Add(b);
+
+        }
     }
 
     int BufferIndex = 0;

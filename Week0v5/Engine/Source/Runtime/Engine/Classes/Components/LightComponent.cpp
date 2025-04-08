@@ -2,61 +2,133 @@
 #include "UBillboardComponent.h"
 #include "Math/JungleMath.h"
 #include "UnrealEd/PrimitiveBatch.h"
+#include "UObject/ObjectFactory.h"
 
-ULightComponentBase::ULightComponentBase()
-{
-    // FString name = "SpotLight";
-    // SetName(name);
-    InitializeLight();
-}
 
 ULightComponentBase::~ULightComponentBase()
 {
-    delete texture2D;
-}
-void ULightComponentBase::SetColor(FVector4 newColor)
-{
-    color = newColor;
-}
-
-FVector4 ULightComponentBase::GetColor() const
-{
-    return color;
-}
-
-float ULightComponentBase::GetRadius() const
-{
-    return radius;
-}
-
-void ULightComponentBase::SetRadius(float r)
-{
-    radius = r;
-}
-
-void ULightComponentBase::InitializeLight()
-{
-    texture2D = new UBillboardComponent();
-    texture2D->SetTexture(L"Assets/Texture/spotLight.png");
-    texture2D->InitializeComponent();
-    AABB.max = { 1.f,1.f,0.1f };
-    AABB.min = { -1.f,-1.f,-0.1f };
-    color = { 1,1,1,1 };
-    radius = 5;
 }
 
 void ULightComponentBase::TickComponent(float DeltaTime)
 {
     Super::TickComponent(DeltaTime);
-
-    texture2D->TickComponent(DeltaTime);
-    texture2D->SetRelativeLocation(GetComponentLocation());
-
 }
 
-int ULightComponentBase::CheckRayIntersection(FVector& rayOrigin, FVector& rayDirection, float& pfNearHitDistance)
+//////////////////////////////////
+// PointLight
+
+UPointlightComponent::UPointlightComponent()
 {
-    bool res =AABB.Intersect(rayOrigin, rayDirection, pfNearHitDistance);
-    return res;
 }
 
+UPointlightComponent::~UPointlightComponent()
+{
+}
+
+void UPointlightComponent::InitializeComponent()
+{
+    Super::InitializeComponent();
+}
+
+void UPointlightComponent::TickComponent(float DeltaTime)
+{
+    Super::TickComponent(DeltaTime);
+}
+
+UObject* UPointlightComponent::Duplicate() const
+{
+    UPointlightComponent* ClonedActor = FObjectFactory::ConstructObjectFrom<UPointlightComponent>(this);
+    ClonedActor->DuplicateSubObjects(this);
+    ClonedActor->PostDuplicate();
+    return ClonedActor;
+}
+
+void UPointlightComponent::DuplicateSubObjects(const UObject* Source)
+{
+    Super::DuplicateSubObjects(Source);
+}
+
+void UPointlightComponent::PostDuplicate()
+{
+    Super::PostDuplicate();
+}
+
+
+//////////////////////////////////
+// DirectionalLight
+
+UDirectionalLightComponent::UDirectionalLightComponent()
+{
+}
+
+UDirectionalLightComponent::~UDirectionalLightComponent()
+{
+}
+
+void UDirectionalLightComponent::InitializeComponent()
+{
+    Super::InitializeComponent();
+}
+
+void UDirectionalLightComponent::TickComponent(float DeltaTime)
+{
+    Super::TickComponent(DeltaTime);
+}
+
+UObject* UDirectionalLightComponent::Duplicate() const
+{
+    UDirectionalLightComponent* ClonedActor = FObjectFactory::ConstructObjectFrom<UDirectionalLightComponent>(this);
+    ClonedActor->DuplicateSubObjects(this);
+    ClonedActor->PostDuplicate();
+    return ClonedActor;
+}
+
+void UDirectionalLightComponent::DuplicateSubObjects(const UObject* Source)
+{
+    Super::DuplicateSubObjects(Source);
+}
+
+void UDirectionalLightComponent::PostDuplicate()
+{
+    Super::PostDuplicate();
+}
+
+
+//////////////////////////////////
+// SpotLight
+
+USpotLightComponent::USpotLightComponent()
+{
+}
+
+USpotLightComponent::~USpotLightComponent()
+{
+}
+
+void USpotLightComponent::InitializeComponent()
+{
+    Super::InitializeComponent();
+}
+
+void USpotLightComponent::TickComponent(float DeltaTime)
+{
+    Super::TickComponent(DeltaTime);
+}
+
+UObject* USpotLightComponent::Duplicate() const
+{
+    USpotLightComponent* ClonedActor = FObjectFactory::ConstructObjectFrom<USpotLightComponent>(this);
+    ClonedActor->DuplicateSubObjects(this);
+    ClonedActor->PostDuplicate();
+    return ClonedActor;
+}
+
+void USpotLightComponent::DuplicateSubObjects(const UObject* Source)
+{
+    Super::DuplicateSubObjects(Source);
+}
+
+void USpotLightComponent::PostDuplicate()
+{
+    Super::PostDuplicate();
+}

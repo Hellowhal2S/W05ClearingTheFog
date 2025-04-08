@@ -136,7 +136,7 @@ void PropertyEditorPanel::Render()
                 }
                 if (ImGui::Selectable("FireBallComponent"))
                 {
-                    UFireBallComponent* FireBallComponent = PickedActor->AddComponent<UFireBallComponent>();
+                    UPointlightComponent* FireBallComponent = PickedActor->AddComponent<UPointlightComponent>();
                     PickedComponent = FireBallComponent;
                 }
                 if (ImGui::Selectable("ProjectileMovementComponent"))
@@ -235,7 +235,7 @@ void PropertyEditorPanel::Render()
         bFirstFrame = false;
     }
 
-    if (PickedActor && PickedComponent && PickedComponent->IsA<UFireBallComponent>())
+    if (PickedActor && PickedComponent && PickedComponent->IsA<UPointlightComponent>())
     {
         ImGui::SetItemDefaultFocus();
         ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
@@ -244,15 +244,18 @@ void PropertyEditorPanel::Render()
             LastComponent = PickedComponent;
             bFirstFrame = true;
         }
-        UFireBallComponent* FireBallComp = Cast<UFireBallComponent>(PickedComponent);
+        UPointlightComponent* FireBallComp = Cast<UPointlightComponent>(PickedComponent);
         if (FireBallComp)
         {
             if (ImGui::CollapsingHeader("Fire Ball Settings", ImGuiTreeNodeFlags_DefaultOpen))
             {
-                ImGui::DragFloat("Intensity", &FireBallComp->Intensity, 0.1f, 0.0f, 1000.0f, "%.2f");
-                ImGui::DragFloat("Radius", &FireBallComp->Radius, 1.0f, 0.0f, 5000.0f, "%.0f");
-                ImGui::DragFloat("Falloff", &FireBallComp->RadiusFallOff, 0.05f, 0.01f, 10.0f, "%.2f");
-                FLinearColor& Color = FireBallComp->Color;
+                float Intensity = FireBallComp->GetIntensity();
+                float Radius = FireBallComp->GetRadius();
+                float RadiusFallOff = FireBallComp->GetRadiusFallOff();
+                ImGui::DragFloat("Intensity", &Intensity, 0.1f, 0.0f, 1000.0f, "%.2f");
+                ImGui::DragFloat("Radius", &Radius, 1.0f, 0.0f, 5000.0f, "%.0f");
+                ImGui::DragFloat("Falloff", &RadiusFallOff, 0.05f, 0.01f, 10.0f, "%.2f");
+                FLinearColor Color = FireBallComp->GetColor();
                 float colorArray[4] = { Color.R, Color.G, Color.B, Color.A };
                 if (ImGui::ColorEdit4("Color", colorArray, ImGuiColorEditFlags_Float))
                 {
@@ -261,87 +264,92 @@ void PropertyEditorPanel::Render()
                     Color.B = colorArray[2];
                     Color.A = colorArray[3];
                 }
+
+                FireBallComp->SetIntensity(Intensity);
+                FireBallComp->SetRadius(Radius);
+                FireBallComp->SetRadiusFallOff(RadiusFallOff);
+                FireBallComp->SetColor({ colorArray[0], colorArray[1], colorArray[2], colorArray[3] });
             }
         }
         ImGui::PopStyleColor();
     }
 
-    if (PickedActor && PickedComponent && PickedComponent->IsA<ULightComponentBase>())
-    {
-        ULightComponentBase* lightObj = Cast<ULightComponentBase>(PickedComponent);
-        ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
-        if (ImGui::TreeNodeEx("SpotLight Component", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) // 트리 노드 생성
-        {
-            FVector4 currColor = lightObj->GetColor();
+    //if (PickedActor && PickedComponent && PickedComponent->IsA<ULightComponentBase>())
+    //{
+    //    ULightComponentBase* lightObj = Cast<ULightComponentBase>(PickedComponent);
+    //    ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
+    //    if (ImGui::TreeNodeEx("SpotLight Component", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) // 트리 노드 생성
+    //    {
+    //        FVector4 currColor = lightObj->GetColor();
 
-            float r = currColor.x;
-            float g = currColor.y;
-            float b = currColor.z;
-            float a = currColor.w;
-            float h, s, v;
-            float lightColor[4] = { r, g, b, a };
+    //        float r = currColor.x;
+    //        float g = currColor.y;
+    //        float b = currColor.z;
+    //        float a = currColor.w;
+    //        float h, s, v;
+    //        float lightColor[4] = { r, g, b, a };
 
-            // SpotLight Color
-            if (ImGui::ColorPicker4("##SpotLight Color", lightColor,
-                ImGuiColorEditFlags_DisplayRGB |
-                ImGuiColorEditFlags_NoSidePreview |
-                ImGuiColorEditFlags_NoInputs |
-                ImGuiColorEditFlags_Float))
+    //        // SpotLight Color
+    //        if (ImGui::ColorPicker4("##SpotLight Color", lightColor,
+    //            ImGuiColorEditFlags_DisplayRGB |
+    //            ImGuiColorEditFlags_NoSidePreview |
+    //            ImGuiColorEditFlags_NoInputs |
+    //            ImGuiColorEditFlags_Float))
 
-            {
+    //        {
 
-                r = lightColor[0];
-                g = lightColor[1];
-                b = lightColor[2];
-                a = lightColor[3];
-                lightObj->SetColor(FVector4(r, g, b, a));
-            }
-            RGBToHSV(r, g, b, h, s, v);
-            // RGB/HSV
-            bool changedRGB = false;
-            bool changedHSV = false;
+    //            r = lightColor[0];
+    //            g = lightColor[1];
+    //            b = lightColor[2];
+    //            a = lightColor[3];
+    //            lightObj->SetColor(FVector4(r, g, b, a));
+    //        }
+    //        RGBToHSV(r, g, b, h, s, v);
+    //        // RGB/HSV
+    //        bool changedRGB = false;
+    //        bool changedHSV = false;
 
-            // RGB
-            ImGui::PushItemWidth(50.0f);
-            if (ImGui::DragFloat("R##R", &r, 0.001f, 0.f, 1.f)) changedRGB = true;
-            ImGui::SameLine();
-            if (ImGui::DragFloat("G##G", &g, 0.001f, 0.f, 1.f)) changedRGB = true;
-            ImGui::SameLine();
-            if (ImGui::DragFloat("B##B", &b, 0.001f, 0.f, 1.f)) changedRGB = true;
-            ImGui::Spacing();
-            
-            // HSV
-            if (ImGui::DragFloat("H##H", &h, 0.1f, 0.f, 360)) changedHSV = true;
-            ImGui::SameLine();
-            if (ImGui::DragFloat("S##S", &s, 0.001f, 0.f, 1)) changedHSV = true;
-            ImGui::SameLine();
-            if (ImGui::DragFloat("V##V", &v, 0.001f, 0.f, 1)) changedHSV = true;
-            ImGui::PopItemWidth();
-            ImGui::Spacing();
-            
-            if (changedRGB && !changedHSV)
-            {
-                // RGB -> HSV
-                RGBToHSV(r, g, b, h, s, v);
-                lightObj->SetColor(FVector4(r, g, b, a));
-            }
-            else if (changedHSV && !changedRGB)
-            {
-                // HSV -> RGB
-                HSVToRGB(h, s, v, r, g, b);
-                lightObj->SetColor(FVector4(r, g, b, a));
-            }
+    //        // RGB
+    //        ImGui::PushItemWidth(50.0f);
+    //        if (ImGui::DragFloat("R##R", &r, 0.001f, 0.f, 1.f)) changedRGB = true;
+    //        ImGui::SameLine();
+    //        if (ImGui::DragFloat("G##G", &g, 0.001f, 0.f, 1.f)) changedRGB = true;
+    //        ImGui::SameLine();
+    //        if (ImGui::DragFloat("B##B", &b, 0.001f, 0.f, 1.f)) changedRGB = true;
+    //        ImGui::Spacing();
+    //        
+    //        // HSV
+    //        if (ImGui::DragFloat("H##H", &h, 0.1f, 0.f, 360)) changedHSV = true;
+    //        ImGui::SameLine();
+    //        if (ImGui::DragFloat("S##S", &s, 0.001f, 0.f, 1)) changedHSV = true;
+    //        ImGui::SameLine();
+    //        if (ImGui::DragFloat("V##V", &v, 0.001f, 0.f, 1)) changedHSV = true;
+    //        ImGui::PopItemWidth();
+    //        ImGui::Spacing();
+    //        
+    //        if (changedRGB && !changedHSV)
+    //        {
+    //            // RGB -> HSV
+    //            RGBToHSV(r, g, b, h, s, v);
+    //            lightObj->SetColor(FVector4(r, g, b, a));
+    //        }
+    //        else if (changedHSV && !changedRGB)
+    //        {
+    //            // HSV -> RGB
+    //            HSVToRGB(h, s, v, r, g, b);
+    //            lightObj->SetColor(FVector4(r, g, b, a));
+    //        }
 
-            // Light Radius
-            float radiusVal = lightObj->GetRadius();
-            if (ImGui::SliderFloat("Radius", &radiusVal, 1.0f, 100.0f))
-            {
-                lightObj->SetRadius(radiusVal);
-            }
-            ImGui::TreePop();
-        }
-        ImGui::PopStyleColor();
-    }
+    //        // Light Radius
+    //        float radiusVal = lightObj->GetRadius();
+    //        if (ImGui::SliderFloat("Radius", &radiusVal, 1.0f, 100.0f))
+    //        {
+    //            lightObj->SetRadius(radiusVal);
+    //        }
+    //        ImGui::TreePop();
+    //    }
+    //    ImGui::PopStyleColor();
+    //}
 
     // TODO: 추후에 RTTI를 이용해서 프로퍼티 출력하기
     if (PickedActor && PickedComponent && PickedComponent->IsA<UText>())

@@ -935,7 +935,7 @@ void FRenderer::PreparePrimitives()
     {
         for (const auto iter : TObjectRange<USceneComponent>())
         {
-                if (UFireBallComponent* pFireBallComp = Cast<UFireBallComponent>(iter))
+                if (UPointlightComponent* pFireBallComp = Cast<UPointlightComponent>(iter))
                 {
                     RenderResources.Components.FireBallObjs.Add(pFireBallComp);
                 }
@@ -966,7 +966,7 @@ void FRenderer::PreparePrimitives()
             
             for (const auto iter2 : iter->GetComponents())
             {
-                if (UFireBallComponent* pFireBallComp = Cast<UFireBallComponent>(iter2))
+                if (UPointlightComponent* pFireBallComp = Cast<UPointlightComponent>(iter2))
                 {
                     RenderResources.Components.FireBallObjs.Add(pFireBallComp);
                 }
@@ -1022,7 +1022,7 @@ void FRenderer::Render(UWorld* World, std::shared_ptr<FEditorViewportClient> Act
     buf.isLit = litFlag;
 
     int32 LightIndex = 0;
-    for (UFireBallComponent* FireBallComp : RenderResources.Components.FireBallObjs)
+    for (UPointlightComponent* FireBallComp : RenderResources.Components.FireBallObjs)
     {
         if (LightIndex >= MACRO_FCONSTANT_NUM_MAX_POINTLIGHT)
             break;
