@@ -62,7 +62,7 @@ float3 CalculatePointLight(FConstantBufferLightPoint Light, float3 WorldPos, flo
     float Attenuation = RadiusAttenuation * DistanceAttenuation * Light.Intensity;
     float Diff = max(dot(Normal, LightDir), 0.0f);
     float3 Diffuse = Light.Color.rgb * Diff * DiffuseColor * Attenuation; // float3으로 수정
-    float3 ReflectDir = normalize(reflect(-LightDir, Normal));
+    float3 ReflectDir = normalize(reflect(-LightDir, Normal));          // 눈으로 향하는 빛 반사 벡터
     float Spec = pow(max(dot(ViewDir, ReflectDir), 0.0f), SpecularPower);
     float3 Specular = Light.Color.rgb * SpecularColor * Spec * Attenuation;
     return Diffuse + Specular;
