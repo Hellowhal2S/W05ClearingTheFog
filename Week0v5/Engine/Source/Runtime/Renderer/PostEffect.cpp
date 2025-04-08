@@ -292,7 +292,7 @@ void PostEffect::Render(ID3D11DeviceContext*& DeviceContext, ID3D11ShaderResourc
 
 void PostEffect::Release()
 {
-    ReleaseRTVDepth();
+    ReleaseRTVDepth();     
 
     SAFE_RELEASE(PostEffectSRV);                    // 원본 Color SRV
 
