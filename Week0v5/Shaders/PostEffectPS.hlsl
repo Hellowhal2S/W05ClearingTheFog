@@ -101,26 +101,18 @@ float4 mainPS(SamplingPixelShaderInput input) : SV_TARGET
         if (isLit == 1)
         {
             float3 color = float3(0.0f, 0.0f, 0.0f);
+            float3 normal = normalize(g_worldNormalTex.Sample(g_Sampler, input.texcoord).rgb);
             
             
             
             float3 materialDiffuseColor = g_albedoTex.Sample(g_Sampler, input.texcoord).rgb;
             float3 materialSpecularColor = g_specularTex.Sample(g_Sampler, input.texcoord).rgb;
             float3 worldPos = g_worldPosTex.Sample(g_Sampler, input.texcoord).rgb;
-
-            float lightDirection = -normalize(DirLights[0].Direction);
-            float diffuse = saturate(dot(normal, lightDirection));
             float materialSpecularScalar = g_specularTex.Sample(g_Sampler, input.texcoord).a;
-                
             float3 viewDirection = normalize(float3(eyeWorld - worldPos));
-            float3 halfVector = normalize(lightDirection + viewDirection);
-            float specular = pow(saturate(dot(normal, halfVector)), materialSpecularScalar * 32) * materialSpecularScalar;
-                
-            float3 diffuseLight = diffuse + DirLights[0].Color.Diffuse;
-            float3 specularLight = specular + materialSpecularColor * DirLights[0].Color.Specular;
-                
-            color = diffuseLight * color + specularLight;
 
+            color += CalculateDirectionLight(DirLights[0], worldPos, normal, viewDirection, materialDiffuseColor, materialSpecularColor, materialSpecularScalar);
+            
             for (int i = 0; i < NumPointLights; i++)
             {
                 color += CalculatePointLight(PointLights[i], worldPos, normal, viewDirection, materialDiffuseColor, materialSpecularColor, materialSpecularScalar);

@@ -52,7 +52,7 @@ cbuffer ConstantBufferLights : register(b1)
     int NumPointLights;
 }
 
-float3 CalculatePointLight(FConstantBufferLightPoint Light, float3 WorldPos, float3 Normal, float3 ViewDir, float3 DiffuseColor, float3 SpecularColor, float3 SpecularPower)
+float3 CalculatePointLight(FConstantBufferLightPoint Light, float3 WorldPos, float3 Normal, float3 ViewDir, float3 DiffuseColor, float3 SpecularColor, float SpecularScalar)
 {
     float3 LightDir = normalize(Light.Position - WorldPos);
     float Distance = length(Light.Position - WorldPos);
@@ -65,9 +65,25 @@ float3 CalculatePointLight(FConstantBufferLightPoint Light, float3 WorldPos, flo
     float Diff = max(dot(Normal, LightDir), 0.0f);
     float3 Diffuse = Light.Color.rgb * Diff * DiffuseColor * Attenuation; // float3으로 수정
     float3 ReflectDir = normalize(reflect(-LightDir, Normal)); // 눈으로 향하는 빛 반사 벡터
-    float Spec = pow(max(dot(ViewDir, ReflectDir), 0.0f), SpecularPower);
+    float Spec = pow(max(dot(ViewDir, ReflectDir), 0.0f), SpecularScalar);
     float3 Specular = Light.Color.rgb * SpecularColor * Spec * Attenuation;
     return Diffuse + Specular;
+}
+
+float3 CalculateDirectionLight(FConstantBufferLightDir Light, float3 WorldPos, float3 Normal, float3 ViewDir, float3 DiffuseColor, float3 SpecularColor, float SpecularScalar)
+{
+    float3 color = float3(0, 0, 0);
+    float LightDir = -normalize(DirLights[0].Direction);
+    float diffuse = max(dot(Normal, LightDir), 0);
+
+    float3 halfVector = normalize(LightDir + ViewDir);
+    float specular = pow(max(dot(Normal, LightDir), 0), SpecularScalar);
+                
+    float3 diffuseLight = diffuse + DirLights[0].Color.Diffuse;
+    float3 specularLight = specular * SpecularColor;
+                
+    color = (diffuseLight * DiffuseColor + specularLight);
+    return color;
 }
 
 //float3 BlinnPhong(float3 lightStrength, float3 lightVec, float3 Normal,

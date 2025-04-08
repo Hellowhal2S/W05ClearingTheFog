@@ -1014,11 +1014,9 @@ void FRenderer::Render(UWorld* World, std::shared_ptr<FEditorViewportClient> Act
     if (!RenderResources.ConstantBuffers.StaticMesh.Light01) return;
     FConstantBufferLights buf;
     buf.DirLights[0].Color.Ambient = FVector(1.0f, 1.0f, 1.0f) * 0.06f;
-    buf.DirLights[0].Color.Diffuse = FVector(1.0f, 1.0f, 1.0f) * 0.06f;
-    buf.DirLights[0].Color.Specular = FVector(1.0f, 1.0f, 1.0f) * 0.06f;
-    static float time = 0;
-    time += 0.1;
-    buf.DirLights[0].Direction = FVector(sin(time), cos(time), -10.0f).Normalize();
+    buf.DirLights[0].Color.Diffuse = FVector(1.0f, 1.0f, 1.0f) * 0.5f;
+    buf.DirLights[0].Color.Specular = FVector(1.0f, 1.0f, 1.0f) * 0.f;
+    buf.DirLights[0].Direction = FVector(0.f, 0.f, -1.f).Normalize();
     buf.isLit = litFlag;
 
     int32 LightIndex = 0;
