@@ -208,104 +208,34 @@ void PostEffect::InitRenderTargetViews(FGraphicsDevice* Graphics)
 {
     Graphics->SwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&finalTexture);
 
-    D3D11_RENDER_TARGET_VIEW_DESC rtvDesc = {};
-    rtvDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;
-    rtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
-    
-    HRESULT hr = Graphics->Device->CreateRenderTargetView(finalTexture, &rtvDesc, &finalRTV);
+    D3D11_RENDER_TARGET_VIEW_DESC finalRTVDesc = {};
+    finalRTVDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;
+    finalRTVDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+
+    HRESULT hr = Graphics->Device->CreateRenderTargetView(finalTexture, &finalRTVDesc, &finalRTV);
     if (FAILED(hr))
     {
         OutputDebugString(L"Failed to create finalRTV in InitRenderTargetViews\n");
-        // 실패시 생성한 텍스처 릴리즈 필요
         finalTexture->Release();
         finalTexture = nullptr;
         return;
     }
 
-#pragma region World Position Texture
-    D3D11_TEXTURE2D_DESC worldPosTexDesc = {};
-    worldPosTexDesc.Width = Graphics->screenWidth;
-    worldPosTexDesc.Height = Graphics->screenHeight;
-    worldPosTexDesc.MipLevels = 1;
-    worldPosTexDesc.ArraySize = 1;
-    worldPosTexDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT; // World position: float4
-    worldPosTexDesc.SampleDesc.Count = 1;
-    worldPosTexDesc.Usage = D3D11_USAGE_DEFAULT;
-    worldPosTexDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
-
-    hr = Graphics->Device->CreateTexture2D(&worldPosTexDesc, nullptr, &WorldPosTexture);
-    if (FAILED(hr))
+    // World Position Render Target 생성
+    if (!CreateRenderTargetResources(Graphics->Device, Graphics->screenWidth, Graphics->screenHeight,
+        DXGI_FORMAT_R32G32B32A32_FLOAT, &WorldPosTexture, &WorldPosRTV, &WorldPosSRV))
     {
-        OutputDebugString(L"Failed to create WorldPosTexture in InitWorldPosRenderTarget\n");
+        OutputDebugString(L"Failed to create World Position render target resources\n");
         return;
     }
 
-    // World Position RTV 생성
-    D3D11_RENDER_TARGET_VIEW_DESC worldPosRTVDesc = {};
-    worldPosRTVDesc.Format = worldPosTexDesc.Format;
-    worldPosRTVDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
-
-    hr = Graphics->Device->CreateRenderTargetView(WorldPosTexture, &worldPosRTVDesc, &WorldPosRTV);
-    if (FAILED(hr))
+    // World Normal Render Target 생성
+    if (!CreateRenderTargetResources(Graphics->Device, Graphics->screenWidth, Graphics->screenHeight,
+        DXGI_FORMAT_R32G32B32A32_FLOAT, &WorldNormalTexture, &WorldNormalRTV, &WorldNormalSRV))
     {
-        OutputDebugString(L"Failed to create WorldPosRTV in InitWorldPosRenderTarget\n");
-        WorldPosTexture->Release();
-        WorldPosTexture = nullptr;
+        OutputDebugString(L"Failed to create World Normal render target resources\n");
         return;
     }
-
-    // World Position SRV 생성
-    D3D11_SHADER_RESOURCE_VIEW_DESC worldPosSRVDesc = {};
-    worldPosSRVDesc.Format = worldPosTexDesc.Format;
-    worldPosSRVDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-    worldPosSRVDesc.Texture2D.MostDetailedMip = 0;
-    worldPosSRVDesc.Texture2D.MipLevels = worldPosTexDesc.MipLevels;
-
-    hr = Graphics->Device->CreateShaderResourceView(WorldPosTexture, &worldPosSRVDesc, &WorldPosSRV);
-    if (FAILED(hr))
-    {
-        OutputDebugString(L"Failed to create WorldPosSRV in InitWorldPosRenderTarget\n");
-        SAFE_RELEASE(WorldPosRTV);
-        SAFE_RELEASE(WorldPosTexture);
-        return;
-    }
-#pragma endregion
-
-#pragma region World Normal Texture
-    D3D11_TEXTURE2D_DESC worldNormalTexDesc = {};
-    worldNormalTexDesc.Width = Graphics->screenWidth;
-    worldNormalTexDesc.Height = Graphics->screenHeight;
-    worldNormalTexDesc.MipLevels = 1;
-    worldNormalTexDesc.ArraySize = 1;
-    worldNormalTexDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT; // World normal: float4
-    worldNormalTexDesc.SampleDesc.Count = 1;
-    worldNormalTexDesc.Usage = D3D11_USAGE_DEFAULT;
-    worldNormalTexDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
-    hr = Graphics->Device->CreateTexture2D(&worldNormalTexDesc, nullptr, &WorldNormalTexture);
-    if (FAILED(hr))
-    {
-        OutputDebugString(L"Failed to create WorldNormalTexture in InitWorldPosRenderTarget\n");
-        return;
-    }
-    // World Normal RTV 생성
-    D3D11_RENDER_TARGET_VIEW_DESC worldNormalRTVDesc = {};
-    worldNormalRTVDesc.Format = worldNormalTexDesc.Format;
-    worldNormalRTVDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
-    hr = Graphics->Device->CreateRenderTargetView(WorldNormalTexture, &worldNormalRTVDesc, &WorldNormalRTV);
-    if (FAILED(hr))
-    {
-        OutputDebugString(L"Failed to create WorldNormalRTV in InitWorldPosRenderTarget\n");
-        WorldNormalTexture->Release();
-        WorldNormalTexture = nullptr;
-        return;
-    }
-    // World Normal SRV 생성
-    D3D11_SHADER_RESOURCE_VIEW_DESC worldNormalSRVDesc = {};
-    worldNormalSRVDesc.Format = worldNormalTexDesc.Format;
-    worldNormalSRVDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-    worldNormalSRVDesc.Texture2D.MostDetailedMip = 0;
-    worldNormalSRVDesc.Texture2D.MipLevels = worldNormalTexDesc.MipLevels;
-    hr = Graphics->Device->CreateShaderResourceView(WorldNormalTexture, &worldNormalSRVDesc, &WorldNormalSRV);
 }
 
 void PostEffect::Render(ID3D11DeviceContext*& DeviceContext, ID3D11ShaderResourceView*& ColorSRV)
@@ -426,3 +356,59 @@ void PostEffect::CopyDepthBufferToDepthOnlySRV(ID3D11DeviceContext*& DeviceConte
     DeviceContext->CopyResource(DepthOnlyTexture, SrcDepthTexture);
 }
 
+static bool PostEffect::CreateRenderTargetResources(
+    ID3D11Device* Device,
+    UINT Width,
+    UINT Height,
+    DXGI_FORMAT Format,
+    ID3D11Texture2D** OutTexture,
+    ID3D11RenderTargetView** OutRTV,
+    ID3D11ShaderResourceView** OutSRV)
+{
+    D3D11_TEXTURE2D_DESC TexDesc = {};
+    TexDesc.Width = Width;
+    TexDesc.Height = Height;
+    TexDesc.MipLevels = 1;
+    TexDesc.ArraySize = 1;
+    TexDesc.Format = Format;
+    TexDesc.SampleDesc.Count = 1;
+    TexDesc.Usage = D3D11_USAGE_DEFAULT;
+    TexDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+
+    HRESULT Hr = Device->CreateTexture2D(&TexDesc, nullptr, OutTexture);
+    if (FAILED(Hr))
+    {
+        OutputDebugString(L"Failed to create texture in CreateRenderTargetResources\n");
+        return false;
+    }
+
+    D3D11_RENDER_TARGET_VIEW_DESC RtvDesc = {};
+    RtvDesc.Format = Format;
+    RtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+    Hr = Device->CreateRenderTargetView(*OutTexture, &RtvDesc, OutRTV);
+    if (FAILED(Hr))
+    {
+        OutputDebugString(L"Failed to create RTV in CreateRenderTargetResources\n");
+        (*OutTexture)->Release();
+        *OutTexture = nullptr;
+        return false;
+    }
+
+    D3D11_SHADER_RESOURCE_VIEW_DESC SrvDesc = {};
+    SrvDesc.Format = Format;
+    SrvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+    SrvDesc.Texture2D.MostDetailedMip = 0;
+    SrvDesc.Texture2D.MipLevels = 1;
+    Hr = Device->CreateShaderResourceView(*OutTexture, &SrvDesc, OutSRV);
+    if (FAILED(Hr))
+    {
+        OutputDebugString(L"Failed to create SRV in CreateRenderTargetResources\n");
+        (*OutRTV)->Release();
+        (*OutTexture)->Release();
+        *OutTexture = nullptr;
+        *OutRTV = nullptr;
+        return false;
+    }
+
+    return true;
+}
