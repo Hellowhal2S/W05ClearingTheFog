@@ -26,7 +26,6 @@ struct FRenderResources
         TArray<class UStaticMeshComponent*> StaticMeshObjs;
         TArray<class UBillboardComponent*> BillboardObjs;
         TArray<class ULightComponentBase*> LightObjs;
-        TArray<class UPointlightComponent*> FireBallObjs;
     } Components;
 
     struct FShaderResourceContainer

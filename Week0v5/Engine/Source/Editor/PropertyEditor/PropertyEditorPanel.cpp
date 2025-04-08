@@ -133,10 +133,10 @@ void PropertyEditorPanel::Render()
                     UCubeComp* CubeComponent = PickedActor->AddComponent<UCubeComp>();
                     PickedComponent = CubeComponent;
                 }
-                if (ImGui::Selectable("FireBallComponent"))
+                if (ImGui::Selectable("PointLightComponent"))
                 {
-                    UPointlightComponent* FireBallComponent = PickedActor->AddComponent<UPointlightComponent>();
-                    PickedComponent = FireBallComponent;
+                    UPointlightComponent* PointLightComponent = PickedActor->AddComponent<UPointlightComponent>();
+                    PickedComponent = PointLightComponent;
                 }
                 if (ImGui::Selectable("ProjectileMovementComponent"))
                 {
@@ -243,18 +243,18 @@ void PropertyEditorPanel::Render()
             LastComponent = PickedComponent;
             bFirstFrame = true;
         }
-        UPointlightComponent* FireBallComp = Cast<UPointlightComponent>(PickedComponent);
-        if (FireBallComp)
+        UPointlightComponent* PointLightComp = Cast<UPointlightComponent>(PickedComponent);
+        if (PointLightComp)
         {
-            if (ImGui::CollapsingHeader("Fire Ball Settings", ImGuiTreeNodeFlags_DefaultOpen))
+            if (ImGui::CollapsingHeader("Point Light Settings", ImGuiTreeNodeFlags_DefaultOpen))
             {
-                float Intensity = FireBallComp->GetIntensity();
-                float Radius = FireBallComp->GetRadius();
-                float RadiusFallOff = FireBallComp->GetRadiusFallOff();
+                float Intensity = PointLightComp->GetIntensity();
+                float Radius = PointLightComp->GetRadius();
+                float RadiusFallOff = PointLightComp->GetRadiusFallOff();
                 ImGui::DragFloat("Intensity", &Intensity, 0.1f, 0.0f, 1000.0f, "%.2f");
                 ImGui::DragFloat("Radius", &Radius, 1.0f, 0.0f, 5000.0f, "%.0f");
                 ImGui::DragFloat("Falloff", &RadiusFallOff, 0.05f, 0.01f, 10.0f, "%.2f");
-                FLinearColor Color = FireBallComp->GetColor();
+                FLinearColor Color = PointLightComp->GetColor();
                 float colorArray[4] = { Color.R, Color.G, Color.B, Color.A };
                 if (ImGui::ColorEdit4("Color", colorArray, ImGuiColorEditFlags_Float))
                 {
@@ -264,10 +264,10 @@ void PropertyEditorPanel::Render()
                     Color.A = colorArray[3];
                 }
 
-                FireBallComp->SetIntensity(Intensity);
-                FireBallComp->SetRadius(Radius);
-                FireBallComp->SetRadiusFallOff(RadiusFallOff);
-                FireBallComp->SetColor({ colorArray[0], colorArray[1], colorArray[2], colorArray[3] });
+                PointLightComp->SetIntensity(Intensity);
+                PointLightComp->SetRadius(Radius);
+                PointLightComp->SetRadiusFallOff(RadiusFallOff);
+                PointLightComp->SetColor({ colorArray[0], colorArray[1], colorArray[2], colorArray[3] });
             }
         }
         ImGui::PopStyleColor();

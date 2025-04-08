@@ -708,10 +708,6 @@ void FRenderer::PreparePrimitives()
     {
         for (const auto iter : TObjectRange<USceneComponent>())
         {
-                if (UPointlightComponent* pFireBallComp = Cast<UPointlightComponent>(iter))
-                {
-                    RenderResources.Components.FireBallObjs.Add(pFireBallComp);
-                }
                 if (UStaticMeshComponent* pStaticMeshComp = Cast<UStaticMeshComponent>(iter))
                 {
                     if (!Cast<UGizmoBaseComponent>(iter))
@@ -739,10 +735,6 @@ void FRenderer::PreparePrimitives()
             
             for (const auto iter2 : iter->GetComponents())
             {
-                if (UPointlightComponent* pFireBallComp = Cast<UPointlightComponent>(iter2))
-                {
-                    RenderResources.Components.FireBallObjs.Add(pFireBallComp);
-                }
                 if (UStaticMeshComponent* pStaticMeshComp = Cast<UStaticMeshComponent>(iter2))
                 {
                     if (!Cast<UGizmoBaseComponent>(iter2))
@@ -767,7 +759,6 @@ void FRenderer::ClearRenderArr()
     //RenderResources.Primitives.GizmoObjs.Empty();
     RenderResources.Components.BillboardObjs.Empty();
     RenderResources.Components.LightObjs.Empty();
-    RenderResources.Components.FireBallObjs.Empty();
 }
 
 void FRenderer::Render(UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport)
@@ -792,18 +783,22 @@ void FRenderer::Render(UWorld* World, std::shared_ptr<FEditorViewportClient> Act
     buf.DirLights[0].Direction = FVector(0.f, 0.f, -1.f).Normalize();
     buf.isLit = litFlag;
 
-    int32 LightIndex = 0;
-    for (UPointlightComponent* FireBallComp : RenderResources.Components.FireBallObjs)
+    int32 PointLightIndex = 0;
+    for (ULightComponentBase* LightComp : RenderResources.Components.LightObjs)
     {
-        if (LightIndex >= MACRO_FCONSTANT_NUM_MAX_POINTLIGHT)
-            break;
+        if (UPointlightComponent* PointLightComp = Cast<UPointlightComponent>(LightComp))
+        {
+            if (PointLightIndex >= MACRO_FCONSTANT_NUM_MAX_POINTLIGHT)
+                break;
 
-        buf.PointLights[LightIndex].Color = FireBallComp->GetColor();
-        buf.PointLights[LightIndex].Position = FireBallComp->GetComponentLocation();
-        buf.PointLights[LightIndex].Intensity = FireBallComp->GetIntensity();
-        buf.PointLights[LightIndex].Radius = FireBallComp->GetRadius();
-        buf.PointLights[LightIndex].RadiusFallOff = FireBallComp->GetRadiusFallOff();
-        buf.NumPointLights = ++LightIndex;
+            buf.PointLights[PointLightIndex].Color = PointLightComp->GetColor();
+            buf.PointLights[PointLightIndex].Position = PointLightComp->GetComponentLocation();
+            buf.PointLights[PointLightIndex].Intensity = PointLightComp->GetIntensity();
+            buf.PointLights[PointLightIndex].Radius = PointLightComp->GetRadius();
+            buf.PointLights[PointLightIndex].RadiusFallOff = PointLightComp->GetRadiusFallOff();
+            buf.NumPointLights = ++PointLightIndex;
+        }
+
     }
     UpdateConstantbufferLights(buf);
 
