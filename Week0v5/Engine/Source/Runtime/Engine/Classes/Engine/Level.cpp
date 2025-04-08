@@ -1,7 +1,13 @@
-﻿#include "Level.h"
+#include "Level.h"
 #include "GameFramework/Actor.h"
 
 ULevel::ULevel()
+{
+}
+
+ULevel::ULevel(const ULevel& Other)
+    : UObject(Other),  // UObject 기반 클래스 복사
+    PendingBeginPlayActors(Other.PendingBeginPlayActors) // TArray 깊은 복사
 {
 }
 
@@ -19,7 +25,6 @@ UObject* ULevel::Duplicate() const
 
 void ULevel::DuplicateSubObjects(const UObject* SourceObj)
 {
-    UObject::DuplicateSubObjects(SourceObj);
     for (AActor* Actor : Cast<ULevel>(SourceObj)->GetActors())
     {
         AActor* dupActor = static_cast<AActor*>(Actor->Duplicate());

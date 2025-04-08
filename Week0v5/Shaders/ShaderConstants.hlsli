@@ -31,7 +31,7 @@ struct FConstantBufferLightDir
 
 struct FConstantBufferLightPoint
 {
-    FConstantLightColor Color;
+    float4 Color;
     float3 Position;
     float _pad0;
     
@@ -74,6 +74,7 @@ cbuffer ConstantBufferLights : register(b1)
     FConstantBufferLightPoint PointLights[FCONSTANT_NUM_POINTLIGHT];
     FConstantBufferLightSpot SpotLights[FCONSTANT_NUM_SPOTLIGHT];
     uint isLit;
+    int NumPointLights;
 }
 
 cbuffer ConstantBufferActor : register(b3)

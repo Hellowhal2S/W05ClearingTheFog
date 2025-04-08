@@ -70,8 +70,6 @@ UObject* UMeshComponent::Duplicate() const
 
 void UMeshComponent::DuplicateSubObjects(const UObject* Source)
 {
-    UPrimitiveComponent::DuplicateSubObjects(Source);
-    // OverrideMaterials는 복사 생성자에서 복제됨
 }
 
 void UMeshComponent::PostDuplicate() {}

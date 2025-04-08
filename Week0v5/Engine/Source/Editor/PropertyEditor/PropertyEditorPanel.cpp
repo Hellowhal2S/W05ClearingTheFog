@@ -5,6 +5,8 @@
 #include "Components/LightComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/UText.h"
+#include "Components/FireballComponent.h"
+#include "Components/ProjectileMovementComponent.h"
 #include "Engine/FLoaderOBJ.h"
 #include "Math/MathUtility.h"
 #include "UnrealEd/ImGuiWidget.h"
@@ -31,7 +33,7 @@ void PropertyEditorPanel::Render()
     /* Panel Position */
     ImGui::SetNextWindowPos(ImVec2(PanelPosX, PanelPosY), ImGuiCond_Always);
 
-    /* Panel Size */
+    /* Panel Size */    
     ImGui::SetNextWindowSize(ImVec2(PanelWidth, PanelHeight), ImGuiCond_Always);
 
     /* Panel Flags */
@@ -43,20 +45,41 @@ void PropertyEditorPanel::Render()
     AEditorPlayer* player = GEngine->GetWorld()->GetEditorPlayer();
     AActor* PickedActor = GEngine->GetWorld()->GetSelectedActor();
 
+    if (PickedActor && PickedActor != LastActor)
+    {
+        PickedComponent = PickedActor->GetRootComponent();
+    }
+
+    LastActor = PickedActor;
+
     // TODO: 추후에 RTTI를 이용해서 프로퍼티 출력하기
     if (PickedActor)
     {
         if (ImGui::TreeNodeEx("Components", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_OpenOnArrow))
         {
+            DrawSceneComponentTree(PickedActor->GetRootComponent(), PickedComponent);
             const TSet<UActorComponent*>& AllComponents = PickedActor->GetComponents();
             for (UActorComponent* Component : AllComponents)
             {
-                if (USceneComponent* SceneComp = Cast<USceneComponent>(Component))
+                if (!Component->IsA<USceneComponent>())
                 {
-                    if (SceneComp->GetAttachParent() == nullptr)
+                    FString Label = *Component->GetName();
+                    bool bSelected = (PickedComponent == Component);
+
+                    // 리프 노드 플래그 추가
+                    ImGuiTreeNodeFlags nodeFlags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_Leaf;
+                    if (bSelected)
+                        nodeFlags |= ImGuiTreeNodeFlags_Selected;
+
+                    // 노드 생성 (bOpened는 항상 false)
+                    bool bOpened = ImGui::TreeNodeEx(*Label, nodeFlags);
+
+                    // 클릭 이벤트 처리
+                    if (ImGui::IsItemClicked())
                     {
-                        DrawSceneComponentTree(SceneComp, PickedComponent);
+                        PickedComponent = Component;
                     }
+                    ImGui::TreePop();
                 }
             }
 
@@ -109,11 +132,53 @@ void PropertyEditorPanel::Render()
                     UCubeComp* CubeComponent = PickedActor->AddComponent<UCubeComp>();
                     PickedComponent = CubeComponent;
                 }
-
+                if (ImGui::Selectable("FireballComponent"))
+                {
+                    UFireBallComponent* FireballComponent = PickedActor->AddComponent<UFireBallComponent>();
+                    PickedComponent = FireballComponent;
+                }
+                if (ImGui::Selectable("ProjectileMovementComponent"))
+                {
+                    UProjectileMovementComponent* ProjectileMovementComponent = PickedActor->AddComponent<UProjectileMovementComponent>();
+                    ProjectileMovementComponent->SetUpdatedComponent(PickedActor->GetRootComponent());
+                    ProjectileMovementComponent->SetOwner(PickedActor);
+                    PickedComponent = ProjectileMovementComponent;
+                }
                 ImGui::EndPopup();
             }
             ImGui::TreePop();
         }
+    }
+
+    if (PickedActor && PickedComponent && PickedComponent->IsA<UMovementComponent>())
+    {
+        ImGui::SetItemDefaultFocus();
+        ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
+        if (PickedComponent != LastComponent)
+        {
+            LastComponent = PickedComponent;
+            bFirstFrame = true;
+        }
+        if (UProjectileMovementComponent* ProjectileComp = Cast<UProjectileMovementComponent>(PickedComponent))
+        {
+            if (ImGui::CollapsingHeader("Projectile Movement Settings", ImGuiTreeNodeFlags_DefaultOpen))
+            {
+                ImGui::DragFloat("Initial Speed",
+                    &ProjectileComp->InitialSpeed,
+                    1.0f, 0.0f, 10000.0f, "%.0f");
+                ImGui::DragFloat("Max Speed",
+                    &ProjectileComp->MaxSpeed,
+                    1.0f, 0.0f, 10000.0f, "%.0f");
+                FVector Velocity = ProjectileComp->Velocity;
+                if (ImGui::DragFloat3("Velocity",
+                    &Velocity.x,
+                    0.1f, -1000.0f, 1000.0f, "%.2f"))
+                {
+                    ProjectileComp->Velocity = Velocity;
+                }
+            }
+        }
+        ImGui::PopStyleColor();
     }
 
     // TODO: 추후에 RTTI를 이용해서 프로퍼티 출력하기
@@ -157,7 +222,7 @@ void PropertyEditorPanel::Render()
                 coordiButtonLabel = "World";
             else if (player->GetCoordiMode() == CoordiMode::CDM_LOCAL)
                 coordiButtonLabel = "Local";
-            
+
             if (ImGui::Button(coordiButtonLabel.c_str(), ImVec2(ImGui::GetWindowContentRegionMax().x * 0.9f, 32)))
             {
                 player->AddCoordiMode();
@@ -166,6 +231,37 @@ void PropertyEditorPanel::Render()
         }
         ImGui::PopStyleColor();
         bFirstFrame = false;
+    }
+
+    if (PickedActor && PickedComponent && PickedComponent->IsA<UFireBallComponent>())
+    {
+        ImGui::SetItemDefaultFocus();
+        ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
+        if (PickedComponent != LastComponent)
+        {
+            LastComponent = PickedComponent;
+            bFirstFrame = true;
+        }
+        UFireBallComponent* FireBallComp = Cast<UFireBallComponent>(PickedComponent);
+        if (FireBallComp)
+        {
+            if (ImGui::CollapsingHeader("Fire Ball Settings", ImGuiTreeNodeFlags_DefaultOpen))
+            {
+                ImGui::DragFloat("Intensity", &FireBallComp->Intensity, 0.1f, 0.0f, 1000.0f, "%.2f");
+                ImGui::DragFloat("Radius", &FireBallComp->Radius, 1.0f, 0.0f, 5000.0f, "%.0f");
+                ImGui::DragFloat("Falloff", &FireBallComp->RadiusFallOff, 0.05f, 0.01f, 10.0f, "%.2f");
+                FLinearColor& Color = FireBallComp->Color;
+                float colorArray[4] = { Color.R, Color.G, Color.B, Color.A };
+                if (ImGui::ColorEdit4("Color", colorArray, ImGuiColorEditFlags_Float))
+                {
+                    Color.R = colorArray[0];
+                    Color.G = colorArray[1];
+                    Color.B = colorArray[2];
+                    Color.A = colorArray[3];
+                }
+            }
+        }
+        ImGui::PopStyleColor();
     }
 
     if (PickedActor && PickedComponent && PickedComponent->IsA<ULightComponentBase>())
@@ -282,9 +378,9 @@ void PropertyEditorPanel::Render()
     }
 
     // TODO: 추후에 RTTI를 이용해서 프로퍼티 출력하기
-    if (PickedActor)
-    if (UStaticMeshComponent* StaticMeshComponent = PickedActor->GetComponentByClass<UStaticMeshComponent>())
+    if (PickedActor && PickedComponent && PickedComponent->IsA<UStaticMeshComponent>())
     {
+        UStaticMeshComponent* StaticMeshComponent = PickedActor->GetComponentByClass<UStaticMeshComponent>();
         RenderForStaticMesh(StaticMeshComponent);
         RenderForMaterial(StaticMeshComponent);
     }

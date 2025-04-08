@@ -49,7 +49,7 @@ PS_INPUT mainVS(VS_INPUT input)
     else
     {
         //output.normal = normalize(input.normal);
-        output.normal = mul(input.normal, ModelInvTransMatrix);
+        output.normal = normalize(mul(float4(input.normal, 0.0f), ModelInvTransMatrix));
         output.normalFlag = 1.0;
     }
     output.texcoord = input.texcoord;

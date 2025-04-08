@@ -10,6 +10,7 @@
 #include "Components/UParticleSubUVComp.h"
 #include "Components/UText.h"
 #include "Components/Material/Material.h"
+#include "Components/FireballComponent.h"
 #include "D3D11RHI/GraphicDevice.h"
 #include "Launch/EditorEngine.h"
 #include "Math/JungleMath.h"
@@ -935,6 +936,10 @@ void FRenderer::PreparePrimitives()
         for (const auto iter : TObjectRange<USceneComponent>())
         {
                 UE_LOG(LogLevel::Display, "%d", GUObjectArray.GetObjectItemArrayUnsafe().Num());
+                if (UFireBallComponent* pFireballComp = Cast<UFireBallComponent>(iter))
+                {
+                    FireballObjs.Add(pFireballComp);
+                }
                 if (UStaticMeshComponent* pStaticMeshComp = Cast<UStaticMeshComponent>(iter))
                 {
                     if (!Cast<UGizmoBaseComponent>(iter))
@@ -963,6 +968,10 @@ void FRenderer::PreparePrimitives()
             
             for (const auto iter2 : iter->GetComponents())
             {
+                if (UFireBallComponent* pFireballComp = Cast<UFireBallComponent>(iter2))
+                {
+                    FireballObjs.Add(pFireballComp);
+                }
                 if (UStaticMeshComponent* pStaticMeshComp = Cast<UStaticMeshComponent>(iter2))
                 {
                     if (!Cast<UGizmoBaseComponent>(iter2))

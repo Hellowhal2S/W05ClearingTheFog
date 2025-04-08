@@ -39,5 +39,5 @@ private:
     UActorComponent* PickedComponent = nullptr;
     UActorComponent* LastComponent = nullptr;
     bool bFirstFrame = true;
-
+    AActor* LastActor = nullptr;
 };

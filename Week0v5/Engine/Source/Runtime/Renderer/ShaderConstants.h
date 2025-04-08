@@ -10,11 +10,12 @@
 #include "Math/Vector.h"
 #include "Math/Vector4.h"
 #include "Math/Matrix.h"
+#include "Math/Color.h"
 
-// 라이트 최대개수
-#define MACRO_FCONSTANT_NUM_DIRLIGHT 1
-#define MACRO_FCONSTANT_NUM_POINTLIGHT 1
-#define MACRO_FCONSTANT_NUM_SPOTLIGHT 1
+// 아래의 두개 다 수정하기
+#define MACRO_FCONSTANT_NUM_MAX_DIRLIGHT 1
+#define MACRO_FCONSTANT_NUM_MAX_POINTLIGHT 10
+#define MACRO_FCONSTANT_NUM_MAX_SPOTLIGHT 1
 
 #define FCONSTANT_STRINGIFY(x) #x
 #define FCONSTANT_TOSTRING(x) FCONSTANT_STRINGIFY(x)
@@ -22,9 +23,9 @@
 // hlsl파일에 들어갈 macro define
 const D3D_SHADER_MACRO defines[] =
 {
-    "FCONSTANT_NUM_DIRLIGHT", FCONSTANT_TOSTRING(MACRO_FCONSTANT_NUM_DIRLIGHT),
-    "FCONSTANT_NUM_POINTLIGHT", FCONSTANT_TOSTRING(MACRO_FCONSTANT_NUM_POINTLIGHT),
-    "FCONSTANT_NUM_SPOTLIGHT", FCONSTANT_TOSTRING(MACRO_FCONSTANT_NUM_SPOTLIGHT),
+    "FCONSTANT_NUM_DIRLIGHT", FCONSTANT_TOSTRING(MACRO_FCONSTANT_NUM_MAX_DIRLIGHT),
+    "FCONSTANT_NUM_POINTLIGHT", FCONSTANT_TOSTRING(MACRO_FCONSTANT_NUM_MAX_POINTLIGHT),
+    "FCONSTANT_NUM_SPOTLIGHT", FCONSTANT_TOSTRING(MACRO_FCONSTANT_NUM_MAX_SPOTLIGHT),
     NULL, NULL
 };
 
@@ -71,12 +72,11 @@ struct alignas(16) FConstantBufferLightDir
 
 struct alignas(16) FConstantBufferLightPoint
 {
-    FConstantBufferLightColor Color;
-
-    alignas(16) FVector Position = { 0,0,0 };
+    FLinearColor Color;
+    FVector Position = { 0,0,0 };
     float pad0 = 0;
 
-    alignas(16) float Intensity = 0;
+    float Intensity = 0;
     float Radius = 0;
     float RadiusFallOff = 0;
     float pad1 = 0;
@@ -139,10 +139,11 @@ struct alignas(16) FConstantBufferActor
 /// </summary>
 struct alignas(16) FConstantBufferLights
 {
-    FConstantBufferLightDir DirLights[MACRO_FCONSTANT_NUM_DIRLIGHT];
-    FConstantBufferLightPoint PointLights[MACRO_FCONSTANT_NUM_POINTLIGHT];
-    FConstantBufferLightSpot SpotLights[MACRO_FCONSTANT_NUM_SPOTLIGHT];
+    FConstantBufferLightDir DirLights[MACRO_FCONSTANT_NUM_MAX_DIRLIGHT];
+    FConstantBufferLightPoint PointLights[MACRO_FCONSTANT_NUM_MAX_POINTLIGHT];
+    FConstantBufferLightSpot SpotLights[MACRO_FCONSTANT_NUM_MAX_SPOTLIGHT];
     alignas(16) UINT isLit = 1;
+    int NumPointLights;
 };
 
 /// <summary>

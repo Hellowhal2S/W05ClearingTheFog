@@ -259,8 +259,6 @@ UObject* USceneComponent::Duplicate() const
 
 void USceneComponent::DuplicateSubObjects(const UObject* Source)
 {
-    UActorComponent::DuplicateSubObjects(Source);
-    // AttachParent는 AActor::DuplicateSubObjects에서 복원
 }
 
 void USceneComponent::PostDuplicate() {}
