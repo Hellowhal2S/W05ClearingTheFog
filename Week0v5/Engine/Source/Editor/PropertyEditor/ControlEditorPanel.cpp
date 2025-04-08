@@ -238,16 +238,6 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
             GEngine->GetLevelEditor()->GetActiveViewportClient()->SetCameraSpeedScalar(CameraSpeed);
         }
         ImGui::Spacing();
-
-        
-        ImGui::Spacing();
-        const char* fogModes[] = { "None", "Normal", "Scene Depth", "World Pos" };
-        ImGui::Text("Fog Mode");
-        ImGui::SetNextItemWidth(120.0f);
-        if (ImGui::Combo("##FogModeCombo", &renderMode, fogModes, IM_ARRAYSIZE(fogModes)))
-        {
-            PostEffect::renderMode = renderMode;
-        }
         ImGui::EndPopup();
     }
     ImGui::SameLine();
