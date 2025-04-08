@@ -15,7 +15,7 @@
 // 아래의 두개 다 수정하기
 #define MACRO_FCONSTANT_NUM_MAX_DIRLIGHT 1
 #define MACRO_FCONSTANT_NUM_MAX_POINTLIGHT 10
-#define MACRO_FCONSTANT_NUM_MAX_SPOTLIGHT 1
+#define MACRO_FCONSTANT_NUM_MAX_SPOTLIGHT 10
 
 #define FCONSTANT_STRINGIFY(x) #x
 #define FCONSTANT_TOSTRING(x) FCONSTANT_STRINGIFY(x)
@@ -186,3 +186,10 @@ struct alignas(16) FConstantBufferDebugCone
     float Height;
 };
 
+/// <summary>
+/// Debug용 grid 상수버퍼 : b13
+/// </summary>
+struct alignas(16) FConstantBufferDebugGrid
+{
+    alignas(16) FMatrix InverseViewProj;
+};

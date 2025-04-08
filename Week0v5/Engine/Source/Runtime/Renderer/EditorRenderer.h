@@ -31,6 +31,7 @@ private:
     void CreateBuffers();
     void CreateConstantBuffers();
 
+    void PrepareRendertarget();
     void PreparePrimitives();
 
     void PrepareConstantbufferGlobal();
@@ -41,8 +42,7 @@ private:
     void PrepareConstantbufferGizmo();
 
     // Axis
-    void RenderAxis(const std::shared_ptr<FEditorViewportClient>& ActiveViewport);
-    void PrepareShaderAxis();
+    void RenderAxis();
 
     // AABB
     void RenderAABBInstanced(const UWorld* World);
@@ -54,9 +54,15 @@ private:
     void PrepareConstantbufferPointlight();
     void UdpateConstantbufferPointlightInstanced(TArray<FConstantBufferDebugSphere> Buffer);
 
+    // Cone
     void RenderSpotlightInstanced(const UWorld* World);
     void PrepareConstantbufferSpotlight();
     void UdpateConstantbufferSpotlightInstanced(TArray<FConstantBufferDebugCone> Buffer);
+
+    // Grid
+    void RenderGrid(std::shared_ptr<FEditorViewportClient> ActiveViewport);
+    void PrepareConstantbufferGrid();
+    void UdpateConstantbufferGrid(FConstantBufferDebugGrid Buffer);
 
     const UINT32 ConstantBufferSizeAABB = 8;
     const UINT32 ConstantBufferSizeSphere = 8;

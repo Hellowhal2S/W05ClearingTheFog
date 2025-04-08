@@ -9,6 +9,13 @@ ULightComponentBase::~ULightComponentBase()
 {
 }
 
+ULightComponentBase::ULightComponentBase(const ULightComponentBase& Other) :
+    USceneComponent(Other),
+    Color(Other.Color),
+    Intensity(Other.Intensity)
+{
+}
+
 void ULightComponentBase::TickComponent(float DeltaTime)
 {
     Super::TickComponent(DeltaTime);
@@ -22,6 +29,13 @@ UPointlightComponent::UPointlightComponent()
 }
 
 UPointlightComponent::~UPointlightComponent()
+{
+}
+
+UPointlightComponent::UPointlightComponent(const UPointlightComponent& Other)
+    : ULightComponentBase(Other),
+    Radius(Other.Radius),
+    RadiusFallOff(Other.RadiusFallOff)
 {
 }
 
@@ -65,6 +79,11 @@ UDirectionalLightComponent::~UDirectionalLightComponent()
 {
 }
 
+UDirectionalLightComponent::UDirectionalLightComponent(const UDirectionalLightComponent& Other)
+    : ULightComponentBase(Other)
+{
+}
+
 void UDirectionalLightComponent::InitializeComponent()
 {
     Super::InitializeComponent();
@@ -102,6 +121,11 @@ USpotLightComponent::USpotLightComponent()
 }
 
 USpotLightComponent::~USpotLightComponent()
+{
+}
+
+USpotLightComponent::USpotLightComponent(const USpotLightComponent& Other)
+    : ULightComponentBase(Other), InnerRadius(Other.InnerRadius), OuterRadius(Other.OuterRadius)
 {
 }
 

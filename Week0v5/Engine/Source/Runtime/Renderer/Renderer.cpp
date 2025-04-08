@@ -10,7 +10,6 @@
 #include "Components/UParticleSubUVComp.h"
 #include "Components/UText.h"
 #include "Components/Material/Material.h"
-#include "Components/FireBallComponent.h"
 #include "D3D11RHI/GraphicDevice.h"
 #include "Launch/EditorEngine.h"
 #include "Math/JungleMath.h"
@@ -392,7 +391,6 @@ void FRenderer::CreateShaders()
 {
     CreateMeshShader();
     CreateTextureShader();
-    CreateLineShader();
 }
 
 
@@ -703,231 +701,6 @@ void FRenderer::PrepareSubUVConstant() const
     }
 }
 
-//void FRenderer::PrepareLineShader() const
-//{
-//    // ���̴��� �Է� ���̾ƿ� ����
-//    Graphics->DeviceContext->VSSetShader(VertexLineShader, nullptr, 0);
-//    Graphics->DeviceContext->PSSetShader(PixelLineShader, nullptr, 0);
-//
-//    // ��� ���� ���ε�: 
-//    // - MatrixBuffer�� register(b0)��, Vertex Shader�� ���ε�
-//    // - GridConstantBuffer�� register(b1)��, Vertex�� Pixel Shader�� ���ε� (�ȼ� ���̴��� �ʿ信 ����)
-//    if (RenderResources.ConstantBuffers.StaticMesh.Mesh06 && GridConstantBuffer)
-//    {
-//        //Graphics->DeviceContext->VSSetConstantBuffers(0, 1, &RenderResources.ConstantBuffers.StaticMesh.Mesh06);     // MatrixBuffer (b0)
-//        Graphics->DeviceContext->VSSetConstantBuffers(1, 1, &GridConstantBuffer); // GridParameters (b1)
-//        Graphics->DeviceContext->PSSetConstantBuffers(1, 1, &GridConstantBuffer);
-//        Graphics->DeviceContext->VSSetConstantBuffers(3, 1, &LinePrimitiveBuffer);
-//        Graphics->DeviceContext->VSSetShaderResources(2, 1, &pBBSRV);
-//        Graphics->DeviceContext->VSSetShaderResources(3, 1, &pConeSRV);
-//        Graphics->DeviceContext->VSSetShaderResources(4, 1, &pOBBSRV);
-//    }
-//}
-
-void FRenderer::CreateLineShader()
-{
-    //ID3DBlob* VertexShaderLine;
-    //ID3DBlob* PixelShaderLine;
-
-    //HRESULT hr;
-    //hr = D3DCompileFromFile(L"Shaders/ShaderLine.hlsl", defines, D3D_COMPILE_STANDARD_FILE_INCLUDE, "mainVS", "vs_5_0", 0, 0, &VertexShaderLine, nullptr);
-    //if (FAILED(hr))
-    //{
-    //    Console::GetInstance().AddLog(LogLevel::Warning, "VertexShader Error");
-    //}
-    //Graphics->Device->CreateVertexShader(VertexShaderLine->GetBufferPointer(), VertexShaderLine->GetBufferSize(), nullptr, &RenderResources.Shaders.Line.Vertex);
-
-    //hr = D3DCompileFromFile(L"Shaders/ShaderLine.hlsl", defines, D3D_COMPILE_STANDARD_FILE_INCLUDE, "mainPS", "ps_5_0", 0, 0, &PixelShaderLine, nullptr);
-    //if (FAILED(hr))
-    //{
-    //    Console::GetInstance().AddLog(LogLevel::Warning, "PixelShader Error");
-    //}
-    //Graphics->Device->CreatePixelShader(PixelShaderLine->GetBufferPointer(), PixelShaderLine->GetBufferSize(), nullptr, &RenderResources.Shaders.Line.Pixel);
-
-
-    //VertexShaderLine->Release();
-    //PixelShaderLine->Release();
-}
-
-ID3D11Buffer* FRenderer::CreateStaticVerticesBuffer() const
-{
-    FSimpleVertex vertices[2]{{0}, {0}};
-
-    D3D11_BUFFER_DESC vbDesc = {};
-    vbDesc.Usage = D3D11_USAGE_DEFAULT;
-    vbDesc.ByteWidth = sizeof(vertices);
-    vbDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-    vbDesc.CPUAccessFlags = 0;
-    D3D11_SUBRESOURCE_DATA vbInitData = {};
-    vbInitData.pSysMem = vertices;
-    ID3D11Buffer* pVertexBuffer = nullptr;
-    HRESULT hr = Graphics->Device->CreateBuffer(&vbDesc, &vbInitData, &pVertexBuffer);
-    return pVertexBuffer;
-}
-
-ID3D11Buffer* FRenderer::CreateBoundingBoxBuffer(UINT numBoundingBoxes) const
-{
-    D3D11_BUFFER_DESC bufferDesc;
-    bufferDesc.Usage = D3D11_USAGE_DYNAMIC; // ���� ������Ʈ�� ��� DYNAMIC, �׷��� ������ DEFAULT
-    bufferDesc.ByteWidth = sizeof(FBoundingBox) * numBoundingBoxes;
-    bufferDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-    bufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-    bufferDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
-    bufferDesc.StructureByteStride = sizeof(FBoundingBox);
-
-    ID3D11Buffer* BoundingBoxBuffer = nullptr;
-    Graphics->Device->CreateBuffer(&bufferDesc, nullptr, &BoundingBoxBuffer);
-    return BoundingBoxBuffer;
-}
-
-ID3D11Buffer* FRenderer::CreateOBBBuffer(UINT numBoundingBoxes) const
-{
-    D3D11_BUFFER_DESC bufferDesc;
-    bufferDesc.Usage = D3D11_USAGE_DYNAMIC; // ���� ������Ʈ�� ��� DYNAMIC, �׷��� ������ DEFAULT
-    bufferDesc.ByteWidth = sizeof(FOBB) * numBoundingBoxes;
-    bufferDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-    bufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-    bufferDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
-    bufferDesc.StructureByteStride = sizeof(FOBB);
-
-    ID3D11Buffer* BoundingBoxBuffer = nullptr;
-    Graphics->Device->CreateBuffer(&bufferDesc, nullptr, &BoundingBoxBuffer);
-    return BoundingBoxBuffer;
-}
-
-ID3D11Buffer* FRenderer::CreateConeBuffer(UINT numCones) const
-{
-    D3D11_BUFFER_DESC bufferDesc = {};
-    bufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-    bufferDesc.ByteWidth = sizeof(FCone) * numCones;
-    bufferDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-    bufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-    bufferDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
-    bufferDesc.StructureByteStride = sizeof(FCone);
-
-    ID3D11Buffer* ConeBuffer = nullptr;
-    Graphics->Device->CreateBuffer(&bufferDesc, nullptr, &ConeBuffer);
-    return ConeBuffer;
-}
-
-ID3D11ShaderResourceView* FRenderer::CreateBoundingBoxSRV(ID3D11Buffer* pBoundingBoxBuffer, UINT numBoundingBoxes)
-{
-    //D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
-    //srvDesc.Format = DXGI_FORMAT_UNKNOWN; // ����ü ������ ��� UNKNOWN
-    //srvDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
-    //srvDesc.Buffer.ElementOffset = 0;
-    //srvDesc.Buffer.NumElements = numBoundingBoxes;
-
-
-    //Graphics->Device->CreateShaderResourceView(pBoundingBoxBuffer, &srvDesc, &RenderResources.ShaderResourceView.AABB);
-    //return RenderResources.ShaderResourceView.AABB;
-    return nullptr;
-}
-
-ID3D11ShaderResourceView* FRenderer::CreateOBBSRV(ID3D11Buffer* pBoundingBoxBuffer, UINT numBoundingBoxes)
-{
-    //D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
-    //srvDesc.Format = DXGI_FORMAT_UNKNOWN; // ����ü ������ ��� UNKNOWN
-    //srvDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
-    //srvDesc.Buffer.ElementOffset = 0;
-    //srvDesc.Buffer.NumElements = numBoundingBoxes;
-    //Graphics->Device->CreateShaderResourceView(pBoundingBoxBuffer, &srvDesc, &RenderResources.ShaderResourceView.OBB);
-    //return RenderResources.ShaderResourceView.OBB;
-    return nullptr;
-}
-
-ID3D11ShaderResourceView* FRenderer::CreateConeSRV(ID3D11Buffer* pConeBuffer, UINT numCones)
-{
-    //D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
-    //srvDesc.Format = DXGI_FORMAT_UNKNOWN; // ����ü ������ ��� UNKNOWN
-    //srvDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
-    //srvDesc.Buffer.ElementOffset = 0;
-    //srvDesc.Buffer.NumElements = numCones;
-
-
-    //Graphics->Device->CreateShaderResourceView(pConeBuffer, &srvDesc, &RenderResources.ShaderResourceView.Cone);
-    //return RenderResources.ShaderResourceView.Cone;
-    return nullptr;
-}
-
-void FRenderer::UpdateBoundingBoxBuffer(ID3D11Buffer* pBoundingBoxBuffer, const TArray<FBoundingBox>& BoundingBoxes, int numBoundingBoxes) const
-{
-    if (!pBoundingBoxBuffer) return;
-    D3D11_MAPPED_SUBRESOURCE mappedResource;
-    Graphics->DeviceContext->Map(pBoundingBoxBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-    auto pData = reinterpret_cast<FBoundingBox*>(mappedResource.pData);
-    for (int i = 0; i < BoundingBoxes.Num(); ++i)
-    {
-        pData[i] = BoundingBoxes[i];
-    }
-    Graphics->DeviceContext->Unmap(pBoundingBoxBuffer, 0);
-}
-
-void FRenderer::UpdateOBBBuffer(ID3D11Buffer* pBoundingBoxBuffer, const TArray<FOBB>& BoundingBoxes, int numBoundingBoxes) const
-{
-    if (!pBoundingBoxBuffer) return;
-    D3D11_MAPPED_SUBRESOURCE mappedResource;
-    Graphics->DeviceContext->Map(pBoundingBoxBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-    auto pData = reinterpret_cast<FOBB*>(mappedResource.pData);
-    for (int i = 0; i < BoundingBoxes.Num(); ++i)
-    {
-        pData[i] = BoundingBoxes[i];
-    }
-    Graphics->DeviceContext->Unmap(pBoundingBoxBuffer, 0);
-}
-
-void FRenderer::UpdateConesBuffer(ID3D11Buffer* pConeBuffer, const TArray<FCone>& Cones, int numCones) const
-{
-    if (!pConeBuffer) return;
-    D3D11_MAPPED_SUBRESOURCE mappedResource;
-    Graphics->DeviceContext->Map(pConeBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-    auto pData = reinterpret_cast<FCone*>(mappedResource.pData);
-    for (int i = 0; i < Cones.Num(); ++i)
-    {
-        pData[i] = Cones[i];
-    }
-    Graphics->DeviceContext->Unmap(pConeBuffer, 0);
-}
-
-void FRenderer::UpdateGridConstantBuffer(const FGridParameters& gridParams) const
-{
-    //D3D11_MAPPED_SUBRESOURCE mappedResource;
-    //HRESULT hr = Graphics->DeviceContext->Map(RenderResources.ConstantBuffers.BatchLine.Grid01, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-    //if (SUCCEEDED(hr))
-    //{
-    //    memcpy(mappedResource.pData, &gridParams, sizeof(FGridParameters));
-    //    Graphics->DeviceContext->Unmap(RenderResources.ConstantBuffers.BatchLine.Grid01, 0);
-    //}
-    //else
-    //{
-    //    UE_LOG(LogLevel::Warning, "gridParams ���� ����");
-    //}
-}
-
-void FRenderer::UpdateLinePrimitveCountBuffer(int numBoundingBoxes, int numCones) const
-{
-    //D3D11_MAPPED_SUBRESOURCE mappedResource;
-    //HRESULT hr = Graphics->DeviceContext->Map(RenderResources.ConstantBuffers.BatchLine.Counts03, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-    //auto pData = static_cast<FPrimitiveCounts*>(mappedResource.pData);
-    //pData->BoundingBoxCount = numBoundingBoxes;
-    //pData->ConeCount = numCones;
-    //Graphics->DeviceContext->Unmap(RenderResources.ConstantBuffers.BatchLine.Counts03, 0);
-}
-
-void FRenderer::RenderBatch(
-    const FGridParameters& gridParam, ID3D11Buffer* pVertexBuffer, int boundingBoxCount, int coneCount, int coneSegmentCount, int obbCount
-) const
-{
-    UINT stride = sizeof(FSimpleVertex);
-    UINT offset = 0;
-    Graphics->DeviceContext->IASetVertexBuffers(0, 1, &pVertexBuffer, &stride, &offset);
-    Graphics->DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
-
-    UINT vertexCountPerInstance = 2;
-    UINT instanceCount = gridParam.numGridLines + 3 + (boundingBoxCount * 12) + (coneCount * (2 * coneSegmentCount)) + (12 * obbCount);
-    Graphics->DeviceContext->DrawInstanced(vertexCountPerInstance, instanceCount, 0, 0);
-    Graphics->DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-}
 
 void FRenderer::PreparePrimitives()
 {
@@ -1014,11 +787,9 @@ void FRenderer::Render(UWorld* World, std::shared_ptr<FEditorViewportClient> Act
     if (!RenderResources.ConstantBuffers.StaticMesh.Light01) return;
     FConstantBufferLights buf;
     buf.DirLights[0].Color.Ambient = FVector(1.0f, 1.0f, 1.0f) * 0.06f;
-    buf.DirLights[0].Color.Diffuse = FVector(1.0f, 1.0f, 1.0f) * 0.06f;
-    buf.DirLights[0].Color.Specular = FVector(1.0f, 1.0f, 1.0f) * 0.06f;
-    static float time = 0;
-    time += 0.1;
-    buf.DirLights[0].Direction = FVector(sin(time), cos(time), -10.0f).Normalize();
+    buf.DirLights[0].Color.Diffuse = FVector(1.0f, 1.0f, 1.0f) * 0.5f;
+    buf.DirLights[0].Color.Specular = FVector(1.0f, 1.0f, 1.0f) * 0.f;
+    buf.DirLights[0].Direction = FVector(0.f, 0.f, -1.f).Normalize();
     buf.isLit = litFlag;
 
     int32 LightIndex = 0;
@@ -1027,11 +798,11 @@ void FRenderer::Render(UWorld* World, std::shared_ptr<FEditorViewportClient> Act
         if (LightIndex >= MACRO_FCONSTANT_NUM_MAX_POINTLIGHT)
             break;
 
-        buf.PointLights[LightIndex].Color = FireBallComp->Color;
+        buf.PointLights[LightIndex].Color = FireBallComp->GetColor();
         buf.PointLights[LightIndex].Position = FireBallComp->GetComponentLocation();
-        buf.PointLights[LightIndex].Intensity = FireBallComp->Intensity;
-        buf.PointLights[LightIndex].Radius = FireBallComp->Radius;
-        buf.PointLights[LightIndex].RadiusFallOff = FireBallComp->RadiusFallOff;
+        buf.PointLights[LightIndex].Intensity = FireBallComp->GetIntensity();
+        buf.PointLights[LightIndex].Radius = FireBallComp->GetRadius();
+        buf.PointLights[LightIndex].RadiusFallOff = FireBallComp->GetRadiusFallOff();
         buf.NumPointLights = ++LightIndex;
     }
     UpdateConstantbufferLights(buf);
@@ -1046,10 +817,6 @@ void FRenderer::Render(UWorld* World, std::shared_ptr<FEditorViewportClient> Act
     if (ActiveViewport->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::SF_BillboardText))
     {
         RenderBillboards(World, ActiveViewport);
-    }
-    if (RenderResources.Components.LightObjs.Num() > 0)
-    {
-        RenderLight(World, ActiveViewport);
     }
     
     ClearRenderArr();
@@ -1220,11 +987,3 @@ void FRenderer::RenderPostProcess()
     
 }
 
-void FRenderer::RenderLight(UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport)
-{
-    for (auto Light : RenderResources.Components.LightObjs)
-    {
-        // 추가필요
-        //Cone 
-    }
-}

@@ -11,6 +11,7 @@ class ULightComponentBase : public USceneComponent
 public:
     ULightComponentBase() {}
     virtual ~ULightComponentBase() override;
+    ULightComponentBase(const ULightComponentBase& Other);
 
     virtual void TickComponent(float DeltaTime) override;
     PROPERTY(FLinearColor, Color)
@@ -33,6 +34,7 @@ class UPointlightComponent : public ULightComponentBase
 public:
     UPointlightComponent();
     virtual ~UPointlightComponent() override;
+    UPointlightComponent(const UPointlightComponent& Other);
 
     virtual void InitializeComponent() override;
     virtual void TickComponent(float DeltaTime) override;
@@ -58,6 +60,7 @@ class UDirectionalLightComponent : public ULightComponentBase
 public:
     UDirectionalLightComponent();
     virtual ~UDirectionalLightComponent() override;
+    UDirectionalLightComponent(const UDirectionalLightComponent& Other);
 
     virtual void InitializeComponent() override;
     virtual void TickComponent(float DeltaTime) override;
@@ -66,9 +69,7 @@ public:
     virtual void DuplicateSubObjects(const UObject* Source) override;
     virtual void PostDuplicate() override;
 
-    PROPERTY(FVector, Direction)
-protected:
-    FVector Direction = (0, 0, -1);
+    FVector GetLightDirection() { return -GetUpVector(); }
 };
 
 //////////////////////////////////
@@ -81,6 +82,7 @@ class USpotLightComponent : public ULightComponentBase
 public:
     USpotLightComponent();
     virtual ~USpotLightComponent() override;
+    USpotLightComponent(const USpotLightComponent& Other);
 
     virtual void InitializeComponent() override;
     virtual void TickComponent(float DeltaTime) override;
@@ -89,12 +91,11 @@ public:
     virtual void DuplicateSubObjects(const UObject* Source) override;
     virtual void PostDuplicate() override;
 
-    PROPERTY(FVector, Direction)
-    PROPERTY(float, Range)
-    PROPERTY(float, FallOff)
+    FVector GetLightDirection() { return -GetUpVector(); }
+    PROPERTY(float, InnerRadius)
+    PROPERTY(float, OuterRadius)
 protected:
-    FVector Direction = (0, 0, -1);
-    float Range = 1.f;
-    float FallOff = 1.f;
+    float InnerRadius = 10.f;
+    float OuterRadius = 20.f;
 };
 

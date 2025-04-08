@@ -5,7 +5,6 @@
 #include "Components/LightComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/UText.h"
-#include "Components/FireBallComponent.h"
 #include "Components/ProjectileMovementComponent.h"
 #include "Engine/FLoaderOBJ.h"
 #include "Math/MathUtility.h"

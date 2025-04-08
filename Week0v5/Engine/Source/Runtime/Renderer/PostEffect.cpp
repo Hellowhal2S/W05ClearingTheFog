@@ -119,7 +119,7 @@ void PostEffect::InitBuffers(ID3D11Device*& Device)
     HRESULT hr = Device->CreateBuffer(&cbfogDesc, nullptr, &FogConstantBuffer);
     if (FAILED(hr))
     {
-        OutputDebugString(L"Failed to create PostEffectsConstantBuffer\n");
+        UE_LOG(LogLevel::Error, "Failed to create PostEffectsConstantBuffer\n");
     }
     
     D3D11_BUFFER_DESC cbGlobalDesc;
@@ -133,7 +133,7 @@ void PostEffect::InitBuffers(ID3D11Device*& Device)
     hr = Device->CreateBuffer(&cbGlobalDesc, nullptr, &CameraConstantBuffer);
     if (FAILED(hr))
     {
-        OutputDebugString(L"Failed to create GlobalConstantBuffer\n");
+        UE_LOG(LogLevel::Error, "Failed to create GlobalConstantBuffer\n");
     }
 }
 void PostEffect::InitShaders(ID3D11Device*& Device)
@@ -152,10 +152,15 @@ void PostEffect::InitShaders(ID3D11Device*& Device)
 #endif
 
     ID3DBlob* blob = nullptr;
-    D3DCompileFromFile(L"Shaders/SamplingVS.hlsl", nullptr, nullptr, "mainVS", "vs_5_0", shaderFlags, 0, &blob, nullptr);
+    ID3DBlob* errorBlob = nullptr;
+    D3DCompileFromFile(L"Shaders/SamplingVS.hlsl", nullptr, nullptr, "mainVS", "vs_5_0", shaderFlags, 0, &blob, &errorBlob);
     Device->CreateVertexShader(blob->GetBufferPointer(), blob->GetBufferSize(), nullptr, &PostEffectVS);
     blob->Release();
-    D3DCompileFromFile(L"Shaders/PostEffectPS.hlsl", nullptr, nullptr, "mainPS", "ps_5_0", shaderFlags, 0, &blob, nullptr);
+    D3DCompileFromFile(L"Shaders/PostEffectPS.hlsl", defines, D3D_COMPILE_STANDARD_FILE_INCLUDE, "mainPS", "ps_5_0", shaderFlags, 0, &blob, &errorBlob);
+    if (errorBlob){
+        OutputDebugStringA((char*)errorBlob->GetBufferPointer());
+        errorBlob->Release();
+    }
     Device->CreatePixelShader(blob->GetBufferPointer(), blob->GetBufferSize(), nullptr, &PostEffectPS);
     blob->Release();
 
@@ -237,7 +242,7 @@ void PostEffect::InitRenderTargetViews(FGraphicsDevice* Graphics)
 
     // World Normal Render Target 생성
     if (!CreateRenderTargetResources(Graphics->Device, Graphics->screenWidth, Graphics->screenHeight,
-        DXGI_FORMAT_R32G32B32A32_FLOAT, &WorldNormalTexture, &WorldNormalRTV, &WorldNormalSRV))
+        DXGI_FORMAT_R16G16_FLOAT, &WorldNormalTexture, &WorldNormalRTV, &WorldNormalSRV))
     {
         OutputDebugString(L"Failed to create World Normal render target resources\n");
         return;
@@ -281,8 +286,11 @@ void PostEffect::Render(ID3D11DeviceContext*& DeviceContext, ID3D11ShaderResourc
     };
     DeviceContext->PSSetShaderResources(10, 6, ppSRV);                      // SRV
 
-    DeviceContext->PSSetConstantBuffers(0, 1, &CameraConstantBuffer);       // 상수 버퍼
-    DeviceContext->PSSetConstantBuffers(1, 1, &FogConstantBuffer);
+    ID3D11Buffer* LightConstantBuffer = GEngine->RenderEngine.Renderer.GetLightConstantBuffer();
+    DeviceContext->PSSetConstantBuffers(1, 1, &LightConstantBuffer);        // Light Constant Buffer
+    DeviceContext->PSSetConstantBuffers(10, 1, &CameraConstantBuffer);      // Camera 
+    DeviceContext->PSSetConstantBuffers(11, 1, &FogConstantBuffer);         // Fog  
+
 
     UpdateFogConstantBuffer(DeviceContext, GEngine->GetWorld()->Fog);
     UpdateCameraConstantBuffer(DeviceContext);
@@ -292,14 +300,13 @@ void PostEffect::Render(ID3D11DeviceContext*& DeviceContext, ID3D11ShaderResourc
 
 void PostEffect::Release()
 {
-    ReleaseRTVDepth();
+    ReleaseRTVDepth();     
 
     SAFE_RELEASE(PostEffectSRV);                    // 원본 Color SRV
 
     SAFE_RELEASE(PostEffectInputLayout);            // Input Layout
     SAFE_RELEASE(FogConstantBuffer);                // Vertex Buffer
     SAFE_RELEASE(CameraConstantBuffer);             // 역투영 등의 Constant Buffer
-
     
     SAFE_RELEASE(PostEffectSampler);                // Sampler
     SAFE_RELEASE(PostEffectPS);                     // Pixel Shader
@@ -388,14 +395,7 @@ void PostEffect::CopyDepthBufferToDepthOnlySRV(ID3D11DeviceContext*& DeviceConte
     DeviceContext->CopyResource(DepthOnlyTexture, SrcDepthTexture);
 }
 
-static bool PostEffect::CreateRenderTargetResources(
-    ID3D11Device* Device,
-    UINT Width,
-    UINT Height,
-    DXGI_FORMAT Format,
-    ID3D11Texture2D** OutTexture,
-    ID3D11RenderTargetView** OutRTV,
-    ID3D11ShaderResourceView** OutSRV)
+static bool PostEffect::CreateRenderTargetResources(ID3D11Device* Device, UINT Width, UINT Height, DXGI_FORMAT Format, ID3D11Texture2D** OutTexture, ID3D11RenderTargetView** OutRTV, ID3D11ShaderResourceView** OutSRV)
 {
     D3D11_TEXTURE2D_DESC TexDesc = {};
     TexDesc.Width = Width;
