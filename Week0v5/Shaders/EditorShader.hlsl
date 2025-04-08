@@ -233,7 +233,7 @@ const static float2 QuadPos[12] =
 PS_INPUT_GRID gridVS(uint vertexID : SV_VertexID)
 {
     PS_INPUT_GRID output;
-    float gridScale = 500000.0f; // 최종 그리드 크기
+    float gridScale = 1000000.0f; // 최종 그리드 크기
     float3 vPos3 = float3(QuadPos[vertexID] * gridScale, 0.0f); // 정점 정의 거꾸로 되있었음..
     vPos3.x += CameraPos.x;
     vPos3.y += CameraPos.y;
@@ -321,6 +321,7 @@ float4 gridPS(PS_INPUT_GRID input) : SV_Target
     {
         Color = gGridColorThick;
         Color.a *= Lod2a;
+        
     }
     else
     {
@@ -328,11 +329,13 @@ float4 gridPS(PS_INPUT_GRID input) : SV_Target
         {
             Color = lerp(gGridColorThick, gGridColorThin, LOD_fade);
             Color.a *= Lod1a;
+            
         }
         else
         {
             Color = gGridColorThin;
             Color.a *= (Lod0a * (1.0 - LOD_fade));
+            
         }
     }
 
