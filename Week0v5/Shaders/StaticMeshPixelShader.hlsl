@@ -19,7 +19,7 @@ struct PS_OUTPUT
     float4 color : SV_Target0;
     float4 UUID : SV_Target1;
     float4 worldPos : SV_Target2;
-    float4 worldNormal : SV_Target3;
+    float2 worldNormal : SV_Target3;
     float4 Albedo : SV_Target4;
     float4 SpecularColor_Power : SV_Target5;
 };
@@ -60,7 +60,7 @@ PS_OUTPUT mainPS(PS_INPUT input)
     
     output.UUID = UUID;
     output.worldPos = input.worldPos;
-    output.worldNormal = float4(input.normal, 1.0);
+    output.worldNormal = EncodeNormalOctahedral(input.normal);
     output.SpecularColor_Power = float4(Material.SpecularColor, Material.SpecularScalar);
     
     float3 texColor = Textures.Sample(Sampler, input.texcoord + UVOffset);

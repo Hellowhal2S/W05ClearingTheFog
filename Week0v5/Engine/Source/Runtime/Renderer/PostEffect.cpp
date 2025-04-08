@@ -242,7 +242,7 @@ void PostEffect::InitRenderTargetViews(FGraphicsDevice* Graphics)
 
     // World Normal Render Target 생성
     if (!CreateRenderTargetResources(Graphics->Device, Graphics->screenWidth, Graphics->screenHeight,
-        DXGI_FORMAT_R32G32B32A32_FLOAT, &WorldNormalTexture, &WorldNormalRTV, &WorldNormalSRV))
+        DXGI_FORMAT_R16G16_FLOAT, &WorldNormalTexture, &WorldNormalRTV, &WorldNormalSRV))
     {
         OutputDebugString(L"Failed to create World Normal render target resources\n");
         return;

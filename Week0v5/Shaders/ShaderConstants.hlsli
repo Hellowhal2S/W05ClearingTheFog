@@ -63,3 +63,20 @@ cbuffer ConstantBufferDebugSphere : register(b13)
 {
     SphereData DataSphere[8];
 }
+
+float2 EncodeNormalOctahedral(float3 N)
+{
+    // 먼저 3D 벡터의 절대값 합으로 나누어 정규화합니다.
+    float InvL1 = 1.0 / (abs(N.x) + abs(N.y) + abs(N.z));
+    N *= InvL1;
+
+    // 초기 2D 벡터 값은 xy, z가 음수일 때만 보정함
+    float2 Enc = N.xy;
+
+    if (N.z < 0.0)
+    {
+        // swap된 성분의 절대값 보정을 통해 반사 효과 적용
+        Enc = (1.0 - abs(Enc.yx)) * sign(Enc.xy);
+    }
+    return Enc;
+}

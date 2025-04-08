@@ -122,3 +122,21 @@ float3 CalculatePointLight(FConstantBufferLightPoint Light, float3 WorldPos, flo
 //    // if에 else가 없을 경우 경고 발생
 //    // warning X4000: use of potentially uninitialized variable
 //}
+
+
+// 인코딩된 2D 값 f를 3D 단위 노멀로 디코딩
+float3 DecodeNormalOctahedral(float2 F)
+{
+    // 먼저, 인코딩된 2D값을 그대로 x, y에 할당
+    float3 n;
+    n.xy = F;
+    
+    // z 성분은 1 - |f.x| - |f.y| 로 계산
+    n.z = 1.0 - abs(F.x) - abs(F.y);
+
+    // 만약 n.z가 음수이면, 인코딩 단계에서 반사 효과 적용된 것이므로 보정
+    float t = saturate(-n.z);
+    n.xy += sign(n.xy) * t;
+
+    return normalize(n);
+}

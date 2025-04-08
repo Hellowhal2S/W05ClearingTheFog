@@ -69,12 +69,12 @@ float LinearizeAndNormalizeDepth(float z_buffer, float nearZ, float farZ)
 
 float4 mainPS(SamplingPixelShaderInput input) : SV_TARGET
 {
-    //return float4(1.0f, 0.0f, 0.0f, 1.0f); // TODO: 수정 필요)
-    //return float4(renderTex.Sample(Sampler, input.texcoord).rgb,1.0f);
+    float2 EncodedNormal = g_worldNormalTex.Sample(g_Sampler, input.texcoord).rg;
+    float3 normal = DecodeNormalOctahedral(EncodedNormal);
     
     if (mode ==1)
     {
-        return float4(g_worldNormalTex.Sample(g_Sampler, input.texcoord).rgb, 1.0f);
+        return float4(normal, 1.0f);
     }
     else if (mode == 2)
     {
@@ -101,7 +101,9 @@ float4 mainPS(SamplingPixelShaderInput input) : SV_TARGET
         if (isLit == 1)
         {
             float3 color = float3(0.0f, 0.0f, 0.0f);
-            float3 normal = g_worldNormalTex.Sample(g_Sampler, input.texcoord).rgb;
+            
+            
+            
             float3 materialDiffuseColor = g_albedoTex.Sample(g_Sampler, input.texcoord).rgb;
             float3 materialSpecularColor = g_specularTex.Sample(g_Sampler, input.texcoord).rgb;
             float3 worldPos = g_worldPosTex.Sample(g_Sampler, input.texcoord).rgb;
