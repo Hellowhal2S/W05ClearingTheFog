@@ -34,7 +34,7 @@ private:
     void LazyLoad();
 
     void PrepareRendertarget();
-    void PreparePrimitives();
+    void PrepareComponents(UWorld* World);
 
     void PrepareConstantbufferGlobal();
     void UpdateConstantbufferGlobal(FConstantBufferCamera Buffer);

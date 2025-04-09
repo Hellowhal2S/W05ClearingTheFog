@@ -9,6 +9,7 @@
 #include "Engine/Classes/Actors/Player.h"
 #include "Renderer.h"
 #include "Engine/Classes/Components/LightComponent.h"
+#include "Engine/Classes/Components/HeightFogComponent.h"
 #include "PostEffect.h"
 #include "LevelEditor/SLevelEditor.h"
 #include "Engine/FLoaderOBJ.h"
@@ -551,23 +552,46 @@ void FEditorRenderer::PrepareRendertarget()
     Renderer->Graphics->DeviceContext->OMSetRenderTargets(1, &RenderTargetView, DepthStencilView);
 }
 
-void FEditorRenderer::PreparePrimitives()
+void FEditorRenderer::PrepareComponents(UWorld* World)
 {
     Resources.Components.StaticMesh.Empty();
     Resources.Components.Light.Empty();
+    Resources.Components.Fog.Empty();
     // gizmo 제외하고 넣기
-    if (GEngine->GetWorld()->WorldType == EWorldType::Editor)
+
+    if (GEngine->GetWorld()->WorldType != EWorldType::Editor)
     {
-        for (const auto iter : TObjectRange<UStaticMeshComponent>())
+        return;
+    }
+    for (const auto& actor : World->GetActors())
+    {
+        for (const auto& comp : actor->GetComponents())
         {
-            if (!Cast<UGizmoBaseComponent>(iter))
-                Resources.Components.StaticMesh.Add(iter);
-        }
-        for (const auto iter : TObjectRange<ULightComponentBase>())
-        {
-            Resources.Components.Light.Add(iter);
+            // AABB용 static mesh component
+            if (UStaticMeshComponent* staticmesh = Cast<UStaticMeshComponent>(comp))
+            {
+                if (!staticmesh->IsA<UGizmoBaseComponent>())
+                {
+                    Resources.Components.StaticMesh.Add(staticmesh);
+                }
+            }
+
+            // light
+            if (ULightComponentBase* light = Cast<ULightComponentBase>(comp))
+            {
+                Resources.Components.Light.Add(light);
+            }
+
+            // fog
+            if (UHeightFogComponent* fog = Cast<UHeightFogComponent>(comp))
+            {
+                Resources.Components.Fog.Add(fog);
+            }
+
         }
     }
+ 
+
 }
 
 void FEditorRenderer::PrepareConstantbufferGlobal()
@@ -600,7 +624,7 @@ void FEditorRenderer::Render(UWorld* World, std::shared_ptr<FEditorViewportClien
     }
 
     PrepareRendertarget();
-    PreparePrimitives();
+    PrepareComponents(World);
     PrepareConstantbufferGlobal();
     Renderer->Graphics->DeviceContext->RSSetViewports(1, &ActiveViewport->GetD3DViewport());
 
@@ -1062,6 +1086,17 @@ void FEditorRenderer::RenderIcons(const UWorld* World, std::shared_ptr<FEditorVi
             // 잘못된 light 종류
             continue;
         };
+        Renderer->Graphics->DeviceContext->Draw(6, 0); // 내부에서 버텍스 사용중
+    }
+
+    for (UHeightFogComponent* FogComp : Resources.Components.Fog)
+    {
+        FConstantBufferDebugIcon b;
+        b.Position = FogComp->GetComponentLocation();
+        b.Scale = IconScale;
+        UdpateConstantbufferIcon(b);
+        UpdateTextureIcon(IconType::ExponentialFog);
+
         Renderer->Graphics->DeviceContext->Draw(6, 0); // 내부에서 버텍스 사용중
     }
 }

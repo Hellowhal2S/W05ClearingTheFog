@@ -342,7 +342,7 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
                     TempActor->SetActorLabel(TEXT("OBJ_SKYSPHERE"));
                     UStaticMeshComponent* MeshComp = TempActor->GetStaticMeshComponent();
                     FManagerOBJ::CreateStaticMesh("Assets/SkySphere.obj");
-                    MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"SkySphere.obj")); // 소문자로 수정
+                    MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"SkySphere.obj"));
                     TempActor->SetActorRotation(FVector(-90.0f, 0.0f, 0.0f));
                     TempActor->SetActorScale(FVector(100.0f, 100.0f, 100.0f));
                     SpawnedActor = TempActor;
@@ -350,26 +350,22 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
                 }
 
                 // 🔦 라이트
-                case OBJ_SPOTLIGHT:
-                {
-                    SpawnedActor = World->SpawnActor<AActor>();
-                    SpawnedActor->SetActorLabel(TEXT("OBJ_SPOTLIGHT"));
-                    SpawnedActor->AddComponent<ULightComponentBase>();
-                    break;
-                }
+                //case OBJ_SPOTLIGHT:
+                //{
+                //    SpawnedActor = World->SpawnActor<AActor>();
+                //    SpawnedActor->SetActorLabel(TEXT("OBJ_SPOTLIGHT"));
+                //    break;
+                //}
                 case OBJ_POINTLIGHT:
                 {
                     SpawnedActor = World->SpawnActor<APointLightActor>();
                     SpawnedActor->SetActorLabel(TEXT("OBJ_POINTLIGHT"));
-                    UPointLightComponent* Light = SpawnedActor->AddComponent<UPointLightComponent>();
-                    Light->SetIntensity(5000.0f);
                     break;
                 }
                 case OBJ_DIRECTIONALLIGHT:
                 {
                     SpawnedActor = World->SpawnActor<ADirectionalLightActor>();
                     SpawnedActor->SetActorLabel(TEXT("OBJ_DIRECTIONALLIGHT"));
-                    SpawnedActor->AddComponent<UDirectionalLightComponent>();
                     break;
                 }
 

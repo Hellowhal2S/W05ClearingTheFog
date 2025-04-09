@@ -227,10 +227,14 @@ void AEditorPlayer::PickActor(const FVector& pickPosition)
     int maxIntersect = 0;
     float minDistance = FLT_MAX;
 
-    // billboard로 보여지는 light를 먼저 픽킹
+    // billboard로 보여지는 Primitive가 아닌 Scenecomponent를 먼저 픽킹
     // 현재 light의 distance가 이상함
-    for (const auto iter : TObjectRange<ULightComponentBase>())
+    for (const auto iter : TObjectRange<USceneComponent>())
     {
+        if (iter->IsA<UPrimitiveComponent>())
+        {
+            continue;
+        }
         float Distance = 0.0f;
         int currentIntersectCount = 0;
         if (RayIntersectsObject(pickPosition, iter, Distance, currentIntersectCount))
