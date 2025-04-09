@@ -10,6 +10,7 @@
 #include "Renderer.h"
 #include "Engine/Classes/Components/LightComponent.h"
 #include "PostEffect.h"
+#include "LevelEditor/SLevelEditor.h"
 
 
 void FEditorRenderer::Initialize(FRenderer* InRenderer)
@@ -577,15 +578,31 @@ void FEditorRenderer::RenderGizmos(const UWorld* World)
 
     for (const auto iter : TObjectRange<UGizmoBaseComponent>())
     {
+
         GizmoObjs.Add(iter);
     }
 
     //  fill solid,  Wirframe 에서도 제대로 렌더링되기 위함
     Renderer->Graphics->DeviceContext->RSSetState(UEditorEngine::graphicDevice.RasterizerStateSOLID);
-
-    for (auto GizmoComp : GizmoObjs)
+    for (UGizmoBaseComponent* GizmoComp : GizmoObjs)
     {
-
+        if (AActor* PickedActor = World->GetSelectedActor())
+        {
+            std::shared_ptr<FEditorViewportClient> activeViewport = GEngine->GetLevelEditor()->GetActiveViewportClient();
+            if (activeViewport->IsPerspective())
+            {
+                float scalar = abs(
+                    (activeViewport->ViewTransformPerspective.GetLocation() - PickedActor->GetRootComponent()->GetLocalLocation()).Magnitude()
+                );
+                scalar *= 0.1f;
+                GizmoComp->SetRelativeScale(FVector(scalar, scalar, scalar));
+            }
+            else
+            {
+                float scalar = activeViewport->orthoSize * 0.1f;
+                GizmoComp->SetRelativeScale(FVector(scalar, scalar, scalar));
+            }
+        }
         if ((GizmoComp->GetGizmoType() == UGizmoBaseComponent::ArrowX ||
             GizmoComp->GetGizmoType() == UGizmoBaseComponent::ArrowY ||
             GizmoComp->GetGizmoType() == UGizmoBaseComponent::ArrowZ)

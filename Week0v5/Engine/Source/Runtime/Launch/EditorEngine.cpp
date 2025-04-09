@@ -10,9 +10,11 @@
 #include "slate/Widgets/Layout/SSplitter.h"
 #include "LevelEditor/SLevelEditor.h"
 #include "UnrealEd/SceneMgr.h"
+#include "InteractiveToolsFramework/BaseGizmos/GizmoBaseComponent.h"
 
 #include "Renderer/PostEffect.h" // 후처리용 : FrameBuffer 안의 내용을 ColorSRV로 복사 후, PostEffect::Render 호출
 #include "UnrealEd/PrimitiveBatch.h"
+#include "UObject/UObjectIterator.h"
 
 
 class ULevel;
@@ -115,6 +117,7 @@ void UEditorEngine::Render()
 
             }
             GetLevelEditor()->SetViewportClient(viewportClient);
+            ResizeGizmo();
         }
         else
         {
@@ -243,6 +246,30 @@ void UEditorEngine::StopPIE()
     
     levelType = LEVELTICK_ViewportsOnly;
     
+}
+
+void UEditorEngine::ResizeGizmo()
+{
+    for (auto GizmoComp : TObjectRange<UGizmoBaseComponent>())
+    {
+        if (AActor* PickedActor = GWorld->GetSelectedActor())
+        {
+            std::shared_ptr<FEditorViewportClient> activeViewport = GetLevelEditor()->GetActiveViewportClient();
+            if (activeViewport->IsPerspective())
+            {
+                float scalar = abs(
+                    (activeViewport->ViewTransformPerspective.GetLocation() - PickedActor->GetRootComponent()->GetLocalLocation()).Magnitude()
+                );
+                scalar *= 0.1f;
+                GizmoComp->SetRelativeScale(FVector(scalar, scalar, scalar));
+            }
+            else
+            {
+                float scalar = activeViewport->orthoSize * 0.1f;
+                GizmoComp->SetRelativeScale(FVector(scalar, scalar, scalar));
+            }
+        }
+    }
 }
 
 void UEditorEngine::Exit()
