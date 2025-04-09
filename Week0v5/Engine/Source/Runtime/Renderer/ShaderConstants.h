@@ -13,7 +13,7 @@
 #include "Math/Color.h"
 
 // 아래의 두개 다 수정하기
-#define MACRO_FCONSTANT_NUM_MAX_DIRLIGHT 1
+#define MACRO_FCONSTANT_NUM_MAX_DIRLIGHT 10
 #define MACRO_FCONSTANT_NUM_MAX_POINTLIGHT 10
 #define MACRO_FCONSTANT_NUM_MAX_SPOTLIGHT 10
 
@@ -64,10 +64,10 @@ struct alignas(16) FConstantBufferLightColor
 
 struct alignas(16) FConstantBufferLightDir
 {
-    FConstantBufferLightColor Color;
+    FLinearColor Color;
 
-    alignas(16) FVector Direction = { 0,0,0 };
-    float pad0 =0;
+    FVector Direction = { 0,0,0 };
+    float Intensity = 0;
 };
 
 struct alignas(16) FConstantBufferLightPoint
@@ -142,8 +142,10 @@ struct alignas(16) FConstantBufferLights
     FConstantBufferLightDir DirLights[MACRO_FCONSTANT_NUM_MAX_DIRLIGHT];
     FConstantBufferLightPoint PointLights[MACRO_FCONSTANT_NUM_MAX_POINTLIGHT];
     FConstantBufferLightSpot SpotLights[MACRO_FCONSTANT_NUM_MAX_SPOTLIGHT];
-    alignas(16) UINT isLit = 1;
-    int NumPointLights;
+    UINT isLit = 1;
+    UINT NumPointLights;
+    UINT NumDirLights;
+    float _pad0;
 };
 
 /// <summary>
