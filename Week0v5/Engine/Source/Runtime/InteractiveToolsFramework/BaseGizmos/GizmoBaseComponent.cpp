@@ -54,6 +54,7 @@ int UGizmoBaseComponent::CheckRayIntersection(FVector& rayOrigin, FVector& rayDi
 
 void UGizmoBaseComponent::TickComponent(float DeltaTime)
 {
+    return;
     // Super::TickComponent(DeltaTime);
 
     if (AActor* PickedActor = GetWorld()->GetSelectedActor())

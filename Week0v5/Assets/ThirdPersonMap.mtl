@@ -1,0 +1,54 @@
+# Blender 4.4.0 MTL File: 'helloBlender.blend'
+# www.blender.org
+
+newmtl MI_Manny_01
+Ns 200.000000
+Ka 1.000000 1.000000 1.000000
+Ks 1.000000 1.000000 1.000000
+Ni 1.500000
+illum 3
+map_Kd MI_Manny_01_BaseColor_0.png
+map_Ke MI_Manny_01_EmissiveColor_0.png
+map_d MI_Manny_01_BaseColor_0.png
+map_Bump -bm 1.000000 C:/Program Files/Epic Games/temp/render/ttt/M_tex/Baked/T_Manny_01_N.TGA
+
+newmtl MI_Manny_02
+Ns 200.000000
+Ka 1.000000 1.000000 1.000000
+Ks 1.000000 1.000000 1.000000
+Ni 1.500000
+illum 3
+map_Kd MI_Manny_02_BaseColor_1.png
+map_Ke MI_Manny_02_EmissiveColor_1.png
+map_d MI_Manny_02_BaseColor_1.png
+map_Bump -bm 1.000000 C:/Program Files/Epic Games/temp/render/ttt/M_tex/Baked/T_Manny_02_N.TGA
+
+newmtl MI_PrototypeGrid_Gray.001
+Ns 200.000000
+Ka 1.000000 1.000000 1.000000
+Ks 1.000000 1.000000 1.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+illum 3
+map_Kd MI_PrototypeGrid_Gray_BaseColor_0.png
+map_d MI_PrototypeGrid_Gray_BaseColor_0.png
+
+newmtl MI_PrototypeGrid_TopDark.001
+Ns 200.000000
+Ka 1.000000 1.000000 1.000000
+Ks 1.000000 1.000000 1.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+illum 3
+map_Kd MI_PrototypeGrid_TopDark_BaseColor_0.png
+map_d MI_PrototypeGrid_TopDark_BaseColor_0.png
+
+newmtl MI_Solid_Blue.001
+Ns 200.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.002428 0.138432 0.577580
+Ks 1.000000 1.000000 1.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 3

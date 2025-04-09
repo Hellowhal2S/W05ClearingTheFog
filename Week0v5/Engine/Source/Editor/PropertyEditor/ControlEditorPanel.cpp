@@ -241,8 +241,8 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
 
         
         ImGui::Spacing();
-        const char* fogModes[] = { "None", "Normal", "Scene Depth", "World Pos", "Albedo", "Specular"};
-        ImGui::Text("Mode");
+        const char* fogModes[] = { "None", "Normal", "Scene Depth", "World Pos" };
+        ImGui::Text("Fog Mode");
         ImGui::SetNextItemWidth(120.0f);
         if (ImGui::Combo("##FogModeCombo", &renderMode, fogModes, IM_ARRAYSIZE(fogModes)))
         {
@@ -395,7 +395,7 @@ void ControlEditorPanel::CreateFlagButton() const
 
     ImGui::SameLine();
     
-    const char* ViewModeNames[] = { "Lit", "Unlit", "Wireframe" };
+    const char* ViewModeNames[] = {"Lit", "Unlit", "Wireframe", "Scene Depth", "Normal", "World Pos"};
     FString SelectLightControl = ViewModeNames[(int)ActiveViewport->GetViewMode()];
     ImVec2 LightTextSize = ImGui::CalcTextSize(GetData(SelectLightControl));
     
