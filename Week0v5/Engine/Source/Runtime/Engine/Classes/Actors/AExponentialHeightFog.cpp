@@ -31,7 +31,7 @@ UObject* AExponentialHeightFog::Duplicate() const
 
 void AExponentialHeightFog::DuplicateSubObjects(const UObject* Source)
 {
-    UObject::DuplicateSubObjects(Source);
+    AActor::DuplicateSubObjects(Source);
     const AExponentialHeightFog* Fog = Cast<AExponentialHeightFog>(Source);
     fogComponent = Cast<UHeightFogComponent>(fogComponent->Duplicate());
     RootComponent = fogComponent;
