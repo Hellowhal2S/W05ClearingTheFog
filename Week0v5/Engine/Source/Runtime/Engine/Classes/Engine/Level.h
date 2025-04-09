@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "Container/Set.h"
 #include "UObject/Object.h"
 #include "UObject/ObjectMacros.h"

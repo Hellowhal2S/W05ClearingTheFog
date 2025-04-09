@@ -344,7 +344,7 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
                     FManagerOBJ::CreateStaticMesh("Assets/SkySphere.obj");
                     MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"SkySphere.obj"));
                     TempActor->SetActorRotation(FVector(-90.0f, 0.0f, 0.0f));
-                    TempActor->SetActorScale(FVector(100.0f));
+                    TempActor->SetActorScale(FVector(100.0f,100.0f,100.0f));
                     SpawnedActor = TempActor;
                     break; // 누락된 break 추가
                 }
