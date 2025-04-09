@@ -30,6 +30,7 @@ struct FRenderResources
         TArray<class UBillboardComponent*> BillboardObjs;
         TArray<class UTextRenderComponent*> TextObjs;
         TArray<class ULightComponentBase*> LightObjs;
+        TArray<class UStaticMeshComponent*> AppleObjs;
     } Components;
 
     struct FShaderResourceContainer
@@ -37,12 +38,13 @@ struct FRenderResources
         FShaderResource StaticMesh;
         FShaderResource Texture;
         FShaderResource Text;
-
+        FShaderResource Apple;
     } Shaders;
 
     struct FConstantBufferContainer
     {
         FConstantBuffersStaticMesh StaticMesh;
+        FConstantBuffersApple Apple;
         // texture관련 cb필요.
         //FConstantBuffersBatchLine BatchLine;
         //FConstantBuffersBatchLine BatchLine; // line text 추가해야함

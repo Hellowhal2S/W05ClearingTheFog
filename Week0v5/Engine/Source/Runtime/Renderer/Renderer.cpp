@@ -45,11 +45,21 @@ void FRenderer::CreateMeshShader()
 {
     ID3DBlob* VertexShaderCSO;
     ID3DBlob* PixelShaderCSO;
+    ID3DBlob* errorBlob = nullptr;
 
-    D3DCompileFromFile(L"Shaders/StaticMeshVertexShader.hlsl", defines, D3D_COMPILE_STANDARD_FILE_INCLUDE, "mainVS", "vs_5_0", 0, 0, &VertexShaderCSO, nullptr);
+    D3DCompileFromFile(L"Shaders/StaticMeshVertexShader.hlsl", defines, D3D_COMPILE_STANDARD_FILE_INCLUDE, "mainVS", "vs_5_0", 0, 0, &VertexShaderCSO, &errorBlob);
+    if (errorBlob)
+    {
+        OutputDebugStringA((char*)errorBlob->GetBufferPointer());
+        errorBlob->Release();
+    }
     Graphics->Device->CreateVertexShader(VertexShaderCSO->GetBufferPointer(), VertexShaderCSO->GetBufferSize(), nullptr, &RenderResources.Shaders.StaticMesh.Vertex);
-
-    D3DCompileFromFile(L"Shaders/StaticMeshPixelShader.hlsl", defines, D3D_COMPILE_STANDARD_FILE_INCLUDE, "mainPS", "ps_5_0", 0, 0, &PixelShaderCSO, nullptr);
+    D3DCompileFromFile(L"Shaders/StaticMeshPixelShader.hlsl", defines, D3D_COMPILE_STANDARD_FILE_INCLUDE, "mainPS", "ps_5_0", 0, 0, &PixelShaderCSO, &errorBlob);
+    if (errorBlob)
+    {
+        OutputDebugStringA((char*)errorBlob->GetBufferPointer());
+        errorBlob->Release();
+    }
     Graphics->Device->CreatePixelShader(PixelShaderCSO->GetBufferPointer(), PixelShaderCSO->GetBufferSize(), nullptr, &RenderResources.Shaders.StaticMesh.Pixel);
 
     D3D11_INPUT_ELEMENT_DESC layout[] = {
@@ -62,6 +72,44 @@ void FRenderer::CreateMeshShader()
 
     Graphics->Device->CreateInputLayout(
         layout, ARRAYSIZE(layout), VertexShaderCSO->GetBufferPointer(), VertexShaderCSO->GetBufferSize(), &RenderResources.Shaders.StaticMesh.Layout
+    );
+
+    VertexShaderCSO->Release();
+    PixelShaderCSO->Release();
+}
+
+void FRenderer::CreateAppleShader()
+{
+    ID3DBlob* VertexShaderCSO;
+    ID3DBlob* PixelShaderCSO;
+    ID3DBlob* errorBlob = nullptr;
+
+    D3DCompileFromFile(L"Shaders/StaticMeshVertexShader.hlsl", defines, D3D_COMPILE_STANDARD_FILE_INCLUDE, "appleVS", "vs_5_0", 0, 0, &VertexShaderCSO, &errorBlob);
+    if (errorBlob)
+    {
+        OutputDebugStringA((char*)errorBlob->GetBufferPointer());
+        errorBlob->Release();
+    }
+    Graphics->Device->CreateVertexShader(VertexShaderCSO->GetBufferPointer(), VertexShaderCSO->GetBufferSize(), nullptr, &RenderResources.Shaders.Apple.Vertex);
+
+    D3DCompileFromFile(L"Shaders/StaticMeshPixelShader.hlsl", defines, D3D_COMPILE_STANDARD_FILE_INCLUDE, "applePS", "ps_5_0", 0, 0, &PixelShaderCSO, &errorBlob);
+    if (errorBlob)
+    {
+        OutputDebugStringA((char*)errorBlob->GetBufferPointer());
+        errorBlob->Release();
+    }
+    Graphics->Device->CreatePixelShader(PixelShaderCSO->GetBufferPointer(), PixelShaderCSO->GetBufferSize(), nullptr, &RenderResources.Shaders.Apple.Pixel);
+
+    D3D11_INPUT_ELEMENT_DESC layout[] = {
+        {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+        {"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0},
+        {"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 28, D3D11_INPUT_PER_VERTEX_DATA, 0},
+        {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 40, D3D11_INPUT_PER_VERTEX_DATA, 0},
+        {"MATERIAL_INDEX", 0, DXGI_FORMAT_R32_UINT, 0, 48, D3D11_INPUT_PER_VERTEX_DATA, 0}
+    };
+
+    Graphics->Device->CreateInputLayout(
+        layout, ARRAYSIZE(layout), VertexShaderCSO->GetBufferPointer(), VertexShaderCSO->GetBufferSize(), &RenderResources.Shaders.Apple.Layout
     );
 
     VertexShaderCSO->Release();
@@ -376,6 +424,15 @@ void FRenderer::CreateConstantBuffers()
     //Graphics->Device->CreateBuffer(&ConstantBufferDesc, nullptr, &RenderResources.ConstantBuffers.BatchLine.Counts03);
 
 
+    ConstantBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+    ConstantBufferDesc.ByteWidth = sizeof(FConstantBufferAppleMateiral);
+    Graphics->Device->CreateBuffer(&ConstantBufferDesc, nullptr, &RenderResources.ConstantBuffers.Apple.AppleMaterial7);
+
+    ConstantBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+    ConstantBufferDesc.ByteWidth = sizeof(FConstantBufferApplePosition) * NumApples;
+    Graphics->Device->CreateBuffer(&ConstantBufferDesc, nullptr, &RenderResources.ConstantBuffers.Apple.ApplePosition06);
+
+
 }
 
 void FRenderer::ReleaseConstantBuffers()
@@ -391,6 +448,7 @@ void FRenderer::CreateShaders()
 {
     CreateMeshShader();
     CreateTextureShader();
+    CreateAppleShader();
 }
 
 
@@ -729,6 +787,11 @@ void FRenderer::PreparePrimitives()
                 {
                     RenderResources.Components.LightObjs.Add(pLightComp);
                 }
+                if (UStaticMeshComponent* pStaticMeshComp = Cast<UStaticMeshComponent>(iter))
+                {
+                    if (!Cast<UGizmoBaseComponent>(iter))
+                        RenderResources.Components.AppleObjs.Add(pStaticMeshComp);
+                }
         }
         
     }
@@ -818,10 +881,12 @@ void FRenderer::Render(UWorld* World, std::shared_ptr<FEditorViewportClient> Act
 
 
 
-    if (ActiveViewport->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::SF_Primitives))
-    {
-        RenderStaticMeshes(World, ActiveViewport);
-    }
+
+    //if (ActiveViewport->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::SF_Primitives))
+    //{
+    //    RenderStaticMeshes(World, ActiveViewport);
+    //}
+    RenderApples();
     //RenderGizmos(World, ActiveViewport);
     if (ActiveViewport->GetShowFlag() & static_cast<uint64>(EEngineShowFlags::SF_BillboardText))
     {
@@ -866,78 +931,6 @@ void FRenderer::RenderStaticMeshes(UWorld* World, std::shared_ptr<FEditorViewpor
         RenderPrimitive(Model, renderData, StaticMeshComp->GetStaticMesh()->GetMaterials(), StaticMeshComp->GetOverrideMaterials(), StaticMeshComp->GetselectedSubMeshIndex());
     }
 }
-
-//void FRenderer::RenderGizmos(const UWorld* World, const std::shared_ptr<FEditorViewportClient>& ActiveViewport)
-//{
-//    if (!World->GetSelectedActor())
-//    {
-//        return;
-//    }
-//
-//    #pragma region GizmoDepth
-//        ID3D11DepthStencilState* DepthStateDisable = Graphics->DepthStateDisable;
-//        Graphics->DeviceContext->OMSetDepthStencilState(DepthStateDisable, 0);
-//    #pragma endregion GizmoDepth
-//
-//    //  fill solid,  Wirframe 에서도 제대로 렌더링되기 위함
-//    Graphics->DeviceContext->RSSetState(UEditorEngine::graphicDevice.RasterizerStateSOLID);
-//    
-//    for (auto GizmoComp : RenderResources.Primitives.GizmoObjs)
-//    {
-//        
-//        if ((GizmoComp->GetGizmoType()==UGizmoBaseComponent::ArrowX ||
-//            GizmoComp->GetGizmoType()==UGizmoBaseComponent::ArrowY ||
-//            GizmoComp->GetGizmoType()==UGizmoBaseComponent::ArrowZ)
-//            && World->GetEditorPlayer()->GetControlMode() != CM_TRANSLATION)
-//            continue;
-//        else if ((GizmoComp->GetGizmoType()==UGizmoBaseComponent::ScaleX ||
-//            GizmoComp->GetGizmoType()==UGizmoBaseComponent::ScaleY ||
-//            GizmoComp->GetGizmoType()==UGizmoBaseComponent::ScaleZ)
-//            && World->GetEditorPlayer()->GetControlMode() != CM_SCALE)
-//            continue;
-//        else if ((GizmoComp->GetGizmoType()==UGizmoBaseComponent::CircleX ||
-//            GizmoComp->GetGizmoType()==UGizmoBaseComponent::CircleY ||
-//            GizmoComp->GetGizmoType()==UGizmoBaseComponent::CircleZ)
-//            && World->GetEditorPlayer()->GetControlMode() != CM_ROTATION)
-//            continue;
-//        FMatrix Model = GizmoComp->GetComponentTransform();
-//        {
-//            FConstantBufferActor buf;
-//            buf.IsSelectedActor = 0;
-//            buf.UUID = GizmoComp->EncodeUUID() / 255.0f;
-//            UpdateConstantbufferActor(buf);
-//        }
-//        {
-//            FConstantBufferMesh buf;
-//            buf.ModelMatrix = Model;
-//            if (GizmoComp == World->GetPickingGizmo())
-//            {
-//                buf.IsSelectedMesh = 1;
-//            }
-//            else
-//            {
-//                buf.IsSelectedMesh = 0;
-//            }
-//            UpdateConstantbufferMesh(buf);
-//        }
-//        // TODO: 기즈모 선택효과 안보임
-//        // 현재 RenderPrimitive()에서 다시 SelectedMesh를 갱신하는데, 안에서 기즈모를 인식시킬 수 없음.
-//
-//        if (!GizmoComp->GetStaticMesh()) continue;
-//
-//        OBJ::FStaticMeshRenderData* renderData = GizmoComp->GetStaticMesh()->GetRenderData();
-//        if (renderData == nullptr) continue;
-//
-//        RenderPrimitive(Model, renderData, GizmoComp->GetStaticMesh()->GetMaterials(), GizmoComp->GetOverrideMaterials());
-//    }
-//
-//    Graphics->DeviceContext->RSSetState(Graphics->GetCurrentRasterizer());
-//
-//#pragma region GizmoDepth
-//    ID3D11DepthStencilState* originalDepthState = Graphics->DepthStencilState;
-//    Graphics->DeviceContext->OMSetDepthStencilState(originalDepthState, 0);
-//#pragma endregion GizmoDepth
-//}
 
 void FRenderer::RenderBillboards(UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport)
 {
@@ -1011,7 +1004,7 @@ void FRenderer::RenderTexts(UWorld* World, std::shared_ptr<FEditorViewportClient
         }
 
         UTextRenderComponent* Text = Cast<UTextRenderComponent>(TextRenderComp);
-        UEditorEngine::RenderEngine.Renderer.RenderTextPrimitive(
+        UEditorEngine::RenderEngine.GetRenderer()->RenderTextPrimitive(
             Text->vertexTextBuffer, Text->numTextVertices,
             Text->Texture->TextureSRV, Text->Texture->SamplerState
         );
@@ -1021,5 +1014,108 @@ void FRenderer::RenderTexts(UWorld* World, std::shared_ptr<FEditorViewportClient
 void FRenderer::RenderPostProcess()
 {
     
+}
+
+void FRenderer::RenderApples()
+{
+    PrepareShader(RenderResources.Shaders.Apple);
+    PrepareConstantbufferApple();
+
+    if (RenderResources.Components.AppleObjs.Num() < 1000)
+    {
+        return;
+    }
+    UStaticMeshComponent* AppleSample = RenderResources.Components.AppleObjs[2323];
+    OBJ::FStaticMeshRenderData* renderData = AppleSample->GetStaticMesh()->GetRenderData();
+
+
+    UINT offset = 0;
+    Graphics->DeviceContext->IASetVertexBuffers(0, 1, &renderData->VertexBuffer, &renderData->Stride, &offset);
+
+    if (renderData->IndexBuffer)
+        Graphics->DeviceContext->IASetIndexBuffer(renderData->IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+
+    FObjMaterialInfo MaterialInfo;
+    auto materials = AppleSample->GetStaticMesh()->GetMaterials();
+    MaterialInfo = materials[0]->Material->GetMaterialInfo();
+
+    FConstantBufferAppleMateiral bufmat;
+
+    bufmat.Material.DiffuseColor = MaterialInfo.Diffuse;
+    bufmat.Material.TransparencyScalar = MaterialInfo.TransparencyScalar;
+    bufmat.Material.AmbientColor = MaterialInfo.Ambient;
+    bufmat.Material.DensityScalar = MaterialInfo.DensityScalar;
+    bufmat.Material.SpecularColor = MaterialInfo.Specular;
+    bufmat.Material.SpecularScalar = MaterialInfo.SpecularScalar;
+    bufmat.Material.EmmisiveColor = MaterialInfo.Emissive;
+
+    if (MaterialInfo.bHasTexture)
+    {
+        std::shared_ptr<FTexture> texture = UEditorEngine::resourceMgr.GetTexture(MaterialInfo.DiffuseTexturePath);
+        Graphics->DeviceContext->PSSetShaderResources(0, 1, &texture->TextureSRV);
+        Graphics->DeviceContext->PSSetSamplers(0, 1, &texture->SamplerState);
+    }
+    else
+    {
+        ID3D11ShaderResourceView* nullSRV[1] = { nullptr };
+        ID3D11SamplerState* nullSampler[1] = { nullptr };
+
+        Graphics->DeviceContext->PSSetShaderResources(0, 1, nullSRV);
+        Graphics->DeviceContext->PSSetSamplers(0, 1, nullSampler);
+    }
+
+    UpdateConstantbufferAppleMaterial(bufmat);
+
+    TArray<FConstantBufferApplePosition> buf;
+    for (UStaticMeshComponent* StaticMeshComp : RenderResources.Components.AppleObjs)
+    {
+        FMatrix Model = StaticMeshComp->GetComponentTransform();
+        FMatrix ModelInverseTranspose = FMatrix::Transpose(FMatrix::Inverse(Model));
+        buf.Add({ Model, ModelInverseTranspose });
+        if (buf.Num() == NumApples)
+        {
+            UpdateConstantbufferApplePosition(buf);
+            Graphics->DeviceContext->DrawIndexedInstanced(renderData->Indices.Num(), buf.Num(), 0, 0, 0);
+            buf.Empty();
+        }
+    }
+    Graphics->DeviceContext->DrawIndexedInstanced(renderData->Indices.Num(), buf.Num(), 0, 0, 0);
+
+}
+
+void FRenderer::UpdateConstantbufferApplePosition(TArray<FConstantBufferApplePosition> Buffer)
+{
+    if (RenderResources.ConstantBuffers.Apple.ApplePosition06)
+    {
+        D3D11_MAPPED_SUBRESOURCE ConstantBufferMSR; // GPU�� �޸� �ּ� ����
+
+        Graphics->DeviceContext->Map(RenderResources.ConstantBuffers.Apple.ApplePosition06, 0, D3D11_MAP_WRITE_DISCARD, 0, &ConstantBufferMSR); // update constant buffer every frame
+        memcpy(ConstantBufferMSR.pData, Buffer.GetData(), sizeof(FConstantBufferApplePosition) * Buffer.Num());
+        Graphics->DeviceContext->Unmap(RenderResources.ConstantBuffers.Apple.ApplePosition06, 0); // GPU�� �ٽ� ��밡���ϰ� �����
+    }
+}
+
+void FRenderer::UpdateConstantbufferAppleMaterial(FConstantBufferAppleMateiral Buffer)
+{
+    if (RenderResources.ConstantBuffers.Apple.AppleMaterial7)
+    {
+        D3D11_MAPPED_SUBRESOURCE ConstantBufferMSR; // GPU�� �޸� �ּ� ����
+
+        Graphics->DeviceContext->Map(RenderResources.ConstantBuffers.Apple.AppleMaterial7, 0, D3D11_MAP_WRITE_DISCARD, 0, &ConstantBufferMSR); // update constant buffer every frame
+        memcpy(ConstantBufferMSR.pData, &Buffer, sizeof(Buffer));
+        Graphics->DeviceContext->Unmap(RenderResources.ConstantBuffers.Apple.AppleMaterial7, 0); // GPU�� �ٽ� ��밡���ϰ� �����
+    }
+}
+
+void FRenderer::PrepareConstantbufferApple()
+{
+    if (RenderResources.ConstantBuffers.Apple.ApplePosition06)
+    {
+        Graphics->DeviceContext->VSSetConstantBuffers(6, 1, &RenderResources.ConstantBuffers.Apple.ApplePosition06);
+    }
+    if (RenderResources.ConstantBuffers.Apple.AppleMaterial7)
+    {
+        Graphics->DeviceContext->VSSetConstantBuffers(7, 1, &RenderResources.ConstantBuffers.Apple.AppleMaterial7);
+    }
 }
 

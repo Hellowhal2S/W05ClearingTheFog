@@ -19,7 +19,7 @@
 
 class ULevel;
 
-FGraphicsDevice UEditorEngine::graphicDevice;
+//FGraphicsDevice UEditorEngine::graphicDevice;
 FRenderEngine UEditorEngine::RenderEngine;
 FResourceMgr UEditorEngine::resourceMgr;
 
@@ -37,11 +37,12 @@ int32 UEditorEngine::Init(HWND hwnd)
 {
     /* must be initialized before window. */
     hWnd = hwnd;
-    graphicDevice.Initialize(hWnd);
-    RenderEngine.Initialize(&graphicDevice);
+    FGraphicsDevice* graphicDevice = UEditorEngine::RenderEngine.GetGraphicsDevice();
+    graphicDevice->Initialize(hWnd);
+    RenderEngine.Initialize(graphicDevice);
     UIMgr = new UImGuiManager;
-    UIMgr->Initialize(hWnd, graphicDevice.Device, graphicDevice.DeviceContext);
-    resourceMgr.Initialize(&RenderEngine.Renderer, &graphicDevice);
+    UIMgr->Initialize(hWnd, graphicDevice->Device, graphicDevice->DeviceContext);
+    resourceMgr.Initialize(RenderEngine.GetRenderer(), graphicDevice);
     
     FWorldContext EditorContext;
     EditorContext.WorldType = EWorldType::Editor;
@@ -62,7 +63,7 @@ int32 UEditorEngine::Init(HWND hwnd)
     UnrealEditor = new UnrealEd();
     UnrealEditor->Initialize(LevelEditor);
     UnrealEditor->OnResize(hWnd); // 현재 윈도우 사이즈에 대한 재조정
-    graphicDevice.OnResize(hWnd);
+    graphicDevice->OnResize(hWnd);
 
     SceneMgr = new FSceneMgr();
 
@@ -72,33 +73,33 @@ int32 UEditorEngine::Init(HWND hwnd)
 
 void UEditorEngine::Render()
 {
-
-    graphicDevice.Prepare();
+    FGraphicsDevice* graphicDevice = UEditorEngine::RenderEngine.GetGraphicsDevice();
+    graphicDevice->Prepare();
     if (LevelEditor->IsMultiViewport())
     {
         std::shared_ptr<FEditorViewportClient> viewportClient = GetLevelEditor()->GetActiveViewportClient();
-        PostEffect::ClearRTV(graphicDevice.DeviceContext);
+        PostEffect::ClearRTV(graphicDevice->DeviceContext);
         for (int i = 0; i < 4; ++i)
         {
-            graphicDevice.DeviceContext->OMSetRenderTargets(6, graphicDevice.RTVs, graphicDevice.DepthStencilView); // 렌더 타겟 설정(백버퍼를 가르킴)
+            graphicDevice->DeviceContext->OMSetRenderTargets(6, graphicDevice->RTVs, graphicDevice->DepthStencilView); // 렌더 타겟 설정(백버퍼를 가르킴)
             LevelEditor->SetViewportClient(i);
             RenderEngine.Render(GWorld,LevelEditor->GetActiveViewportClient());
-            // graphicDevice.DeviceContext->RSSetViewports(1, &LevelEditor->GetActiveViewportClient()->GetD3DViewport());
+            // graphicDevice->DeviceContext->RSSetViewports(1, &LevelEditor->GetActiveViewportClient()->GetD3DViewport());
 
-            PostEffect::CopyBackBufferToColorSRV(graphicDevice.DeviceContext, graphicDevice.ColorTexture, graphicDevice.FrameBuffer);
-            PostEffect::CopyDepthBufferToDepthOnlySRV(graphicDevice.DeviceContext, graphicDevice.DepthStencilBuffer);
-            PostEffect::Render(graphicDevice.DeviceContext, graphicDevice.ColorSRV);
+            PostEffect::CopyBackBufferToColorSRV(graphicDevice->DeviceContext, graphicDevice->ColorTexture, graphicDevice->FrameBuffer);
+            PostEffect::CopyDepthBufferToDepthOnlySRV(graphicDevice->DeviceContext, graphicDevice->DepthStencilBuffer);
+            PostEffect::Render(graphicDevice->DeviceContext, graphicDevice->ColorSRV);
         }
         GetLevelEditor()->SetViewportClient(viewportClient);
     }   
     else
     {
-        PostEffect::ClearRTV(graphicDevice.DeviceContext);
-        graphicDevice.DeviceContext->OMSetRenderTargets(6, graphicDevice.RTVs, graphicDevice.DepthStencilView); // 렌더 타겟 설정(백버퍼를 가르킴)
+        PostEffect::ClearRTV(graphicDevice->DeviceContext);
+        graphicDevice->DeviceContext->OMSetRenderTargets(6, graphicDevice->RTVs, graphicDevice->DepthStencilView); // 렌더 타겟 설정(백버퍼를 가르킴)
         RenderEngine.Render(GWorld,LevelEditor->GetActiveViewportClient());
-        PostEffect::CopyBackBufferToColorSRV(graphicDevice.DeviceContext, graphicDevice.ColorTexture, graphicDevice.FrameBuffer);
-        PostEffect::CopyDepthBufferToDepthOnlySRV(graphicDevice.DeviceContext, graphicDevice.DepthStencilBuffer);
-        PostEffect::Render(graphicDevice.DeviceContext, graphicDevice.ColorSRV);
+        PostEffect::CopyBackBufferToColorSRV(graphicDevice->DeviceContext, graphicDevice->ColorTexture, graphicDevice->FrameBuffer);
+        PostEffect::CopyDepthBufferToDepthOnlySRV(graphicDevice->DeviceContext, graphicDevice->DepthStencilBuffer);
+        PostEffect::Render(graphicDevice->DeviceContext, graphicDevice->ColorSRV);
     }
 
     // OMSEtrender - depth용 pass
@@ -146,7 +147,7 @@ void UEditorEngine::Tick(float deltaSeconds)
     // TODO : 이거 잘 안되는 것 이유 파악 
     // GUObjectArray.ProcessPendingDestroyObjects();
 
-    graphicDevice.SwapBuffer();
+    UEditorEngine::RenderEngine.GetGraphicsDevice()->SwapBuffer();
 }
 
 float UEditorEngine::GetAspectRatio(IDXGISwapChain* swapChain) const
@@ -262,9 +263,9 @@ void UEditorEngine::Exit()
     UIMgr->Shutdown();
     delete UIMgr;
     delete SceneMgr;
-    resourceMgr.Release(&RenderEngine.Renderer);
-    RenderEngine.Renderer.Release();
-    graphicDevice.Release();
+    resourceMgr.Release(RenderEngine.GetRenderer());
+    RenderEngine.GetRenderer()->Release();
+    RenderEngine.GetGraphicsDevice()->Release();
 }
 
 

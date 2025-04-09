@@ -3,9 +3,12 @@
 #include "UObject/Object.h"
 #include "Components/SphereComp.h"
 #include "Components/CubeComp.h"
+#include "Components/RotatingMovementComponent.h"
+#include "Components/ProjectileMovementComponent.h"
 #include "BaseGizmos/GizmoArrowComponent.h"
 #include "UObject/ObjectFactory.h"
 #include <fstream>
+#include <random>
 
 #include "EditorViewportClient.h"
 #include "Components/UBillboardComponent.h"
@@ -23,6 +26,19 @@ using json = nlohmann::json;
 void FSceneMgr::ParseSceneData(const FString& jsonStr)
 {
     SceneData sceneData;
+
+
+    // 회전 속도 범위 설정 (도/초)
+    constexpr float MinRotationSpeed = -90.0f;
+    constexpr float MaxRotationSpeed = 90.0f;
+
+    // std::random 엔진 및 분포 설정
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<float> dist(MinRotationSpeed, MaxRotationSpeed);
+
+
+
 
 
         json j = json::parse(*jsonStr);
@@ -109,6 +125,26 @@ void FSceneMgr::ParseSceneData(const FString& jsonStr)
                         value["Scale"].get<std::vector<float>>()[2]
                         ));
                     TempActor->SetActorLabel(TEXT("OBJ_CUBE"));
+                    URotatingMovementComponent* RotatingComp = FObjectFactory::ConstructObject<URotatingMovementComponent>();
+                    // 회전 속도 샘플링
+                    float RandomPitch = dist(gen)/10; // X축 회전 속도
+                    float RandomYaw = dist(gen)/10; // Y축 회전 속도
+                    float RandomRoll = dist(gen)/10; // Z축 회전 속도
+
+                    RotatingComp->RotationRate = FVector(RandomPitch, RandomYaw, RandomRoll);
+                    RotatingComp->PivotTranslation = FVector(0, 0, 0);
+                    TempActor->AddComponent(RotatingComp);
+
+                    UProjectileMovementComponent* ProjectileComp = FObjectFactory::ConstructObject<UProjectileMovementComponent>();
+                    
+                    float x = dist(gen) / 400; // X축 회전 속도
+                    float y = dist(gen) / 400; // Y축 회전 속도
+                    float z = dist(gen) / 400; // Z축 회전 속도
+
+                    ProjectileComp->Velocity = FVector(x, y, z);
+                    TempActor->AddComponent(ProjectileComp);
+
+
                     UStaticMeshComponent* MeshComp = TempActor->GetStaticMeshComponent();
                     FManagerOBJ::CreateStaticMesh("Assets/" + FileName);
                     MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(WFileName));

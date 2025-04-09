@@ -54,7 +54,7 @@ void Console::Draw() {
     ImGui::SetNextWindowPos(windowPos, ImGuiCond_Always);
     ImGui::SetNextWindowSize(windowSize, ImGuiCond_Always);
     // 창을 표시하고 닫힘 여부 확인
-    overlay.Render(GEngine->graphicDevice.DeviceContext, width, height);
+    overlay.Render(UEditorEngine::RenderEngine.GetGraphicsDevice()->DeviceContext, width, height);
     bExpand = ImGui::Begin("Console", &bWasOpen);
     if (!bExpand) {
         ImGui::End();

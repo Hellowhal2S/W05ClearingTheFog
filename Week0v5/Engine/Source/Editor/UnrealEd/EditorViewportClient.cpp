@@ -31,7 +31,7 @@ void FEditorViewportClient::Initialize(int32 viewportIndex)
     ViewTransformPerspective.SetLocation(FVector(8.0f, 8.0f, 8.f));
     ViewTransformPerspective.SetRotation(FVector(0.0f, 45.0f, -135.0f));
     Viewport = new FViewport(static_cast<EViewScreenLocation>(viewportIndex));
-    ResizeViewport(GEngine->graphicDevice.SwapchainDesc);
+    ResizeViewport(GEngine->RenderEngine.GetGraphicsDevice()->SwapchainDesc);
     ViewportIndex = viewportIndex;
 }
 
@@ -140,7 +140,7 @@ void FEditorViewportClient::ResizeViewport(const DXGI_SWAP_CHAIN_DESC& swapchain
     else {
         UE_LOG(LogLevel::Error, "Viewport is nullptr");
     }
-    AspectRatio = GEngine->GetAspectRatio(GEngine->graphicDevice.SwapChain);
+    AspectRatio = GEngine->GetAspectRatio(GEngine->RenderEngine.GetGraphicsDevice()->SwapChain);
     UpdateProjectionMatrix();
     UpdateViewMatrix();
 }
@@ -152,7 +152,7 @@ void FEditorViewportClient::ResizeViewport(FRect Top, FRect Bottom, FRect Left, 
     else {
         UE_LOG(LogLevel::Error, "Viewport is nullptr");
     }
-    AspectRatio = GEngine->GetAspectRatio(GEngine->graphicDevice.SwapChain);
+    AspectRatio = GEngine->GetAspectRatio(GEngine->RenderEngine.GetGraphicsDevice()->SwapChain);
     UpdateProjectionMatrix();
     UpdateViewMatrix();
 }

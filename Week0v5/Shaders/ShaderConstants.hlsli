@@ -40,4 +40,20 @@ cbuffer ConstantBufferMesh : register(b6)
     uint IsSelectedMesh;
 };
 
+struct AppleData
+{
+    row_major matrix ModelMatrix;
+    row_major matrix ModelInvTransMatrix;
+};
+
+cbuffer ConstantBufferMeshApple : register(b6)
+{
+    AppleData AppleDatas[512];
+};
+
+cbuffer ConstantBufferMaterial : register(b7)
+{
+    FMaterialConstants AppleMaterial;
+};
+
 // 마지막 슬롯인 b13은 debug용으로 예약.

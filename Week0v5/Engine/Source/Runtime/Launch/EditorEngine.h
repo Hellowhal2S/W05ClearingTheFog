@@ -5,7 +5,6 @@
 #include "Renderer/RenderEngine.h"
 #include "Engine/ResourceMgr.h"
 
-
 class FSceneMgr;
 class UnrealEd;
 class UImGuiManager;
@@ -40,7 +39,6 @@ private:
     void WindowInit(HINSTANCE hInstance);
     void ResizeGizmo();
 public:
-    static FGraphicsDevice graphicDevice;
     static FRenderEngine RenderEngine;
     static FResourceMgr resourceMgr;
     

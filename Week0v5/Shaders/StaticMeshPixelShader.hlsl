@@ -104,3 +104,37 @@ PS_OUTPUT mainPS(PS_INPUT input)
             
     return output;
 }
+
+PS_OUTPUT applePS(PS_INPUT input)
+{
+    PS_OUTPUT output;
+    
+    output.UUID = UUID;
+    output.worldPos = input.worldPos;
+    output.worldNormal = EncodeNormalOctahedral(input.normal);
+    output.SpecularColor_Power = float4(AppleMaterial.SpecularColor, AppleMaterial.SpecularScalar);
+    
+    float3 texColor = Textures.Sample(Sampler, input.texcoord);
+    output.Albedo = float4(AppleMaterial.DiffuseColor + texColor, 1.0f);
+    float3 color;
+    if (texColor.g == 0) // TODO: boolean으로 변경
+        color = saturate(AppleMaterial.DiffuseColor);
+    else
+    {
+        color = texColor + AppleMaterial.DiffuseColor;
+    }
+    
+    if (IsSelectedActor)
+    {
+        color += float3(0.2f, 0.2f, 0.0f); // 노란색 틴트로 하이라이트
+        if (IsSelectedMesh)
+            color = float3(1, 1, 1);
+    }
+ 
+        
+    output.color = float4(color, 1);
+        // 투명도 적용
+    output.color.a = AppleMaterial.TransparencyScalar;
+            
+    return output;
+}

@@ -29,9 +29,9 @@ static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM l
         if (wParam != SIZE_MINIMIZED)
         {
             //UGraphicsDevice 객체의 OnResize 함수 호출
-            if (UEditorEngine::graphicDevice.SwapChain)
+            if (UEditorEngine::RenderEngine.GetGraphicsDevice()->SwapChain)
             {
-                UEditorEngine::graphicDevice.OnResize(hWnd);
+                UEditorEngine::RenderEngine.GetGraphicsDevice()->OnResize(hWnd);
             }
             for (int i = 0; i < 4; i++)
             {
@@ -39,7 +39,7 @@ static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM l
                 {
                     if (GEngine->GetLevelEditor()->GetViewports()[i])
                     {
-                        GEngine->GetLevelEditor()->GetViewports()[i]->ResizeViewport(UEditorEngine::graphicDevice.SwapchainDesc);
+                        GEngine->GetLevelEditor()->GetViewports()[i]->ResizeViewport(UEditorEngine::RenderEngine.GetGraphicsDevice()->SwapchainDesc);
                     }
                 }
             }

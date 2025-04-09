@@ -56,3 +56,41 @@ PS_INPUT mainVS(VS_INPUT input)
     
     return output;
 }
+
+
+PS_INPUT appleVS(VS_INPUT input, uint instanceID : SV_InstanceID)
+{
+    PS_INPUT output;
+    
+    output.materialIndex = input.materialIndex;
+    
+    // 위치 변환
+    float4 pos;
+    pos = mul(input.position, AppleDatas[instanceID].ModelMatrix);
+    output.worldPos = pos;
+    
+    pos = mul(pos, ViewMatrix);
+    pos = mul(pos, ProjMatrix);
+    output.position = pos;
+
+    output.color = input.color;
+    if (IsSelectedActor)
+        output.color *= 0.5;
+    // 입력 normal 값의 길이 확인
+    float normalThreshold = 0.001;
+    float normalLen = length(input.normal);
+    
+    if (normalLen < normalThreshold)
+    {
+        output.normalFlag = 0.0;
+    }
+    else
+    {
+        //output.normal = normalize(input.normal);
+        output.normal = normalize(mul(float4(input.normal, 0.0f), AppleDatas[instanceID].ModelInvTransMatrix));
+        output.normalFlag = 1.0;
+    }
+    output.texcoord = input.texcoord;
+    
+    return output;
+}

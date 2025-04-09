@@ -274,7 +274,7 @@ void UTextRenderComponent::CreateTextTextureVertexBuffer(const TArray<FVertexTex
 
 	ID3D11Buffer* vertexBuffer;
 	
-	HRESULT hr = UEditorEngine::graphicDevice.Device->CreateBuffer(&vertexbufferdesc, &vertexbufferSRD, &vertexBuffer);
+	HRESULT hr = UEditorEngine::RenderEngine.GetGraphicsDevice()->Device->CreateBuffer(&vertexbufferdesc, &vertexbufferSRD, &vertexBuffer);
 	if (FAILED(hr))
 	{
 		UE_LOG(LogLevel::Warning, "VertexBuffer Creation faild");
@@ -295,7 +295,7 @@ bool UTextRenderComponent::CheckPickingOnNDC(const TArray<FVector>& checkQuad, f
 
     D3D11_VIEWPORT viewport;
     UINT numViewports = 1;
-    UEditorEngine::graphicDevice.DeviceContext->RSGetViewports(&numViewports, &viewport);
+    UEditorEngine::RenderEngine.GetGraphicsDevice()->DeviceContext->RSGetViewports(&numViewports, &viewport);
     float screenWidth = viewport.Width;
     float screenHeight = viewport.Height;
 
@@ -353,8 +353,8 @@ void UTextRenderComponent::CreateQuadTextureVertexBuffer()
 {
     numVertices = sizeof(quadTextureVertices) / sizeof(FVertexTexture);
     numIndices = sizeof(quadTextureInices) / sizeof(uint32);
-    vertexTextureBuffer = UEditorEngine::RenderEngine.Renderer.CreateVertexBuffer(quadTextureVertices, sizeof(quadTextureVertices));
-    indexTextureBuffer = UEditorEngine::RenderEngine.Renderer.CreateIndexBuffer(quadTextureInices, sizeof(quadTextureInices));
+    vertexTextureBuffer = UEditorEngine::RenderEngine.GetRenderer()->CreateVertexBuffer(quadTextureVertices, sizeof(quadTextureVertices));
+    indexTextureBuffer = UEditorEngine::RenderEngine.GetRenderer()->CreateIndexBuffer(quadTextureInices, sizeof(quadTextureInices));
 
     if (!vertexTextureBuffer) {
         Console::GetInstance().AddLog(LogLevel::Warning, "Buffer Error");

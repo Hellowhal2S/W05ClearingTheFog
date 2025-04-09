@@ -123,8 +123,8 @@ void UBillboardComponent::CreateQuadTextureVertexBuffer()
 {
 	numVertices = sizeof(quadTextureVertices) / sizeof(FVertexTexture);
 	numIndices = sizeof(quadTextureInices) / sizeof(uint32);
-	vertexTextureBuffer = UEditorEngine::RenderEngine.Renderer.CreateVertexBuffer(quadTextureVertices, sizeof(quadTextureVertices));
-	indexTextureBuffer = UEditorEngine::RenderEngine.Renderer.CreateIndexBuffer(quadTextureInices, sizeof(quadTextureInices));
+	vertexTextureBuffer = UEditorEngine::RenderEngine.GetRenderer()->CreateVertexBuffer(quadTextureVertices, sizeof(quadTextureVertices));
+	indexTextureBuffer = UEditorEngine::RenderEngine.GetRenderer()->CreateIndexBuffer(quadTextureInices, sizeof(quadTextureInices));
 
 	if (!vertexTextureBuffer) {
 		Console::GetInstance().AddLog(LogLevel::Warning, "Buffer Error");
@@ -143,7 +143,7 @@ bool UBillboardComponent::CheckPickingOnNDC(const TArray<FVector>& checkQuad, fl
 
 	D3D11_VIEWPORT viewport;
 	UINT numViewports = 1;
-	UEditorEngine::graphicDevice.DeviceContext->RSGetViewports(&numViewports, &viewport);
+    GEngine->RenderEngine.GetGraphicsDevice()->DeviceContext->RSGetViewports(&numViewports, &viewport);
 	float screenWidth = viewport.Width;
 	float screenHeight = viewport.Height;
 

@@ -475,8 +475,8 @@ void ControlEditorPanel::CreateFlagButton() const
             if (ImGui::Selectable(ViewModeNames[i], bIsSelected))
             {
                 ActiveViewport->SetViewMode((EViewModeIndex)i);
-                UEditorEngine::graphicDevice.ChangeRasterizer(ActiveViewport->GetViewMode());
-                UEditorEngine::RenderEngine.Renderer.ChangeViewMode(ActiveViewport->GetViewMode());
+                UEditorEngine::RenderEngine.GetGraphicsDevice()->ChangeRasterizer(ActiveViewport->GetViewMode());
+                UEditorEngine::RenderEngine.GetRenderer()->ChangeViewMode(ActiveViewport->GetViewMode());
             }
 
             if (bIsSelected)

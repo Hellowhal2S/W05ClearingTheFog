@@ -64,6 +64,7 @@ private:
     void CreateShaders();
 
     void CreateMeshShader();
+    void CreateAppleShader();
     
     //  Constant Buffers
     void CreateConstantBuffers();
@@ -98,5 +99,12 @@ private:
     void RenderBillboards(UWorld* World,std::shared_ptr<FEditorViewportClient> ActiveViewport);
     void RenderTexts(UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport);
     void RenderPostProcess();
+
+    // APPLES
+    const uint32 NumApples = 512;
+    void RenderApples();
+    void UpdateConstantbufferApplePosition(TArray<FConstantBufferApplePosition> Buffer);
+    void UpdateConstantbufferAppleMaterial(FConstantBufferAppleMateiral Buffer);
+    void PrepareConstantbufferApple();
 };
 

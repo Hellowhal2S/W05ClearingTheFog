@@ -132,6 +132,6 @@ void UParticleSubUVComp::CreateSubUVVertexBuffer()
 	vertices[3].u = normalWidthOffset;
 	vertices[3].v = normalHeightOffset;
 
-	vertexSubUVBuffer = UEditorEngine::RenderEngine.Renderer.CreateVertexBuffer(vertices.GetData(), static_cast<UINT>(vertices.Num() * sizeof(FVertexTexture)));
+	vertexSubUVBuffer = UEditorEngine::RenderEngine.GetRenderer()->CreateVertexBuffer(vertices.GetData(), static_cast<UINT>(vertices.Num() * sizeof(FVertexTexture)));
 	numTextVertices = static_cast<UINT>(vertices.Num());
 }

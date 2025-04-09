@@ -24,7 +24,7 @@ void URotatingMovementComponent::TickComponent(float DeltaTime)
     if (!UpdatedComponent)
         return;
 
-    DeltaTime /= 16.f;
+    //DeltaTime /= 16.f;
 
     const FQuat OldRotation = UpdatedComponent->GetComponentQuat();
     const FQuat DeltaRotation = JungleMath::EulerToQuaternion(RotationRate * DeltaTime);

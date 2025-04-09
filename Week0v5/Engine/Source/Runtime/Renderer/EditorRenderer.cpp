@@ -616,6 +616,7 @@ void FEditorRenderer::UpdateConstantbufferGlobal(FConstantBufferCamera Buffer)
 
 void FEditorRenderer::Render(UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport)
 {
+    return;
     static bool isLoaded = false;
     if (!isLoaded)
     {
@@ -672,7 +673,7 @@ void FEditorRenderer::RenderGizmos(const UWorld* World)
     }
 
     //  fill solid,  Wirframe 에서도 제대로 렌더링되기 위함
-    Renderer->Graphics->DeviceContext->RSSetState(UEditorEngine::graphicDevice.RasterizerStateSOLID);
+    Renderer->Graphics->DeviceContext->RSSetState(UEditorEngine::RenderEngine.GetGraphicsDevice()->RasterizerStateSOLID);
     for (UGizmoBaseComponent* GizmoComp : GizmoObjs)
     {
         if (AActor* PickedActor = World->GetSelectedActor())

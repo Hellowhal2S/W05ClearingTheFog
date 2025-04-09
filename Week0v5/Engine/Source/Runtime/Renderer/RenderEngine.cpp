@@ -5,6 +5,11 @@ void FRenderEngine::Initialize(FGraphicsDevice* graphics)
 {
     Renderer.Initialize(graphics);
     RenderDebugger.Initialize(&Renderer);
+    Start();
+}
+
+void FRenderEngine::Start()
+{
 }
 
 void FRenderEngine::Render(UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport)

@@ -40,6 +40,14 @@ struct FConstantBuffersStaticMesh
 };
 
 
+struct FConstantBuffersApple
+{
+    ID3D11Buffer* Camera00;
+    ID3D11Buffer* ApplePosition06;
+    ID3D11Buffer* AppleMaterial7;
+};
+
+
 struct FMaterialConstants {
     FVector DiffuseColor = { 0,0,0 };
     float TransparencyScalar = 0;
@@ -115,6 +123,19 @@ struct alignas(16) FConstantBufferMesh
     //FVector4 UUIDColor;
     //bool IsSelected;
     //FVector pad;
+};
+
+/// <summary>
+/// 테스트용 사과
+/// </summary>
+struct alignas(16) FConstantBufferApplePosition
+{
+    FMatrix ModelMatrix;
+    FMatrix ModelInvTransMatrix;
+};
+struct alignas(16) FConstantBufferAppleMateiral
+{
+    FMaterialConstants Material;
 };
 
 /// <summary>

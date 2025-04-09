@@ -305,7 +305,7 @@ void PostEffect::Render(ID3D11DeviceContext*& DeviceContext, ID3D11ShaderResourc
     // Draw
     // Sampler
     //ClearCommBreak
-    GEngine->graphicDevice.ChangeRasterizer(EViewModeIndex::VMI_Lit);
+    GEngine->RenderEngine.GetGraphicsDevice()->ChangeRasterizer(EViewModeIndex::VMI_Lit);
     DeviceContext->OMSetRenderTargets(1, &finalRTV, nullptr);
     DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     DeviceContext->VSSetShader(PostEffectVS, nullptr, 0);
@@ -318,7 +318,7 @@ void PostEffect::Render(ID3D11DeviceContext*& DeviceContext, ID3D11ShaderResourc
     DeviceContext->PSSetShaderResources(10, 6, ppSRV);                      // SRV
     DeviceContext->VSSetConstantBuffers(4, 1, &ViewportConstantBuffer);       // 상수 버퍼
 
-    ID3D11Buffer* LightConstantBuffer = GEngine->RenderEngine.Renderer.GetLightConstantBuffer();
+    ID3D11Buffer* LightConstantBuffer = GEngine->RenderEngine.GetRenderer()->GetLightConstantBuffer();
     DeviceContext->PSSetConstantBuffers(1, 1, &LightConstantBuffer);        // Light Constant Buffer
     DeviceContext->PSSetConstantBuffers(2, 1, &SettingConstantBuffer);         // Fog  
     DeviceContext->PSSetConstantBuffers(10, 1, &CameraConstantBuffer);      // Camera 
@@ -390,8 +390,8 @@ void PostEffect::UpdateViewportConstantBuffer(ID3D11DeviceContext*& DeviceContex
     DeviceContext->Map(ViewportConstantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
     {
         ViewportConstants* constants = static_cast<ViewportConstants*>(mappedResource.pData);
-        constants->screenWidth = GEngine->graphicDevice.screenWidth;
-        constants->screenHeight = GEngine->graphicDevice.screenHeight;
+        constants->screenWidth = UEditorEngine::RenderEngine.GetGraphicsDevice()->screenWidth;
+        constants->screenHeight = UEditorEngine::RenderEngine.GetGraphicsDevice()->screenHeight;
         constants->topLeftX = GEngine->GetLevelEditor()->GetActiveViewportClient()->GetD3DViewport().TopLeftX;
         constants->topLeftY = GEngine->GetLevelEditor()->GetActiveViewportClient()->GetD3DViewport().TopLeftY;
         constants->width = GEngine->GetLevelEditor()->GetActiveViewportClient()->GetD3DViewport().Width;

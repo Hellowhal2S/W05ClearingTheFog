@@ -390,7 +390,7 @@ struct FLoaderOBJ
             return true;
         }
 
-        HRESULT hr = UEditorEngine::resourceMgr.LoadTextureFromFile(UEditorEngine::graphicDevice.Device, UEditorEngine::graphicDevice.DeviceContext, Filename.c_str());
+        HRESULT hr = UEditorEngine::resourceMgr.LoadTextureFromFile(UEditorEngine::RenderEngine.GetGraphicsDevice()->Device, UEditorEngine::RenderEngine.GetGraphicsDevice()->DeviceContext, Filename.c_str());
 
         if (FAILED(hr))
         {
@@ -683,7 +683,7 @@ public:
             {
                 if (UEditorEngine::resourceMgr.GetTexture(Texture) == nullptr)
                 {
-                    UEditorEngine::resourceMgr.LoadTextureFromFile(UEditorEngine::graphicDevice.Device, UEditorEngine::graphicDevice.DeviceContext, Texture.c_str());
+                    UEditorEngine::resourceMgr.LoadTextureFromFile(UEditorEngine::RenderEngine.GetGraphicsDevice()->Device, UEditorEngine::RenderEngine.GetGraphicsDevice()->DeviceContext, Texture.c_str());
                 }
             }
         }

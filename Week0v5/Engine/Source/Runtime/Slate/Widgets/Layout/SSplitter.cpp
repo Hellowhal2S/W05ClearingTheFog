@@ -76,13 +76,13 @@ void SSplitterH::OnResize(float width, float height)
 void SSplitterH::LoadConfig(const TMap<FString, FString>& config)
 {
     // 각 키에 대해 기본값을 지정 (예: 기본 위치 및 크기)
-    Rect.leftTopX = GetValueFromConfig(config, "SplitterH.X", GEngine->graphicDevice.screenWidth *0.5f);
+    Rect.leftTopX = GetValueFromConfig(config, "SplitterH.X", UEditorEngine::RenderEngine.GetGraphicsDevice()->screenWidth * 0.5f);
     Rect.leftTopY = GetValueFromConfig(config, "SplitterH.Y", 0.0f);
 
     Rect.width = GetValueFromConfig(config, "SplitterH.Width", 20.0f);
     Rect.height = GetValueFromConfig(config, "SplitterH.Height", 10.0f); // 수평 스플리터는 높이 고정
     
-    Rect.leftTopX *= GEngine->graphicDevice.screenWidth /GetValueFromConfig(config, "SplitterV.Width", 1000.0f);
+    Rect.leftTopX *= UEditorEngine::RenderEngine.GetGraphicsDevice()->screenWidth /GetValueFromConfig(config, "SplitterV.Width", 1000.0f);
 }
 
 void SSplitterH::SaveConfig(TMap<FString, FString>& config) const
@@ -126,11 +126,11 @@ void SSplitterV::OnResize(float width, float height)
 void SSplitterV::LoadConfig(const TMap<FString, FString>& config)
 {
     Rect.leftTopX = GetValueFromConfig(config, "SplitterV.X", 0.0f);
-    Rect.leftTopY = GetValueFromConfig(config, "SplitterV.Y", GEngine->graphicDevice.screenHeight * 0.5f);
+    Rect.leftTopY = GetValueFromConfig(config, "SplitterV.Y", UEditorEngine::RenderEngine.GetGraphicsDevice()->screenHeight * 0.5f);
     Rect.width = GetValueFromConfig(config, "SplitterV.Width", 10); // 수직 스플리터는 너비 고정
     Rect.height = GetValueFromConfig(config, "SplitterV.Height", 20);
 
-    Rect.leftTopY *= GEngine->graphicDevice.screenHeight / GetValueFromConfig(config, "SplitterH.Height", 1000.0f);
+    Rect.leftTopY *= UEditorEngine::RenderEngine.GetGraphicsDevice()->screenHeight / GetValueFromConfig(config, "SplitterH.Height", 1000.0f);
 
 }
 
