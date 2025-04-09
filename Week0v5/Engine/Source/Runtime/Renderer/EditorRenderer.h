@@ -31,11 +31,14 @@ private:
     void CreateBuffers();
     void CreateConstantBuffers();
 
+    void LazyLoad();
+
     void PrepareRendertarget();
     void PreparePrimitives();
 
     void PrepareConstantbufferGlobal();
     void UpdateConstantbufferGlobal(FConstantBufferCamera Buffer);
+
     // Gizmo 관련 함수
     void RenderGizmos(const UWorld* World);
     void PrepareShaderGizmo();
@@ -63,6 +66,19 @@ private:
     void RenderGrid(std::shared_ptr<FEditorViewportClient> ActiveViewport);
     void PrepareConstantbufferGrid();
     void UdpateConstantbufferGrid(FConstantBufferDebugGrid Buffer);
+
+    // Icon
+    void RenderIcons(const UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport);
+    void PrepareConstantbufferIcon();
+    void UdpateConstantbufferIcon(FConstantBufferDebugIcon Buffer);
+    void UpdateTextureIcon(IconType type);
+
+    // Arrow
+    void RenderArrows(const UWorld* World);
+    void PrepareConstantbufferArrow();
+    void UdpateConstantbufferArrow(FConstantBufferDebugArrow Buffer);
+
+
 
     const UINT32 ConstantBufferSizeAABB = 8;
     const UINT32 ConstantBufferSizeSphere = 8;

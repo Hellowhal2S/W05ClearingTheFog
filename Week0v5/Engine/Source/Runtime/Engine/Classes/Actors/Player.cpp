@@ -226,10 +226,38 @@ void AEditorPlayer::PickActor(const FVector& pickPosition)
     const UActorComponent* Possible = nullptr;
     int maxIntersect = 0;
     float minDistance = FLT_MAX;
+
+    // billboard로 보여지는 light를 먼저 픽킹
+    // 현재 light의 distance가 이상함
+    for (const auto iter : TObjectRange<ULightComponentBase>())
+    {
+        float Distance = 0.0f;
+        int currentIntersectCount = 0;
+        if (RayIntersectsObject(pickPosition, iter, Distance, currentIntersectCount))
+        {
+            if (Distance < minDistance)
+            {
+                minDistance = Distance;
+                maxIntersect = currentIntersectCount;
+                Possible = iter;
+            }
+            else if (abs(Distance - minDistance) < FLT_EPSILON && currentIntersectCount > maxIntersect)
+            {
+                maxIntersect = currentIntersectCount;
+                Possible = iter;
+            }
+        }
+    }
+    if (Possible)
+    {
+        GetWorld()->SetPickedActor(Possible->GetOwner());
+        return;
+    }
+
     for (const auto iter : TObjectRange<UPrimitiveComponent>())
     {
         UPrimitiveComponent* pObj;
-        if (iter->IsA<UPrimitiveComponent>() || iter->IsA<ULightComponentBase>())
+        if (iter->IsA<UPrimitiveComponent>())
         {
             pObj = static_cast<UPrimitiveComponent*>(iter);
         }

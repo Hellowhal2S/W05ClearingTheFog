@@ -57,6 +57,7 @@ int32 UEditorEngine::Init(HWND hwnd)
     UnrealEditor = new UnrealEd();
     UnrealEditor->Initialize();
     UnrealEditor->OnResize(hWnd); // 현재 윈도우 사이즈에 대한 재조정
+    graphicDevice.OnResize(hWnd);
     
     LevelEditor = new SLevelEditor();
     LevelEditor->Initialize();

@@ -40,23 +40,35 @@ int USceneComponent::CheckRayIntersection(FVector& rayOrigin, FVector& rayDirect
 
 FVector USceneComponent::GetForwardVector()
 {
-	FVector Forward = FVector(1.f, 0.f, 0.0f);
-	Forward = JungleMath::FVectorRotate(Forward, QuatRotation);
-	return Forward;
+    FVector4 Forward4 = FVector4(1.f, 0.f, 0.0f, 0.0f);
+    Forward4 = FMatrix::TransformVector(Forward4, GetComponentTransform());
+    FVector Forward;
+    Forward = FVector(Forward4.x, Forward4.y, Forward4.z);
+    Forward = Forward.Normalize();
+
+    return Forward;
 }
 
 FVector USceneComponent::GetRightVector()
 {
-	FVector Right = FVector(0.f, 1.f, 0.0f);
-	Right = JungleMath::FVectorRotate(Right, QuatRotation);
-	return Right;
+    FVector4 Right4 = FVector4(0.f, 0.f, 1.0f, 0.0f);
+    Right4 = FMatrix::TransformVector(Right4, GetComponentTransform());
+    FVector Right;
+    Right = FVector(Right4.x, Right4.y, Right4.z);
+    Right = Right.Normalize();
+
+    return Right;
 }
 
 FVector USceneComponent::GetUpVector()
 {
-	FVector Up = FVector(0.f, 0.f, 1.0f);
-	Up = JungleMath::FVectorRotate(Up, QuatRotation);
-	return Up;
+	FVector4 Up4 = FVector4(0.f, 0.f, 1.0f, 0.0f);
+    Up4 = FMatrix::TransformVector(Up4, GetComponentTransform());
+    FVector Up;
+    Up = FVector(Up4.x, Up4.y, Up4.z);
+    Up = Up.Normalize();
+
+    return Up;
 }
 
 

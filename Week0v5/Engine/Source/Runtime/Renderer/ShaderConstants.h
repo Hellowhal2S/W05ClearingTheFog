@@ -159,6 +159,10 @@ struct alignas(16) FConstantBufferCamera
     alignas(16) FVector CameraLookAt;
 };
 
+/////////////////////////////////////////////////////////////////////////
+// 디버그용
+/////////////////////////////////////////////////////////////////////////
+
 /// <summary>
 /// Debug용 AABB 상수버퍼 : b13
 /// </summary>
@@ -195,3 +199,22 @@ struct alignas(16) FConstantBufferDebugGrid
 {
     alignas(16) FMatrix InverseViewProj;
 };
+
+/// <summary>
+/// Debug용 grid 상수버퍼 : b13
+/// </summary>
+struct alignas(16) FConstantBufferDebugIcon
+{
+    alignas(16) FVector Position;
+    float Scale;
+};
+
+/// <summary>
+/// Debug용 arrow 상수버퍼 : b13
+/// </summary>
+struct alignas(16) FConstantBufferDebugArrow
+{
+    alignas(16) FVector Position;
+    alignas(16) FVector Direction;
+};
+

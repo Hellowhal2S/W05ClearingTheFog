@@ -1,3 +1,4 @@
+#include "EditorShaderConstants.hlsli"
 #include "ShaderConstants.hlsli"
 
 // Input Layout은 float3이지만, shader에서 missing w = 1로 처리해서 사용
@@ -409,4 +410,108 @@ PS_OUTPUT gridPS(PS_INPUT_GRID input)
     output.Color = Color;
     output.Depth = 0.9999999;  // 월드 그리드는 강제로 먼 깊이값 부여 (Forced to be Occluded ALL THE TIME)
     return output;
+}
+
+
+
+
+/////////////////////////////////////////////
+// Icon
+struct PS_INPUT_ICON
+{
+    float4 Position : SV_Position;
+    float2 TexCoord : TEXCOORD;
+};
+
+Texture2D gTexture : register(t0);
+SamplerState gSampler : register(s0);
+
+const static float2 QuadPos[6] =
+{
+    float2(-1, -1), float2(1, -1), float2(-1, 1), // 좌하단, 좌상단, 우하단
+    float2(-1, 1), float2(1, -1), float2(1, 1) // 좌상단, 우상단, 우하단
+};
+
+const static float2 QuadTexCoord[6] =
+{
+    float2(0, 1), float2(1, 1), float2(0, 0), // 삼각형 1: 좌하단, 우하단, 좌상단
+    float2(0, 0), float2(1, 1), float2(1, 0) // 삼각형 2: 좌상단, 우하단, 우상단
+};
+
+
+PS_INPUT_ICON iconVS(uint vertexID : SV_VertexID)
+{
+    PS_INPUT_ICON output;
+
+    // 카메라를 향하는 billboard 좌표계 생성
+    float3 forward = normalize(CameraPos - IconPosition);
+    float3 up = float3(0, 0, 1);
+    float3 right = normalize(cross(up, forward));
+        up = cross(forward, right);
+
+        // 쿼드 정점 계산 (아이콘 위치 기준으로 offset)
+    float2 offset = QuadPos[vertexID];
+    float3 worldPos = IconPosition + offset.x * right * IconScale + offset.y * up * IconScale;
+
+        // 변환
+    float4 viewPos = mul(float4(worldPos, 1.0), ViewMatrix);
+        output.Position = mul(viewPos, ProjMatrix);
+
+        output.TexCoord =
+    QuadTexCoord[ vertexID];
+        return
+    output;
+}
+
+
+// 픽셀 셰이더
+float4 iconPS(PS_INPUT_ICON input) : SV_Target
+{
+    float4 col = gTexture.Sample(gSampler, input.TexCoord);
+    float threshold = 0.01; // 필요한 경우 임계값을 조정
+    if (col.a < threshold)
+        clip(-1); // 픽셀 버리기
+    
+    return col;
+}
+
+
+/////////////////////////////////////////////
+// Arrow
+PS_INPUT arrowVS(VS_INPUT input)
+{
+    PS_INPUT output;
+
+    // 정규화된 방향
+    float3 forward = normalize(ArrowDirection);
+
+    // 기본 up 벡터와 forward가 나란할 때를 방지
+    float3 up = abs(forward.y) > 0.99 ? float3(0, 0, 1) : float3(0, 1, 0);
+
+    // 오른쪽 축
+    float3 right = normalize(cross(up, forward));
+
+    // 재정의된 up 벡터 (직교화)
+    up = normalize(cross(forward, right));
+
+    // 회전 행렬 구성 (Row-Major 기준)
+    float3x3 rotationMatrix = float3x3(right, up, forward);
+
+    input.position.z = input.position.z * 5;
+    // 로컬 → 회전 → 위치
+    float3 worldPos = mul(input.position.xyz, rotationMatrix) + ArrowPosition;
+
+    float4 pos = float4(worldPos, 1.0);
+    pos = mul(pos, ViewMatrix);
+    pos = mul(pos, ProjMatrix);
+
+    output.position = pos;
+    output.color = float4(0.7, 0.7, 0.7, 1.0f);
+
+    return output;
+}
+
+float4 arrowPS(PS_INPUT input) : SV_Target
+{
+    return input.color;
 }
