@@ -27,15 +27,15 @@ enum ELevelViewportType
     /** Top */
     LVT_OrthoXY = 1,
     /** Bottom */
-    LVT_OrthoNegativeXY,
+    LVT_OrthoNegativeXY = 2,
     /** Left */
-    LVT_OrthoYZ,
+    LVT_OrthoYZ = 3,
     /** Right */
-    LVT_OrthoNegativeYZ,
+    LVT_OrthoNegativeYZ = 4,
     /** Front */
-    LVT_OrthoXZ,
+    LVT_OrthoXZ = 5,
     /** Back */
-    LVT_OrthoNegativeXZ,
+    LVT_OrthoNegativeXZ = 6,
     LVT_MAX,
     LVT_None = 255,
 };

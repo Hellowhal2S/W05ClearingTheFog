@@ -219,72 +219,194 @@ struct PS_INPUT_GRID
     float4 Position : SV_Position;
     float4 NearPoint : COLOR0;
     float4 FarPoint : COLOR1;
+    float3 WorldPos : WORLD_POSITION;    
+    float2 Deriv : TEXCOORD1;
+    float ViewMode : TEXCOORD2;
 };
-const static float2 QuadPos[6] =
+
+static const float3 XYQuadPos[12] =
 {
-    float2(-1, -1), float2(-1, 1), float2(1, -1), // 좌하단, 좌상단, 우하단
-    float2(-1, 1), float2(1, 1), float2(1, -1) // 좌상단, 우상단, 우하단
+    float3(-1, -1,0), float3(-1, 1,0), float3(1,  -1,0), // 좌하단, 좌상단, 우하단
+    float3(-1,  1,0), float3( 1, 1,0), float3(1,  -1,0), // 좌상단, 우상단, 우하단 - 오른손 좌표계
+    float3(1,  -1,0), float3( 1, 1,0), float3(-1,  1,0),
+    float3(1,  -1,0), float3(-1, 1,0), float3(-1, -1,0),
+};
+
+// YZ 평면: X = 0, (Y,Z) 사용
+static const float3 YZQuadPos[12] =
+{
+    float3(0,-1, -1), float3(0,-1, 1), float3(0, 1, -1),  // 좌하단, 좌상단, 우하단
+    float3(0,-1, 1), float3(0, 1, 1), float3(0, 1, -1),  // 좌상단, 우상단, 우하단 - 오른손 좌표계
+    float3(0, 1, -1), float3(0, 1, 1), float3(0, -1, 1), 
+    float3(0, 1, -1), float3(0,-1, 1), float3(0, -1,-1),
+};
+
+static const float3 XZQuadPos[12] =
+{
+    float3(-1,0, -1), float3(-1,0, 1), float3( 1, 0,-1), // 좌하단, 좌상단, 우하단
+    float3(-1,0, 1 ), float3(1, 0,1), float3(  1, 0,-1), // 좌상단, 우상단, 우하단 - 오른손 좌표계
+    float3(1, 0,-1 ), float3(1, 0,1), float3(  -1,0, 1),
+    float3(1, 0,-1 ), float3(-1,0, 1), float3( -1,0, -1),
 };
 
 PS_INPUT_GRID gridVS(uint vertexID : SV_VertexID)
 {
+    // 상수버퍼의 CaemerLookAt : (screenWidth, screenHeight, ViewMode)
+    
     PS_INPUT_GRID output;
+    float viewMode = CameraLookAt.z;   
+    float gridScale = 1000000.0f; // 최종 그리드 크기
+    float3 pos;
+    if (viewMode <= 2.0)
+    {
+        pos = XYQuadPos[vertexID];
+    }
+    else if (viewMode <= 4.0)
+    {
+        pos = XZQuadPos[vertexID];
+    }
+    else
+    {
+        pos = YZQuadPos[vertexID];
+    }
+    float3 vPos3 = pos * gridScale; // 정점 정의 거꾸로 되있었음..
     
-    output.Position = float4(QuadPos[vertexID], 0.0, 1.0);
+    // 뷰모드에 따라 다른 카메라 오프셋 적용
+    float3 offset = float3(0.0, 0.0, 0.0);
+    if (viewMode <= 2.0)
+    {
+        offset = float3(CameraPos.x, CameraPos.y, 0.0);
+    }
+    else if (viewMode <= 4.0)
+    {
+        offset = float3(0.0, CameraPos.x, CameraPos.z);
+    }
+    else
+    {
+        offset = float3(CameraPos.y, 0.0, CameraPos.z);
+    }
+    vPos3 += offset;
     
-    output.NearPoint = float4(QuadPos[vertexID], 0.0, 1.0);
-    output.NearPoint = mul(output.NearPoint, InverseViewProj);
-    output.NearPoint = output.NearPoint / output.NearPoint.w; // COLOR로 넘겨줘서 해줘야함
-    
-    output.FarPoint = float4(QuadPos[vertexID], 1.0, 1.0);
-    output.FarPoint = mul(output.FarPoint, InverseViewProj);
-    output.FarPoint = output.FarPoint / output.FarPoint.w; // COLOR로 넘겨줘서 해줘야함
+    float4 vPos4 = float4(vPos3, 1.0f);
+    vPos4 = mul(vPos4, ViewMatrix);
+    vPos4 = mul(vPos4, ProjMatrix);
+    output.Position = vPos4;
+    output.WorldPos = vPos3;
+    output.Deriv = 2.0 / CameraLookAt.xy;
+    output.ViewMode = viewMode;
     
     return output;
 }
 
-// 그리드 함수
-float4 gridCalc(float3 fragPos3D, float scale)
+float log10f(float x)
 {
-    float2 coord = fragPos3D.xy * scale; // Use the scale variable to set the distance between the lines
-    float2 derivative = float2(ddx(coord.x), ddy(coord.y)); // HLSL의 fwidth는 ddx, ddy로 대체
-    float2 grid = abs(frac(coord - 0.5) - 0.5) / derivative;
-    float gridX = grid.x;
-    float gridY = grid.y;
-    float LinePos = min(gridX, gridY);
-    float minimumz = min(derivative.y, 1);
-    float minimumx = min(derivative.x, 1);
-    float4 color = float4(0.2, 0.2, 0.2, 1.0 - min(LinePos, 1.0));
-    
-    // Z axis
-    if (fragPos3D.x > -0.1 * minimumx && fragPos3D.x < 0.1 * minimumx)
-        color.z = 1.0;
-    
-    // X axis
-    if (fragPos3D.z > -0.1 * minimumz && fragPos3D.z < 0.1 * minimumz)
-        color.x = 1.0;
-    
-    return color;
+    return log(x) / log(10.0);
 }
 
-// 픽셀 셰이더
-float4 gridPS(PS_INPUT_GRID input) : SV_Target
+float max2(float2 v)
 {
-    float t = -input.NearPoint.z / (input.FarPoint.z - input.NearPoint.z);
-    //return float4(t * 100, t * 100, t * 100, 1);
-    float3 fragPos3D = input.NearPoint + t * (input.FarPoint - input.NearPoint);
-   
-    if (t < 0)
-    {
-        return float4(1, 0, 0, 1);
+    return max(v.x, v.y);
+}
+// x, y 모두 음수 일 때에 패턴을 아예 출력 안하는 문제 발생
+// HLSL의 fmod는 음수 입력에 대해 음수의 나머지를 반환하므로, saturate를 거치면 0에 수렴하는 문제가 있음
+float modWrap(float x, float y)
+{
+    float m = fmod(x, y);
+    return (m < 0.0) ? m + y : m;
+}
 
-    }
-    if (t > 1)
-    {
-        return float4(0,1,0, 1);
-    }
-    return float4(fragPos3D / 1000, 1);
-    return float4(1, 1, 1, 1);
+float2 modWrap2(float2 xy, float y)
+{
+    return float2(modWrap(xy.x, y), modWrap(xy.y, y));
+}
+
+// 뷰 모드에 따른 2D 평면 좌표 반환
+float2 GetPlaneCoords(float3 worldPos, float viewMode)
+{
+    if (viewMode <= 2.0)
+        return worldPos.xy; // 뷰 모드 0~2 : XY 평면
+    else if (viewMode <= 4.0)
+        return worldPos.xz; // 뷰 모드 3~4 : XZ 평면
+    else
+        return worldPos.yz; // 뷰 모드 5 이상 : YZ 평면
+}
+
+// 주어진 평면 좌표와, 셀 크기, 미분값(dudv)에 해당하는 LOD 단계의 알파값 계산
+float ComputeLODAlpha(float3 worldPos, float cellSize, float2 dudv, float viewMode)
+{
+    float2 planeCoords = GetPlaneCoords(worldPos, viewMode);
+    float2 modResult = modWrap2(planeCoords, cellSize) / dudv;
+    return max2(1.0 - abs(saturate(modResult) * 2.0 - 1.0));
+}
+
+struct PS_OUTPUT
+{
+    float4 Color : SV_Target;
+    float Depth : SV_Depth;
+};
+
+
+PS_OUTPUT gridPS(PS_INPUT_GRID input)
+{
+    PS_OUTPUT output;
     
-        //return gridCalc(fragPos3D, 10.0f) * float(t > 0.0f); // t > 0이면 출력
+    // 기본 상수 값들
+    const float gGridSize = 5.0;
+    const float gGridMinPixelsBetweenCells = 0.5;
+    const float gGridCellSize = 1.0;
+    const float4 gGridColorThick = float4(0.3, 0.3, 0.3, 1.0);
+    const float4 gGridColorThin = float4(0.2, 0.2, 0.2, 1.0);
+    
+    // 뷰모드에 따라 사용할 평면 좌표
+    float2 planeCoords = GetPlaneCoords(input.WorldPos, input.ViewMode);
+    float2 dvx = float2(ddx(planeCoords.x), ddy(planeCoords.x));
+    float2 dvy = float2(ddx(planeCoords.y), ddy(planeCoords.y));
+    
+    // 최소값 클램핑 - 한 픽셀에서의 변화량이 미미할 때 떨림 현상 방지용 (효과는 없음)
+    float epsilon = 1e-3;
+    float lx = max(length(dvx), epsilon);
+    float ly = max(length(dvy), epsilon);
+    float2 dudv = float2(lx, ly);
+    float l = length(dudv);
+
+    // LOD 계산 (log10 기반)
+    float LOD = max(0.0, log10f(l * gGridMinPixelsBetweenCells / gGridCellSize) + 1.0);
+
+    float GridCellSizeLod0 = gGridCellSize * pow(10.0, floor(LOD));
+    float GridCellSizeLod1 = GridCellSizeLod0 * 10.0;
+    float GridCellSizeLod2 = GridCellSizeLod1 * 10.0;
+
+    dudv *= 4.0;
+
+    // 뷰모드에 따라 모듈러 연산에 전달할 2D 성분 결정
+    float Lod0a = ComputeLODAlpha(input.WorldPos, GridCellSizeLod0, dudv, input.ViewMode);
+    float Lod1a = ComputeLODAlpha(input.WorldPos, GridCellSizeLod1, dudv, input.ViewMode);
+    float Lod2a = ComputeLODAlpha(input.WorldPos, GridCellSizeLod2, dudv, input.ViewMode);
+    
+    // LOD 페이드 (LOD의 소수 부분)
+    float LODFade = frac(LOD);
+    float4 Color;
+    if (Lod2a > 0.0)
+    {
+        Color = gGridColorThick;
+        Color.a *= Lod2a;
+    }
+    else if (Lod1a > 0.0)
+    {
+        Color = lerp(gGridColorThick, gGridColorThin, LODFade);
+        Color.a *= Lod1a;
+    }
+    else
+    {
+        Color = gGridColorThin;
+        Color.a *= (Lod0a * LODFade);
+    }
+
+    // 카메라와의 거리 기반 페이드아웃 ( TOFIX: 여기선 XY 평면을 기준으로함)
+    float OpacityFalloff = (1.0 - saturate(length(input.WorldPos.xy - CameraPos.xy) / gGridSize));
+    Color.a *= OpacityFalloff;
+
+    output.Color = Color;
+    output.Depth = 0.9999999;  // 월드 그리드는 강제로 먼 깊이값 부여 (Forced to be Occluded ALL THE TIME)
+    return output;
 }
