@@ -146,6 +146,7 @@ float4 mainPS(SamplingPixelShaderInput input) : SV_TARGET
             float heightFactor = 1.0 - saturate((worldHeight - heightStart) / heightFalloff);
             fogFactor += heightDensity * heightFactor;
             litColor = lerp(litColor, fogColor.rgb, fogFactor);
+            return float4(litColor, 1.0f);
         }
         else
             return float4(g_renderTex.Sample(g_Sampler, input.texcoord).rgb, 1.0f);
