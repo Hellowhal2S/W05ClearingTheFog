@@ -76,73 +76,76 @@ float4 mainPS(SamplingPixelShaderInput input) : SV_TARGET
     float2 EncodedNormal = g_worldNormalTex.Sample(g_Sampler, input.texcoord).rg;
     float3 normal = DecodeNormalOctahedral(EncodedNormal);
 
-    if (renderMode == 3)
+    if (renderMode == 2) // WireFrame
+    {
+        return float4(g_renderTex.Sample(g_Sampler, input.texcoord).rgb, 1.0f);
+    }
+    if (renderMode == 3) // DepthScene
     {
         float depth = g_depthOnlyTex.Sample(g_Sampler, input.texcoord).r;
         depth = LinearizeAndNormalizeDepth(depth, 0.1f, 100.0f);
         
         return float4(depth.rrr, 1.0f);
     }
-    else if (renderMode ==4)
+    else if (renderMode ==4) // WorldNormal
     {
         return float4(g_worldNormalTex.Sample(g_Sampler, input.texcoord).rgb,1.0f);
     }
-    else if (renderMode == 5)
+    else if (renderMode == 5) // World Pos
     {
         float3 normalWorldPos = normalize(g_worldPosTex.Sample(g_Sampler, input.texcoord).rgb);
         return float4( normalWorldPos,1.0f);
     }
-    else if (renderMode == 6)
+    else if (renderMode == 6) // Albedo
     {
         return float4(g_albedoTex.Sample(g_Sampler, input.texcoord).rgb, 1.0f);
     }
-    else if (renderMode == 7)
+    else if (renderMode == 7) // Specular
     {
         return float4(g_specularTex.Sample(g_Sampler, input.texcoord).rgb, 1.0f);
     }
-
-    // 모드 1: 렌더링 이미지에 안개 효과 적용
-    if (isLit == 1)
+    else // Lit Unlit 
     {
-        float3 color = float3(0.0f, 0.0f, 0.0f);
-        
-        float3 materialDiffuseColor = g_albedoTex.Sample(g_Sampler, input.texcoord).rgb;
-        float3 materialSpecularColor = g_specularTex.Sample(g_Sampler, input.texcoord).rgb;
-        float3 worldPos = g_worldPosTex.Sample(g_Sampler, input.texcoord).rgb;
-        float materialSpecularScalar = g_specularTex.Sample(g_Sampler, input.texcoord).a;
-        float3 viewDirection = normalize(float3(eyeWorld - worldPos));
-
-        color += CalculateDirectionLight(DirLights[0], worldPos, normal, viewDirection, materialDiffuseColor, materialSpecularColor, materialSpecularScalar);
-            
-        for (int i = 0; i < NumPointLights; i++)
+        // 모드 1: 렌더링 이미지에 안개 효과 적용
+        if (isLit == 1)
         {
-            color += CalculatePointLight(PointLights[i], worldPos, normal, viewDirection, materialDiffuseColor, materialSpecularColor, materialSpecularScalar);
+            float3 color = float3(0.0f, 0.0f, 0.0f);
+        
+            float3 materialDiffuseColor = g_albedoTex.Sample(g_Sampler, input.texcoord).rgb;
+            float3 materialSpecularColor = g_specularTex.Sample(g_Sampler, input.texcoord).rgb;
+            float3 worldPos = g_worldPosTex.Sample(g_Sampler, input.texcoord).rgb;
+            float materialSpecularScalar = g_specularTex.Sample(g_Sampler, input.texcoord).a;
+            float3 viewDirection = normalize(float3(eyeWorld - worldPos));
+
+            color += CalculateDirectionLight(DirLights[0], worldPos, normal, viewDirection, materialDiffuseColor, materialSpecularColor, materialSpecularScalar);
+            
+            for (int i = 0; i < NumPointLights; i++)
+            {
+                color += CalculatePointLight(PointLights[i], worldPos, normal, viewDirection, materialDiffuseColor, materialSpecularColor, materialSpecularScalar);
+            }
+            
+            // return float4(color, 1.0);
         }
-            
-        return float4(color, 1.0);
-    }
         // // 뷰 공간 좌표 복원 (거리 기반 안개 계산용)
-    if (fogEnabled)
-    {
-        float4 posView = TexcoordToView(input.texcoord);
+        if (fogEnabled)
+        {
+            float4 posView = TexcoordToView(input.texcoord);
         
-        float dist = length(posView.xyz);
+            float dist = length(posView.xyz);
             //float distFog = saturate((dist - depthStart) / (depthFalloff - depthStart));
-        float rawDepth = g_depthOnlyTex.Sample(g_Sampler, input.texcoord).r;
-        float linearDepth = LinearizeAndNormalizeDepth(rawDepth, 0.1f, 100.0f);
-        float fogFactor = 1.0 - exp(-fogDensity * linearDepth);
-        float3 color = g_renderTex.Sample(g_Sampler, input.texcoord).rgb;
+            float rawDepth = g_depthOnlyTex.Sample(g_Sampler, input.texcoord).r;
+            float linearDepth = LinearizeAndNormalizeDepth(rawDepth, 0.1f, 100.0f);
+            float fogFactor = 1.0 - exp(-fogDensity * linearDepth);
+            float3 color = g_renderTex.Sample(g_Sampler, input.texcoord).rgb;
         
-        float worldHeight = g_worldPosTex.Sample(g_Sampler, input.texcoord).z;
-        float heightFactor = 1.0 - saturate((worldHeight - heightStart) / heightFalloff);
-        fogFactor += heightDensity * heightFactor;
-        color = lerp(color, fogColor.rgb, fogFactor);
-            
-            
-            
-        return float4(color, 1.0);
+            float worldHeight = g_worldPosTex.Sample(g_Sampler, input.texcoord).z;
+            float heightFactor = 1.0 - saturate((worldHeight - heightStart) / heightFalloff);
+            fogFactor += heightDensity * heightFactor;
+            color = lerp(color, fogColor.rgb, fogFactor);
+        
+            return float4(color, 1.0);
+        }
+        else
+            return float4(g_renderTex.Sample(g_Sampler, input.texcoord).rgb, 1.0f);
     }
-    else
-        return float4(g_renderTex.Sample(g_Sampler, input.texcoord).rgb, 1.0f);
-    
 }
