@@ -90,6 +90,7 @@ void UEditorEngine::Render()
     else
     {
         PostEffect::ClearRTV(graphicDevice.DeviceContext);
+        graphicDevice.DeviceContext->OMSetRenderTargets(6, graphicDevice.RTVs, graphicDevice.DepthStencilView); // 렌더 타겟 설정(백버퍼를 가르킴)
         RenderEngine.Render(GWorld,LevelEditor->GetActiveViewportClient());
         PostEffect::CopyBackBufferToColorSRV(graphicDevice.DeviceContext, graphicDevice.ColorTexture, graphicDevice.FrameBuffer);
         PostEffect::CopyDepthBufferToDepthOnlySRV(graphicDevice.DeviceContext, graphicDevice.DepthStencilBuffer);
@@ -101,21 +102,23 @@ void UEditorEngine::Render()
 
     // 화면에 그려진 백버퍼의 내용을 SRV로 쓰기 위해 ColorTexture에 복사
 
-
-    if (LevelEditor->IsMultiViewport())
+    if (GWorld->WorldType == EWorldType::Editor)
     {
-        std::shared_ptr<FEditorViewportClient> viewportClient = GetLevelEditor()->GetActiveViewportClient();
-        for (int i = 0; i < 4; ++i)
+        if (LevelEditor->IsMultiViewport())
         {
-            LevelEditor->SetViewportClient(i);
-            RenderEngine.RenderDebug(GWorld, LevelEditor->GetActiveViewportClient());
+            std::shared_ptr<FEditorViewportClient> viewportClient = GetLevelEditor()->GetActiveViewportClient();
+            for (int i = 0; i < 4; ++i)
+            {
+                LevelEditor->SetViewportClient(i);
+                RenderEngine.RenderDebug(GWorld, LevelEditor->GetActiveViewportClient());
 
+            }
+            GetLevelEditor()->SetViewportClient(viewportClient);
         }
-        GetLevelEditor()->SetViewportClient(viewportClient);
-    }
-    else
-    {
-        RenderEngine.RenderDebug(GWorld, LevelEditor->GetActiveViewportClient());
+        else
+        {
+            RenderEngine.RenderDebug(GWorld, LevelEditor->GetActiveViewportClient());
+        }
     }
 
     //graphicDevice.DeviceContext->OMSetRenderTargets(1, &graphicDevice.FrameBufferRTV, nullptr);
