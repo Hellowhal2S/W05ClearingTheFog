@@ -456,26 +456,48 @@ void ControlEditorPanel::CreatePIEButton(ImVec2 ButtonSize) const
     float CursorPosX = (ContentWidth - TotalWidth) * 0.5f;
     ImGui::SetCursorPosX(CursorPosX);
 
-    // if (UEditorStateManager::GetEditorState() == EEditorState::Editing)
-    if (ImGui::Button("\ue9a8", ButtonSize)) // Play
-    {
-        activeLevelEditor->GetEditorStateManager().SetState(EEditorState::PreparingPlay);
-    }
 
+    if (activeLevelEditor->GetEditorStateManager().GetEditorState() == EEditorState::Editing)
+    {
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.0f, 1.0f, 0.0f, 1.0f));
+        if (ImGui::Button("\ue9a8", ButtonSize)) // Play
+        {
+            activeLevelEditor->GetEditorStateManager().SetState(EEditorState::PreparingPlay);
+        }
+        ImGui::PopStyleColor();
+    }
+    else if (activeLevelEditor->GetEditorStateManager().GetEditorState() == EEditorState::Paused)
+    {
+        if (ImGui::Button("\ue9a8", ButtonSize)) // Play
+        {
+            activeLevelEditor->GetEditorStateManager().SetState(EEditorState::Playing);
+        }
+    }
+    else
+    {
+        if (ImGui::Button("\ue99c", ButtonSize)) // Pause
+        {
+            // TODO: PIE 일시정지
+            activeLevelEditor->GetEditorStateManager().SetState(EEditorState::Paused);
+        }
+    }
     ImGui::SameLine();
 
-    if (ImGui::Button("\ue99c", ButtonSize)) // Pause
+    if (activeLevelEditor->GetEditorStateManager().GetEditorState() == EEditorState::Editing)
     {
-        // TODO: PIE 일시정지
-         activeLevelEditor->GetEditorStateManager().SetState(EEditorState::Paused);
+        if (ImGui::Button("\ue9e4", ButtonSize)) // Stop
+        {
+            activeLevelEditor->GetEditorStateManager().SetState(EEditorState::Stopped);
+        }
     }
-
-    ImGui::SameLine();
-
-    if (ImGui::Button("\ue9e4", ButtonSize)) // Stop
+    else
     {
-        // TODO: PIE 정지
-         activeLevelEditor->GetEditorStateManager().SetState(EEditorState::Stopped);
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.0f, 0.0f, 1.0f));
+        if (ImGui::Button("\ue9e4", ButtonSize)) // Stop
+        {
+            activeLevelEditor->GetEditorStateManager().SetState(EEditorState::Stopped);
+        }
+        ImGui::PopStyleColor();
     }
 }
 

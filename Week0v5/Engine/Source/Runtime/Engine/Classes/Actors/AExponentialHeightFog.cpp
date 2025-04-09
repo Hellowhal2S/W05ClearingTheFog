@@ -40,6 +40,5 @@ void AExponentialHeightFog::DuplicateSubObjects(const UObject* Source)
 inline void AExponentialHeightFog::Destroyed()
 {
     AActor::Destroyed();
-    UE_LOG(LogLevel::Warning, "Fog Down");
     GEngine->GetWorld()->Fog = nullptr;
 }
