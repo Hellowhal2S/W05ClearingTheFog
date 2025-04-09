@@ -332,6 +332,7 @@ void FGraphicsDevice::SwapBuffer() {
 void FGraphicsDevice::Prepare()
 {
     // 후처리용 RTV 클리어
+    DeviceContext->ClearRenderTargetView(PostEffect::finalRTV, ClearColor);
     DeviceContext->ClearRenderTargetView(PostEffect::SpecularRTV, ClearColor);
     DeviceContext->ClearRenderTargetView(PostEffect::AlbedoRTV, ClearColor);
     DeviceContext->ClearRenderTargetView(PostEffect::WorldPosRTV, ClearColor);
