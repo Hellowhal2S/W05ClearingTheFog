@@ -251,6 +251,14 @@ void USceneComponent::SetupAttachment(USceneComponent* InParent)
     }
 }
 
+void USceneComponent::DetachFromParent()
+{
+    if (AttachParent)
+    {
+        AttachParent->AttachChildren.Remove(this);
+        AttachParent = nullptr;
+    }
+}
 
 USceneComponent* USceneComponent::GetAttachParent() const
 {

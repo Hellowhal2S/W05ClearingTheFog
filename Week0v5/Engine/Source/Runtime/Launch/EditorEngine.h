@@ -38,7 +38,7 @@ public:
 
 private:
     void WindowInit(HINSTANCE hInstance);
-
+    void ResizeGizmo();
 public:
     static FGraphicsDevice graphicDevice;
     static FRenderEngine RenderEngine;

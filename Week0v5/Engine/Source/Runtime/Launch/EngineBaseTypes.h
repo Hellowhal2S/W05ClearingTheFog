@@ -7,7 +7,9 @@ enum EViewModeIndex
     VMI_Wireframe,
     VMI_SceneDepth,
     VMI_Normal,
-    VMI_WorldPosition
+    VMI_WorldPosition,
+    VMI_Albedo,
+    VMI_Specular,
 };
 
 enum ELevelTick

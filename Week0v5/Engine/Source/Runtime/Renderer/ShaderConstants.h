@@ -215,6 +215,8 @@ struct alignas(16) FConstantBufferDebugIcon
 struct alignas(16) FConstantBufferDebugArrow
 {
     alignas(16) FVector Position;
+    float ArrowScaleXYZ;
     alignas(16) FVector Direction;
+    float ArrowScaleZ;
 };
 

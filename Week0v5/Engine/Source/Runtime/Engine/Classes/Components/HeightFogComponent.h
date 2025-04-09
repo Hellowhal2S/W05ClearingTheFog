@@ -7,6 +7,9 @@ class UHeightFogComponent : public USceneComponent
 public:
     UHeightFogComponent(){}
     ~UHeightFogComponent(){}
+    UHeightFogComponent( const UHeightFogComponent& other);
+
+    UObject* Duplicate() const override;
 private:
     float depthStart = 0.0f;
     float depthFalloff = 50.0f;

@@ -19,7 +19,6 @@ AExponentialHeightFog::~AExponentialHeightFog()
 
 AExponentialHeightFog::AExponentialHeightFog(const AExponentialHeightFog& other) : AActor(other), fogComponent(other.fogComponent)
 {
-    GEngine->GetWorld()->Fog = this;
 }
 
 UObject* AExponentialHeightFog::Duplicate() const
@@ -32,7 +31,7 @@ UObject* AExponentialHeightFog::Duplicate() const
 
 void AExponentialHeightFog::DuplicateSubObjects(const UObject* Source)
 {
-    UObject::DuplicateSubObjects(Source);
+    AActor::DuplicateSubObjects(Source);
     const AExponentialHeightFog* Fog = Cast<AExponentialHeightFog>(Source);
     fogComponent = Cast<UHeightFogComponent>(fogComponent->Duplicate());
     RootComponent = fogComponent;
@@ -40,6 +39,6 @@ void AExponentialHeightFog::DuplicateSubObjects(const UObject* Source)
 inline void AExponentialHeightFog::Destroyed()
 {
     AActor::Destroyed();
-    UE_LOG(LogLevel::Warning, "Fog Down");
-    GEngine->GetWorld()->Fog = nullptr;
+    // if (GEngine->GetWorld()->WorldType == EWorldType::Editor)
+    //     GEngine->GetWorld()->Fog = nullptr;
 }

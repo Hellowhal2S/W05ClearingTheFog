@@ -44,5 +44,7 @@ cbuffer ConstantBufferDebugIcon : register(b13)
 cbuffer ConstantBufferDebugArrow : register(b13)
 {
     float3 ArrowPosition;
+    float ArrowScaleXYZ;
     float3 ArrowDirection;
+    float ArrowScaleZ;
 }

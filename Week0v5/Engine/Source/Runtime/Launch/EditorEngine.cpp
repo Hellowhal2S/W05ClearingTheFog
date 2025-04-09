@@ -10,9 +10,11 @@
 #include "slate/Widgets/Layout/SSplitter.h"
 #include "LevelEditor/SLevelEditor.h"
 #include "UnrealEd/SceneMgr.h"
+#include "InteractiveToolsFramework/BaseGizmos/GizmoBaseComponent.h"
 
 #include "Renderer/PostEffect.h" // 후처리용 : FrameBuffer 안의 내용을 ColorSRV로 복사 후, PostEffect::Render 호출
 #include "UnrealEd/PrimitiveBatch.h"
+#include "UObject/UObjectIterator.h"
 
 
 class ULevel;
@@ -54,14 +56,14 @@ int32 UEditorEngine::Init(HWND hwnd)
     EditorContext.WorldType = EWorldType::PIE;
     worldContexts.Add(PIEContext);
     
-    UnrealEditor = new UnrealEd();
-    UnrealEditor->Initialize();
-    UnrealEditor->OnResize(hWnd); // 현재 윈도우 사이즈에 대한 재조정
-    graphicDevice.OnResize(hWnd);
-    
     LevelEditor = new SLevelEditor();
     LevelEditor->Initialize();
     
+    UnrealEditor = new UnrealEd();
+    UnrealEditor->Initialize(LevelEditor);
+    UnrealEditor->OnResize(hWnd); // 현재 윈도우 사이즈에 대한 재조정
+    graphicDevice.OnResize(hWnd);
+
     SceneMgr = new FSceneMgr();
 
     return 0;
@@ -116,6 +118,7 @@ void UEditorEngine::Render()
 
             }
             GetLevelEditor()->SetViewportClient(viewportClient);
+            ResizeGizmo();
         }
         else
         {
@@ -230,8 +233,8 @@ void UEditorEngine::ResumingPIE()
 void UEditorEngine::StopPIE()
 {
     // 1. World Clear
-    GWorld = worldContexts[0].thisCurrentWorld;
 
+    GWorld = worldContexts[0].thisCurrentWorld;
     for (auto iter : worldContexts[1].World()->GetActors())
     {
         iter->Destroy();
@@ -242,14 +245,32 @@ void UEditorEngine::StopPIE()
     GUObjectArray.MarkRemoveObject( worldContexts[1].World()->GetWorld());
     worldContexts[1].thisCurrentWorld = nullptr;
     
-    // GWorld->WorldType = EWorldType::Editor;
     levelType = LEVELTICK_ViewportsOnly;
-    // if (GWorld && GWorld->IsPIEWorld())
-    // {
-    //     GWorld->ClearScene();
-    // }
-    //
-    // GWorld = GetEditorWorldContext()->World();
+    
+}
+
+void UEditorEngine::ResizeGizmo()
+{
+    for (auto GizmoComp : TObjectRange<UGizmoBaseComponent>())
+    {
+        if (AActor* PickedActor = GWorld->GetSelectedActor())
+        {
+            std::shared_ptr<FEditorViewportClient> activeViewport = GetLevelEditor()->GetActiveViewportClient();
+            if (activeViewport->IsPerspective())
+            {
+                float scalar = abs(
+                    (activeViewport->ViewTransformPerspective.GetLocation() - PickedActor->GetRootComponent()->GetLocalLocation()).Magnitude()
+                );
+                scalar *= 0.1f;
+                GizmoComp->SetRelativeScale(FVector(scalar, scalar, scalar));
+            }
+            else
+            {
+                float scalar = activeViewport->orthoSize * 0.1f;
+                GizmoComp->SetRelativeScale(FVector(scalar, scalar, scalar));
+            }
+        }
+    }
 }
 
 void UEditorEngine::Exit()

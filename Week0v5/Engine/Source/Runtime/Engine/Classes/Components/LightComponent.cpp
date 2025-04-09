@@ -24,7 +24,8 @@ void ULightComponentBase::TickComponent(float DeltaTime)
 int ULightComponentBase::CheckRayIntersection(FVector& rayOrigin, FVector& rayDirection, float& pfNearHitDistance)
 {
     FVector center = { 0,0,0 };
-    float radius = 1.0f;
+    // FEditorRenderer::RenderIcons에서도 수정 필요
+    float radius = 5.0f;
 
     FVector L = rayOrigin - center;
 
@@ -57,45 +58,45 @@ int ULightComponentBase::CheckRayIntersection(FVector& rayOrigin, FVector& rayDi
 //////////////////////////////////
 // PointLight
 
-UPointlightComponent::UPointlightComponent()
+UPointLightComponent::UPointLightComponent()
 {
 }
 
-UPointlightComponent::~UPointlightComponent()
+UPointLightComponent::~UPointLightComponent()
 {
 }
 
-UPointlightComponent::UPointlightComponent(const UPointlightComponent& Other)
+UPointLightComponent::UPointLightComponent(const UPointLightComponent& Other)
     : ULightComponentBase(Other),
     Radius(Other.Radius),
     RadiusFallOff(Other.RadiusFallOff)
 {
 }
 
-void UPointlightComponent::InitializeComponent()
+void UPointLightComponent::InitializeComponent()
 {
     Super::InitializeComponent();
 }
 
-void UPointlightComponent::TickComponent(float DeltaTime)
+void UPointLightComponent::TickComponent(float DeltaTime)
 {
     Super::TickComponent(DeltaTime);
 }
 
-UObject* UPointlightComponent::Duplicate() const
+UObject* UPointLightComponent::Duplicate() const
 {
-    UPointlightComponent* ClonedActor = FObjectFactory::ConstructObjectFrom<UPointlightComponent>(this);
+    UPointLightComponent* ClonedActor = FObjectFactory::ConstructObjectFrom<UPointLightComponent>(this);
     ClonedActor->DuplicateSubObjects(this);
     ClonedActor->PostDuplicate();
     return ClonedActor;
 }
 
-void UPointlightComponent::DuplicateSubObjects(const UObject* Source)
+void UPointLightComponent::DuplicateSubObjects(const UObject* Source)
 {
     Super::DuplicateSubObjects(Source);
 }
 
-void UPointlightComponent::PostDuplicate()
+void UPointLightComponent::PostDuplicate()
 {
     Super::PostDuplicate();
 }

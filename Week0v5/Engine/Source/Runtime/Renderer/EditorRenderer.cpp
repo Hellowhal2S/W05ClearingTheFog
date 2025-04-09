@@ -10,6 +10,7 @@
 #include "Renderer.h"
 #include "Engine/Classes/Components/LightComponent.h"
 #include "PostEffect.h"
+#include "LevelEditor/SLevelEditor.h"
 #include "Engine/FLoaderOBJ.h"
 
 
@@ -648,10 +649,25 @@ void FEditorRenderer::RenderGizmos(const UWorld* World)
 
     //  fill solid,  Wirframe 에서도 제대로 렌더링되기 위함
     Renderer->Graphics->DeviceContext->RSSetState(UEditorEngine::graphicDevice.RasterizerStateSOLID);
-
-    for (auto GizmoComp : GizmoObjs)
+    for (UGizmoBaseComponent* GizmoComp : GizmoObjs)
     {
-
+        if (AActor* PickedActor = World->GetSelectedActor())
+        {
+            std::shared_ptr<FEditorViewportClient> activeViewport = GEngine->GetLevelEditor()->GetActiveViewportClient();
+            if (activeViewport->IsPerspective())
+            {
+                float scalar = abs(
+                    (activeViewport->ViewTransformPerspective.GetLocation() - PickedActor->GetRootComponent()->GetLocalLocation()).Magnitude()
+                );
+                scalar *= 0.1f;
+                GizmoComp->SetRelativeScale(FVector(scalar, scalar, scalar));
+            }
+            else
+            {
+                float scalar = activeViewport->orthoSize * 0.1f;
+                GizmoComp->SetRelativeScale(FVector(scalar, scalar, scalar));
+            }
+        }
         if ((GizmoComp->GetGizmoType() == UGizmoBaseComponent::ArrowX ||
             GizmoComp->GetGizmoType() == UGizmoBaseComponent::ArrowY ||
             GizmoComp->GetGizmoType() == UGizmoBaseComponent::ArrowZ)
@@ -806,7 +822,7 @@ void FEditorRenderer::RenderPointlightInstanced(const UWorld* World)
     TArray<FConstantBufferDebugSphere> BufferAll;
     for (ULightComponentBase* LightComp : Resources.Components.Light)
     {        
-        if (UPointlightComponent* PointLightComp = Cast<UPointlightComponent>(LightComp))
+        if (UPointLightComponent* PointLightComp = Cast<UPointLightComponent>(LightComp))
         {
             FConstantBufferDebugSphere b;
             b.Position = PointLightComp->GetComponentLocation();
@@ -1015,7 +1031,8 @@ void FEditorRenderer::LazyLoad()
 
 void FEditorRenderer::RenderIcons(const UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport)
 {
-    const float IconScale = 1;
+    // ULightComponentBase::CheckRayIntersection에서도 수정 필요
+    const float IconScale = 5;
     PrepareShader(Resources.Shaders.Icon);
     UINT offset = 0;
     // input vertex index 없음
@@ -1028,7 +1045,7 @@ void FEditorRenderer::RenderIcons(const UWorld* World, std::shared_ptr<FEditorVi
         b.Scale = IconScale;
         UdpateConstantbufferIcon(b);
 
-        if (UPointlightComponent* PointLightComp = Cast<UPointlightComponent>(LightComp))
+        if (UPointLightComponent* PointLightComp = Cast<UPointLightComponent>(LightComp))
         {
             UpdateTextureIcon(IconType::PointLight);
         }
@@ -1077,6 +1094,9 @@ void FEditorRenderer::UpdateTextureIcon(IconType type)
 
 void FEditorRenderer::RenderArrows(const UWorld* World)
 {
+    // XYZ한번. Z는 중복으로 적용
+    const float ArrowScale = 5;
+
     PrepareShader(Resources.Shaders.Arrow);
     UINT offset = 0;
     Renderer->Graphics->DeviceContext->IASetVertexBuffers(0, 1, &Resources.Primitives.Arrow.Vertex, &Resources.Primitives.Arrow.VertexStride, &offset);
@@ -1089,7 +1109,9 @@ void FEditorRenderer::RenderArrows(const UWorld* World)
         {
             FConstantBufferDebugArrow buf;
             buf.Position = DLightComp->GetComponentLocation();
+            buf.ArrowScaleXYZ = ArrowScale;
             buf.Direction = DLightComp->GetLightDirection();
+            buf.ArrowScaleZ = ArrowScale;
             UdpateConstantbufferArrow(buf);
             Renderer->Graphics->DeviceContext->DrawIndexed(Resources.Primitives.Arrow.NumIndices, 0, 0);
         }

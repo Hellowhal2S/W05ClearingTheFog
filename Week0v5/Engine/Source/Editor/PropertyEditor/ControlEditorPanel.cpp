@@ -1,23 +1,34 @@
 #include "ControlEditorPanel.h"
 
+#include "Engine/FLoaderOBJ.h"
 #include "Engine/World.h"
-#include "Actors/Player.h"
+
 #include "Components/CubeComp.h"
 #include "Components/LightComponent.h"
 #include "Components/SphereComp.h"
 #include "Components/UParticleSubUVComp.h"
 #include "Components/UText.h"
-#include "Engine/FLoaderOBJ.h"
-#include "Engine/StaticMeshActor.h"
+
+#include "Actors/Player.h"
+#include "Actors/StaticMeshActor.h"
+#include "Actors/PointLightActor.h"
+#include "Actors/DirectionalLightActor.h"
+#include "Actors/AExponentialHeightFog.h"
+
 #include "ImGUI/imgui_internal.h"
 #include "LevelEditor/SLevelEditor.h"
 #include "tinyfiledialogs/tinyfiledialogs.h"
 #include "UnrealEd/EditorViewportClient.h"
 #include "PropertyEditor/ShowFlags.h"
 #include "UnrealEd/SceneMgr.h"
-#include "UEditorStateManager.h"
-#include "Actors/AExponentialHeightFog.h"
+#include "FEditorStateManager.h"
+
 #include "Renderer/PostEffect.h"
+
+void ControlEditorPanel::Initialize(SLevelEditor* levelEditor)
+{
+    activeLevelEditor = levelEditor;
+}
 
 void ControlEditorPanel::Render()
 {
@@ -237,17 +248,6 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
         {
             GEngine->GetLevelEditor()->GetActiveViewportClient()->SetCameraSpeedScalar(CameraSpeed);
         }
-        ImGui::Spacing();
-
-        
-        ImGui::Spacing();
-        const char* fogModes[] = { "None", "Normal", "Scene Depth", "World Pos" };
-        ImGui::Text("Fog Mode");
-        ImGui::SetNextItemWidth(120.0f);
-        if (ImGui::Combo("##FogModeCombo", &renderMode, fogModes, IM_ARRAYSIZE(fogModes)))
-        {
-            PostEffect::renderMode = renderMode;
-        }
         ImGui::EndPopup();
     }
     ImGui::SameLine();
@@ -255,45 +255,67 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
     ImGui::PushFont(IconFont);
     if (ImGui::Button("\ue9c8", ButtonSize))
     {
-        ImGui::OpenPopup("PrimitiveControl");
+        ImGui::OpenPopup("ActorControl");
     }
     ImGui::PopFont();
 
-    if (ImGui::BeginPopup("PrimitiveControl"))
+    if (ImGui::BeginPopup("ActorControl"))
     {
-        struct Primitive {
+        struct Actor {
+            const char* category;
             const char* label;
             int obj;
         };
 
-        static const Primitive primitives[] = {
-            { .label= "Cube",      .obj= OBJ_CUBE },
-            { .label= "Sphere",    .obj= OBJ_SPHERE },
-            { .label= "SpotLight", .obj= OBJ_SpotLight },
-            { .label= "Particle",  .obj= OBJ_PARTICLE },
-            { .label= "Text",      .obj= OBJ_Text },
-            { .label= "Dodge",      .obj= OBJ_CAR },
-            { .label= "Fog",      .obj= OBJ_FOG }
+        // 카테고리 순서대로 정렬된 배열
+        static const Actor actors[] = {
+            { "Defaults", "Actor", OBJ_ACTOR},
+            // 🔦 라이트
+            { "Lights", "Spot Light",      OBJ_SPOTLIGHT },
+            { "Lights", "Point Light",     OBJ_POINTLIGHT },
+            { "Lights", "Directional Light", OBJ_DIRECTIONALLIGHT },
+
+            // 🔷 셰이프
+            { "Shapes", "Cube",            OBJ_CUBE },
+            { "Shapes", "Sphere",          OBJ_SPHERE },
+            { "Shapes", "Car (Dodge)",     OBJ_CAR },
+            { "Shapes", "SkySphere",       OBJ_SKYSPHERE},
+
+            // ✨ 효과
+            { "Effects", "Particle",       OBJ_PARTICLE },
+            { "Effects", "Text",           OBJ_TEXT },
+            { "Effects", "Fog",            OBJ_FOG },
         };
 
-        for (const auto& primitive : primitives)
+        const char* currentCategory = nullptr;
+
+        for (const auto& actor : actors)
         {
-            if (ImGui::Selectable(primitive.label))
+            // 카테고리 헤더 추가
+            if (currentCategory != actor.category)
             {
-                // GEngineLoop.GetWorld()->SpawnObject(static_cast<OBJECTS>(primitive.obj));
+                if (currentCategory != nullptr)
+                {
+                    ImGui::Separator(); // 카테고리 구분선
+                }
+                ImGui::TextColored(ImVec4(0.8f, 0.8f, 0.2f, 1), "▶ %s", actor.category); // 헤더
+                currentCategory = actor.category;
+            }
+
+            // 액터 생성 버튼
+            if (ImGui::Selectable(actor.label))
+            {
                 UWorld* World = GEngine->GetWorld();
                 AActor* SpawnedActor = nullptr;
-                switch (static_cast<OBJECTS>(primitive.obj))
+
+                switch (static_cast<OBJECTS>(actor.obj))
                 {
-                case OBJ_SPHERE:
-                {
-                    AStaticMeshActor* TempActor = World->SpawnActor<AStaticMeshActor>();
-                    TempActor->SetActorLabel(TEXT("OBJ_SPHERE"));
-                    UStaticMeshComponent* MeshComp = TempActor->GetStaticMeshComponent();
-                    FManagerOBJ::CreateStaticMesh("Assets/apple_mid.obj");
-                    MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"apple_mid.obj"));
+                case OBJ_ACTOR:
+                    SpawnedActor = World->SpawnActor<AActor>();
+                    SpawnedActor->SetActorLabel(TEXT("OBJ_ACTOR"));
+                    SpawnedActor->AddComponent<USceneComponent>();
                     break;
-                }
+                    // 🔷 셰이프
                 case OBJ_CUBE:
                 {
                     AStaticMeshActor* TempActor = World->SpawnActor<AStaticMeshActor>();
@@ -301,34 +323,76 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
                     UStaticMeshComponent* MeshComp = TempActor->GetStaticMeshComponent();
                     FManagerOBJ::CreateStaticMesh("Assets/Cube.obj");
                     MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"Cube.obj"));
+                    SpawnedActor = TempActor;
                     break;
                 }
-                case OBJ_SpotLight:
+                case OBJ_SPHERE:
+                {
+                    AStaticMeshActor* TempActor = World->SpawnActor<AStaticMeshActor>();
+                    TempActor->SetActorLabel(TEXT("OBJ_SPHERE"));
+                    UStaticMeshComponent* MeshComp = TempActor->GetStaticMeshComponent();
+                    FManagerOBJ::CreateStaticMesh("Assets/apple_mid.obj");
+                    MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"apple_mid.obj"));
+                    SpawnedActor = TempActor;
+                    break;
+                }
+                case OBJ_SKYSPHERE:
+                {
+                    AStaticMeshActor* TempActor = World->SpawnActor<AStaticMeshActor>();
+                    TempActor->SetActorLabel(TEXT("OBJ_SKYSPHERE"));
+                    UStaticMeshComponent* MeshComp = TempActor->GetStaticMeshComponent();
+                    FManagerOBJ::CreateStaticMesh("Assets/SkySphere.obj");
+                    MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"SkySphere.obj")); // 소문자로 수정
+                    TempActor->SetActorRotation(FVector(-90.0f, 0.0f, 0.0f));
+                    TempActor->SetActorScale(FVector(100.0f, 100.0f, 100.0f));
+                    SpawnedActor = TempActor;
+                    break; // 누락된 break 추가
+                }
+
+                // 🔦 라이트
+                case OBJ_SPOTLIGHT:
                 {
                     SpawnedActor = World->SpawnActor<AActor>();
-                    SpawnedActor->SetActorLabel(TEXT("OBJ_SpotLight"));
+                    SpawnedActor->SetActorLabel(TEXT("OBJ_SPOTLIGHT"));
                     SpawnedActor->AddComponent<ULightComponentBase>();
                     break;
                 }
+                case OBJ_POINTLIGHT:
+                {
+                    SpawnedActor = World->SpawnActor<APointLightActor>();
+                    SpawnedActor->SetActorLabel(TEXT("OBJ_POINTLIGHT"));
+                    UPointLightComponent* Light = SpawnedActor->AddComponent<UPointLightComponent>();
+                    Light->SetIntensity(5000.0f);
+                    break;
+                }
+                case OBJ_DIRECTIONALLIGHT:
+                {
+                    SpawnedActor = World->SpawnActor<ADirectionalLightActor>();
+                    SpawnedActor->SetActorLabel(TEXT("OBJ_DIRECTIONALLIGHT"));
+                    SpawnedActor->AddComponent<UDirectionalLightComponent>();
+                    break;
+                }
+
+                // ✨ 효과
                 case OBJ_PARTICLE:
                 {
                     SpawnedActor = World->SpawnActor<AActor>();
                     SpawnedActor->SetActorLabel(TEXT("OBJ_PARTICLE"));
-                    UParticleSubUVComp* ParticleComponent = SpawnedActor->AddComponent<UParticleSubUVComp>();
-                    ParticleComponent->SetTexture(L"Assets/Texture/T_Explosion_SubUV.png");
-                    ParticleComponent->SetRowColumnCount(6, 6);
-                    ParticleComponent->SetRelativeScale(FVector(10.0f, 10.0f, 1.0f));
-                    ParticleComponent->Activate();
+                    UParticleSubUVComp* Particle = SpawnedActor->AddComponent<UParticleSubUVComp>();
+                    Particle->SetTexture(L"Assets/Texture/T_Explosion_SubUV.png");
+                    Particle->SetRowColumnCount(6, 6);
+                    Particle->SetRelativeScale(FVector(10.0f, 10.0f, 10.0f));
+                    Particle->Activate();
                     break;
                 }
-                case OBJ_Text:
+                case OBJ_TEXT:
                 {
                     SpawnedActor = World->SpawnActor<AActor>();
-                    SpawnedActor->SetActorLabel(TEXT("OBJ_Text"));
-                    UText* TextComponent = SpawnedActor->AddComponent<UText>();
-                    TextComponent->SetTexture(L"Assets/Texture/font.png");
-                    TextComponent->SetRowColumnCount(106, 106);
-                    TextComponent->SetText(L"안녕하세요 Jungle 1");
+                    SpawnedActor->SetActorLabel(TEXT("OBJ_TEXT"));
+                    UText* Text = SpawnedActor->AddComponent<UText>();
+                    Text->SetTexture(L"Assets/Texture/font.png");
+                    Text->SetRowColumnCount(106, 106);
+                    Text->SetText(L"안녕하세요 Jungle 1");
                     break;
                 }
                 case OBJ_FOG:
@@ -344,11 +408,9 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
                     UStaticMeshComponent* MeshComp = TempActor->GetStaticMeshComponent();
                     FManagerOBJ::CreateStaticMesh("Assets/Dodge/Dodge.obj");
                     MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"Dodge.obj"));
+                    SpawnedActor = TempActor;
                     break;
                 }
-                case OBJ_PLAYER:
-                case OBJ_END:
-                    break;
                 }
         
                 if (SpawnedActor)
@@ -395,7 +457,7 @@ void ControlEditorPanel::CreateFlagButton() const
 
     ImGui::SameLine();
     
-    const char* ViewModeNames[] = {"Lit", "Unlit", "Wireframe", "Scene Depth", "Normal", "World Pos"};
+    const char* ViewModeNames[] = {"Lit", "Unlit", "Wireframe", "Scene Depth", "Normal", "World Pos", "Albedo", "Specular"};
     FString SelectLightControl = ViewModeNames[(int)ActiveViewport->GetViewMode()];
     ImVec2 LightTextSize = ImGui::CalcTextSize(GetData(SelectLightControl));
     
@@ -462,30 +524,48 @@ void ControlEditorPanel::CreatePIEButton(ImVec2 ButtonSize) const
     float CursorPosX = (ContentWidth - TotalWidth) * 0.5f;
     ImGui::SetCursorPosX(CursorPosX);
 
-    if (ImGui::Button("\ue9a8", ButtonSize)) // Play
-    {
-        UEditorStateManager::Get().SetState(EEditorState::PreparingPlay);
-        // TODO: PIE 시작
-        // if (!UEditorStateManager::Get().IsPIERunning())
-        //     UEditorStateManager::Get().SetState(EEditorState::PreparingPlay);
-        // else
-        //     UEditorStateManager::Get().SetState(EEditorState::Resuming);
-    }
 
+    if (activeLevelEditor->GetEditorStateManager().GetEditorState() == EEditorState::Editing)
+    {
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.0f, 1.0f, 0.0f, 1.0f));
+        if (ImGui::Button("\ue9a8", ButtonSize)) // Play
+        {
+            activeLevelEditor->GetEditorStateManager().SetState(EEditorState::PreparingPlay);
+        }
+        ImGui::PopStyleColor();
+    }
+    else if (activeLevelEditor->GetEditorStateManager().GetEditorState() == EEditorState::Paused)
+    {
+        if (ImGui::Button("\ue9a8", ButtonSize)) // Play
+        {
+            activeLevelEditor->GetEditorStateManager().SetState(EEditorState::Playing);
+        }
+    }
+    else
+    {
+        if (ImGui::Button("\ue99c", ButtonSize)) // Pause
+        {
+            // TODO: PIE 일시정지
+            activeLevelEditor->GetEditorStateManager().SetState(EEditorState::Paused);
+        }
+    }
     ImGui::SameLine();
 
-    if (ImGui::Button("\ue99c", ButtonSize)) // Pause
+    if (activeLevelEditor->GetEditorStateManager().GetEditorState() == EEditorState::Editing)
     {
-        // TODO: PIE 일시정지
-        UEditorStateManager::Get().SetState(EEditorState::Paused);
+        if (ImGui::Button("\ue9e4", ButtonSize)) // Stop
+        {
+            activeLevelEditor->GetEditorStateManager().SetState(EEditorState::Stopped);
+        }
     }
-
-    ImGui::SameLine();
-
-    if (ImGui::Button("\ue9e4", ButtonSize)) // Stop
+    else
     {
-        // TODO: PIE 정지
-        UEditorStateManager::Get().SetState(EEditorState::Stopped);
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.0f, 0.0f, 1.0f));
+        if (ImGui::Button("\ue9e4", ButtonSize)) // Stop
+        {
+            activeLevelEditor->GetEditorStateManager().SetState(EEditorState::Stopped);
+        }
+        ImGui::PopStyleColor();
     }
 }
 

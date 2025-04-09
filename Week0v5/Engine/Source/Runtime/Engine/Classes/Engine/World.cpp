@@ -6,18 +6,20 @@
 #include "LevelEditor/SLevelEditor.h"
 #include "Engine/FLoaderOBJ.h"
 #include "Classes/Components/StaticMeshComponent.h"
-#include "Engine/StaticMeshActor.h"
+#include "Actors/StaticMeshActor.h"
 #include "Components/SkySphereComponent.h"
 #include "UnrealEd/SceneMgr.h"
 #include "UObject/UObjectIterator.h"
 #include "Level.h"
+#include "Actors/AExponentialHeightFog.h"
 
 
 UWorld::UWorld(const UWorld& Other): UObject(Other)
                                    , defaultMapName(Other.defaultMapName)
                                    , Level(Other.Level)
                                    , WorldType(Other.WorldType)
-                                    , EditorPlayer(Other.EditorPlayer)
+                                   ,EditorPlayer(Other.EditorPlayer)
+                                   ,Fog(Other.Fog)
 {
 }
 
@@ -59,7 +61,6 @@ void UWorld::ReleaseBaseObject()
 
 void UWorld::Tick(ELevelTick tickType, float deltaSeconds)
 {
-    //UE_LOG(LogLevel::Error, "%d", static_cast<bool>(Fog));
     if (tickType == LEVELTICK_ViewportsOnly)
     {
         if (EditorPlayer)
@@ -128,6 +129,8 @@ void UWorld::DuplicateSubObjects(const UObject* SourceObj)
     UObject::DuplicateSubObjects(SourceObj);
     Level = Cast<ULevel>(Level->Duplicate());
     EditorPlayer = FObjectFactory::ConstructObject<AEditorPlayer>();
+    if (Fog)
+        Fog = Cast<AExponentialHeightFog>(Fog->Duplicate());
 }
 
 void UWorld::PostDuplicate()

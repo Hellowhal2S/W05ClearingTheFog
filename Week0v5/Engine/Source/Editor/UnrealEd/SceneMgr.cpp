@@ -13,7 +13,7 @@
 #include "Components/SkySphereComponent.h"
 #include "Camera/CameraComponent.h"
 #include "UObject/Casts.h"
-#include "Engine/StaticMeshActor.h"
+#include "Actors/StaticMeshActor.h"
 #include "Engine/World.h"
 #include "Engine/FLoaderOBJ.h"
 #include "LevelEditor/SLevelEditor.h"

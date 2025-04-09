@@ -497,7 +497,8 @@ PS_INPUT arrowVS(VS_INPUT input)
     // 회전 행렬 구성 (Row-Major 기준)
     float3x3 rotationMatrix = float3x3(right, up, forward);
 
-    input.position.z = input.position.z * 5;
+    input.position = input.position * ArrowScaleXYZ;
+    input.position.z = input.position.z * ArrowScaleZ;
     // 로컬 → 회전 → 위치
     float3 worldPos = mul(input.position.xyz, rotationMatrix) + ArrowPosition;
 
