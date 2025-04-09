@@ -7,7 +7,7 @@
 #include "Components/LightComponent.h"
 #include "Components/SphereComp.h"
 #include "Components/UParticleSubUVComp.h"
-#include "Components/UText.h"
+#include "Components/TextRenderComponent.h"
 
 #include "Actors/Player.h"
 #include "Actors/StaticMeshActor.h"
@@ -24,6 +24,7 @@
 #include "FEditorStateManager.h"
 
 #include "Renderer/PostEffect.h"
+#include "Font/IconDefs.h"
 
 void ControlEditorPanel::Initialize(SLevelEditor* levelEditor)
 {
@@ -298,7 +299,11 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
                 {
                     ImGui::Separator(); // 카테고리 구분선
                 }
-                ImGui::TextColored(ImVec4(0.8f, 0.8f, 0.2f, 1), "▶ %s", actor.category); // 헤더
+                ImGui::PushFont(IconFont);
+                ImGui::TextColored(ImVec4(0.8f, 0.8f, 0.2f, 1), "\ue9a8"); // 헤더
+                ImGui::PopFont();
+                ImGui::SameLine();
+                ImGui::TextColored(ImVec4(0.8f, 0.8f, 0.2f, 1), "%s", actor.category); // 헤더
                 currentCategory = actor.category;
             }
 
@@ -385,7 +390,7 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
                 {
                     SpawnedActor = World->SpawnActor<AActor>();
                     SpawnedActor->SetActorLabel(TEXT("OBJ_TEXT"));
-                    UText* Text = SpawnedActor->AddComponent<UText>();
+                    UTextRenderComponent* Text = SpawnedActor->AddComponent<UTextRenderComponent>();
                     Text->SetTexture(L"Assets/Texture/font.png");
                     Text->SetRowColumnCount(106, 106);
                     Text->SetText(L"안녕하세요 Jungle 1");

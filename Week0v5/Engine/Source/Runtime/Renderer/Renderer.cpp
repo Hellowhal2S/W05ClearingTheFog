@@ -8,7 +8,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "Components/UBillboardComponent.h"
 #include "Components/UParticleSubUVComp.h"
-#include "Components/UText.h"
+#include "Components/TextRenderComponent.h"
 #include "Components/Material/Material.h"
 #include "D3D11RHI/GraphicDevice.h"
 #include "Launch/EditorEngine.h"
@@ -721,6 +721,10 @@ void FRenderer::PreparePrimitives()
                 {
                     RenderResources.Components.BillboardObjs.Add(pBillboardComp);
                 }
+                if (UTextRenderComponent* pTextComp = Cast<UTextRenderComponent>(iter))
+                {
+                    RenderResources.Components.TextObjs.Add(pTextComp);
+                }
                 if (ULightComponentBase* pLightComp = Cast<ULightComponentBase>(iter))
                 {
                     RenderResources.Components.LightObjs.Add(pLightComp);
@@ -744,6 +748,10 @@ void FRenderer::PreparePrimitives()
                 {
                     RenderResources.Components.BillboardObjs.Add(pBillboardComp);
                 }
+                if (UTextRenderComponent* pTextComp = Cast<UTextRenderComponent>(iter2))
+                {
+                    RenderResources.Components.TextObjs.Add(pTextComp);
+                }
                 if (ULightComponentBase* pLightComp = Cast<ULightComponentBase>(iter2))
                 {
                     RenderResources.Components.LightObjs.Add(pLightComp);
@@ -758,6 +766,7 @@ void FRenderer::ClearRenderArr()
     RenderResources.Components.StaticMeshObjs.Empty();
     //RenderResources.Primitives.GizmoObjs.Empty();
     RenderResources.Components.BillboardObjs.Empty();
+    RenderResources.Components.TextObjs.Empty();
     RenderResources.Components.LightObjs.Empty();
 }
 
@@ -818,7 +827,7 @@ void FRenderer::Render(UWorld* World, std::shared_ptr<FEditorViewportClient> Act
     {
         RenderBillboards(World, ActiveViewport);
     }
-    
+    RenderTexts(World, ActiveViewport);
     ClearRenderArr();
 }
 
@@ -964,13 +973,6 @@ void FRenderer::RenderBillboards(UWorld* World, std::shared_ptr<FEditorViewportC
                 SubUVParticle->Texture->TextureSRV, SubUVParticle->Texture->SamplerState
             );
         }
-        else if (UText* Text = Cast<UText>(BillboardComp))
-        {
-            UEditorEngine::RenderEngine.Renderer.RenderTextPrimitive(
-                Text->vertexTextBuffer, Text->numTextVertices,
-                Text->Texture->TextureSRV, Text->Texture->SamplerState
-            );
-        }
         else
         {
             RenderTexturePrimitive(
@@ -979,6 +981,40 @@ void FRenderer::RenderBillboards(UWorld* World, std::shared_ptr<FEditorViewportC
                 BillboardComp->Texture->TextureSRV, BillboardComp->Texture->SamplerState
             );
         }
+    }
+}
+
+void FRenderer::RenderTexts(UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport)
+{
+    PrepareTextureShader();
+    PrepareSubUVConstant();
+    for (auto TextRenderComp : RenderResources.Components.TextObjs)
+    {
+        UpdateSubUVConstant(TextRenderComp->finalIndexU, TextRenderComp->finalIndexV);
+
+        {
+            FMatrix Model = TextRenderComp->GetComponentTransform();
+            FMatrix NormalMatrix = FMatrix::Transpose(FMatrix::Inverse(Model));
+            FVector4 UUIDColor = TextRenderComp->EncodeUUID() / 255.0f;
+            FConstantBufferMesh buf;
+            buf.ModelMatrix = Model;
+            buf.ModelInvTransMatrix = NormalMatrix;
+            if (TextRenderComp == World->GetPickingGizmo())
+            {
+                buf.IsSelectedMesh = true;
+            }
+            else
+            {
+                buf.IsSelectedMesh = false;
+            }
+            UpdateConstantbufferMesh(buf);
+        }
+
+        UTextRenderComponent* Text = Cast<UTextRenderComponent>(TextRenderComp);
+        UEditorEngine::RenderEngine.Renderer.RenderTextPrimitive(
+            Text->vertexTextBuffer, Text->numTextVertices,
+            Text->Texture->TextureSRV, Text->Texture->SamplerState
+        );
     }
 }
 

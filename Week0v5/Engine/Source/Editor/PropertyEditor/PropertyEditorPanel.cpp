@@ -4,7 +4,7 @@
 #include "Actors/Player.h"
 #include "Components/LightComponent.h"
 #include "Components/StaticMeshComponent.h"
-#include "Components/UText.h"
+#include "Components/TextRenderComponent.h"
 #include "Components/ProjectileMovementComponent.h"
 #include "Components/RotatingMovementComponent.h"
 #include "Engine/FLoaderOBJ.h"
@@ -96,7 +96,7 @@ void PropertyEditorPanel::Render()
             {
                 if (ImGui::Selectable("TextComponent"))
                 {
-                    UText* TextComponent = PickedActor->AddComponent<UText>();
+                    UTextRenderComponent* TextComponent = PickedActor->AddComponent<UTextRenderComponent>();
                     if (USceneComponent* ParentComponent = Cast<USceneComponent>(PickedComponent))
                     {
                         TextComponent->DetachFromParent();
@@ -371,7 +371,7 @@ void PropertyEditorPanel::Render()
             if (ImGui::CollapsingHeader("Point Light Settings", ImGuiTreeNodeFlags_DefaultOpen))
             {
                 float Intensity = PointLightComp->GetIntensity();
-                ImGui::DragFloat("Intensity", &Intensity, 2.f, 0.0f, 5000.0f, "%.0f");
+                ImGui::DragFloat("Intensity", &Intensity, 2.f, 0.0f, 10000.0f, "%.0f");
                 FLinearColor Color = PointLightComp->GetColor();
                 float colorArray[4] = { Color.R, Color.G, Color.B, Color.A };
                 if (ImGui::ColorEdit4("Color", colorArray, ImGuiColorEditFlags_Float))
@@ -466,9 +466,9 @@ void PropertyEditorPanel::Render()
     //}
 
     // TODO: 추후에 RTTI를 이용해서 프로퍼티 출력하기
-    if (PickedActor && PickedComponent && PickedComponent->IsA<UText>())
+    if (PickedActor && PickedComponent && PickedComponent->IsA<UTextRenderComponent>())
     {
-        UText* textOBj = Cast<UText>(PickedComponent);
+        UTextRenderComponent* textOBj = Cast<UTextRenderComponent>(PickedComponent);
         ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
         if (ImGui::TreeNodeEx("Text Component", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) // 트리 노드 생성
         {

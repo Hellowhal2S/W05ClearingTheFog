@@ -28,6 +28,7 @@ struct FRenderResources
     {
         TArray<class UStaticMeshComponent*> StaticMeshObjs;
         TArray<class UBillboardComponent*> BillboardObjs;
+        TArray<class UTextRenderComponent*> TextObjs;
         TArray<class ULightComponentBase*> LightObjs;
     } Components;
 
