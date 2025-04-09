@@ -96,6 +96,7 @@ private:
     void ClearRenderArr();
     void RenderStaticMeshes(UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport);
     void RenderBillboards(UWorld* World,std::shared_ptr<FEditorViewportClient> ActiveViewport);
+    void RenderTexts(UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport);
     void RenderPostProcess();
 };
 

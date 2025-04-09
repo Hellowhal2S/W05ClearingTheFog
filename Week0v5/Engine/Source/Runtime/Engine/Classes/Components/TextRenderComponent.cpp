@@ -1,16 +1,18 @@
-#include "UText.h"
+#include "TextRenderComponent.h"
 
+#include "QuadTexture.h"
 #include "Engine/World.h"
 #include "Engine/Source/Editor/PropertyEditor/ShowFlags.h"
 #include "UnrealEd/EditorViewportClient.h"
 #include "LevelEditor/SLevelEditor.h"
+#include "Math/MathUtility.h"
 
-UText::UText()
+UTextRenderComponent::UTextRenderComponent()
 {
     SetType(StaticClass()->GetName());
 }
 
-UText::~UText()
+UTextRenderComponent::~UTextRenderComponent()
 {
 	if (vertexTextBuffer)
 	{
@@ -19,33 +21,43 @@ UText::~UText()
 	}
 }
 
-UText::UText(const UText& other) :UBillboardComponent(other), vertexTextBuffer(other.vertexTextBuffer), vertexTextureArr(other.vertexTextureArr)
-,numTextVertices(other.numTextVertices), text(other.text), quad(other.quad)
+UTextRenderComponent::UTextRenderComponent(const UTextRenderComponent& other) :
+    UPrimitiveComponent(other),
+    vertexTextBuffer(other.vertexTextBuffer), numTextVertices(other.numTextVertices),
+    numVertices(other.numVertices), numIndices(other.numIndices), finalIndexU(other.finalIndexU),
+    finalIndexV(other.finalIndexV), Texture(other.Texture)
 {
+    text = other.text;
+    vertexTextureArr = other.vertexTextureArr;
+    quad = other.quad;
+    RowCount = other.RowCount;
+    ColumnCount = other.ColumnCount;
+    quadWidth = other.quadWidth;
+    quadHeight = other.quadHeight;
 }
 
-void UText::InitializeComponent()
+void UTextRenderComponent::InitializeComponent()
 {
     Super::InitializeComponent();
 }
 
-void UText::TickComponent(float DeltaTime)
+void UTextRenderComponent::TickComponent(float DeltaTime)
 {
 	Super::TickComponent(DeltaTime);
     
 }
 
-void UText::ClearText()
+void UTextRenderComponent::ClearText()
 {
     vertexTextureArr.Empty();
 }
-void UText::SetRowColumnCount(int _cellsPerRow, int _cellsPerColumn) 
+void UTextRenderComponent::SetRowColumnCount(int _cellsPerRow, int _cellsPerColumn) 
 {
     RowCount = _cellsPerRow;
     ColumnCount = _cellsPerColumn;
 }
 
-int UText::CheckRayIntersection(FVector& rayOrigin, FVector& rayDirection, float& pfNearHitDistance)
+int UTextRenderComponent::CheckRayIntersection(FVector& rayOrigin, FVector& rayDirection, float& pfNearHitDistance)
 {
 	if (!(ShowFlags::GetInstance().currentFlags & static_cast<uint64>(EEngineShowFlags::SF_BillboardText))) {
 		return 0;
@@ -59,26 +71,31 @@ int UText::CheckRayIntersection(FVector& rayOrigin, FVector& rayDirection, float
 	return CheckPickingOnNDC(quad,pfNearHitDistance);
 }
 
-UObject* UText::Duplicate() const
+void UTextRenderComponent::SetTexture(FWString _fileName)
 {
-    UText* ClonedActor = FObjectFactory::ConstructObjectFrom<UText>(this);
+    Texture = UEditorEngine::resourceMgr.GetTexture(_fileName);
+}
+
+UObject* UTextRenderComponent::Duplicate() const
+{
+    UTextRenderComponent* ClonedActor = FObjectFactory::ConstructObjectFrom<UTextRenderComponent>(this);
     ClonedActor->DuplicateSubObjects(this);
     ClonedActor->PostDuplicate();
     return ClonedActor;
 }
 
-void UText::DuplicateSubObjects(const UObject* Source)
+void UTextRenderComponent::DuplicateSubObjects(const UObject* Source)
 {
-    UBillboardComponent::DuplicateSubObjects(Source);
+    Super::DuplicateSubObjects(Source);
 }
 
-void UText::PostDuplicate()
+void UTextRenderComponent::PostDuplicate()
 {
-    UBillboardComponent::PostDuplicate();
+    Super::PostDuplicate();
 }
 
 
-void UText::SetText(FWString _text)
+void UTextRenderComponent::SetText(FWString _text)
 {
 	text = _text;
 	if (_text.empty())
@@ -154,7 +171,7 @@ void UText::SetText(FWString _text)
 
 	CreateTextTextureVertexBuffer(vertexTextureArr,byteWidth);
 }
-void UText::setStartUV(wchar_t hangul, float& outStartU, float& outStartV)
+void UTextRenderComponent::setStartUV(wchar_t hangul, float& outStartU, float& outStartV)
 {
     //대문자만 받는중
     int StartU = 0;
@@ -201,7 +218,7 @@ void UText::setStartUV(wchar_t hangul, float& outStartU, float& outStartV)
     outStartU = static_cast<float>(offsetU);
     outStartV = static_cast<float>(StartV + offsetV);
 }
-void UText::setStartUV(char alphabet, float& outStartU, float& outStartV)
+void UTextRenderComponent::setStartUV(char alphabet, float& outStartU, float& outStartV)
 {
     //대문자만 받는중
     int StartU=0;
@@ -244,7 +261,7 @@ void UText::setStartUV(char alphabet, float& outStartU, float& outStartV)
     outStartV = static_cast<float>(StartV + offsetV);
 
 }
-void UText::CreateTextTextureVertexBuffer(const TArray<FVertexTexture>& _vertex,UINT byteWidth)
+void UTextRenderComponent::CreateTextTextureVertexBuffer(const TArray<FVertexTexture>& _vertex,UINT byteWidth)
 {
 	numTextVertices = static_cast<UINT>(_vertex.Num());
 	// 2. Create a vertex buffer
@@ -269,8 +286,85 @@ void UText::CreateTextTextureVertexBuffer(const TArray<FVertexTexture>& _vertex,
 
 }
 
+bool UTextRenderComponent::CheckPickingOnNDC(const TArray<FVector>& checkQuad, float& hitDistance)
+{
+    bool result = false;
+    POINT mousePos;
+    GetCursorPos(&mousePos);
+    ScreenToClient(GEngine->hWnd, &mousePos);
 
-//void UText::TextMVPRendering()
+    D3D11_VIEWPORT viewport;
+    UINT numViewports = 1;
+    UEditorEngine::graphicDevice.DeviceContext->RSGetViewports(&numViewports, &viewport);
+    float screenWidth = viewport.Width;
+    float screenHeight = viewport.Height;
+
+    FVector pickPosition;
+    int screenX = mousePos.x;
+    int screenY = mousePos.y;
+    FMatrix projectionMatrix = GetEngine()->GetLevelEditor()->GetActiveViewportClient()->GetProjectionMatrix();
+    pickPosition.x = ((2.0f * screenX / viewport.Width) - 1);
+    pickPosition.y = -((2.0f * screenY / viewport.Height) - 1);
+    pickPosition.z = 1.0f; // Near Plane
+
+    FMatrix M = GetComponentTransform();
+    FMatrix V = GEngine->GetLevelEditor()->GetActiveViewportClient()->GetViewMatrix();;
+    FMatrix P = projectionMatrix;
+    FMatrix MVP = M * V * P;
+
+    float minX = FLT_MAX;
+    float maxX = FLT_MIN;
+    float minY = FLT_MAX;
+    float maxY = FLT_MIN;
+    float avgZ = 0.0f;
+    for (int i = 0; i < checkQuad.Num(); i++)
+    {
+        FVector4 v = FVector4(checkQuad[i].x, checkQuad[i].y, checkQuad[i].z, 1.0f);
+        FVector4 clipPos = FMatrix::TransformVector(v, MVP);
+
+        if (clipPos.w != 0)	clipPos = clipPos / clipPos.w;
+
+        minX = FMath::Min(minX, clipPos.x);
+        maxX = FMath::Max(maxX, clipPos.x);
+        minY = FMath::Min(minY, clipPos.y);
+        maxY = FMath::Max(maxY, clipPos.y);
+        avgZ += clipPos.z;
+    }
+
+    avgZ /= checkQuad.Num();
+
+    if (pickPosition.x >= minX && pickPosition.x <= maxX &&
+        pickPosition.y >= minY && pickPosition.y <= maxY)
+    {
+        float A = P.M[2][2];  // Projection Matrix의 A값 (Z 변환 계수)
+        float B = P.M[3][2];  // Projection Matrix의 B값 (Z 변환 계수)
+
+        float z_view_pick = (pickPosition.z - B) / A; // 마우스 클릭 View 공간 Z
+        float z_view_billboard = (avgZ - B) / A; // Billboard View 공간 Z
+
+        hitDistance = 1000.0f;
+        result = true;
+    }
+
+    return result;
+}
+
+void UTextRenderComponent::CreateQuadTextureVertexBuffer()
+{
+    numVertices = sizeof(quadTextureVertices) / sizeof(FVertexTexture);
+    numIndices = sizeof(quadTextureInices) / sizeof(uint32);
+    vertexTextureBuffer = UEditorEngine::RenderEngine.Renderer.CreateVertexBuffer(quadTextureVertices, sizeof(quadTextureVertices));
+    indexTextureBuffer = UEditorEngine::RenderEngine.Renderer.CreateIndexBuffer(quadTextureInices, sizeof(quadTextureInices));
+
+    if (!vertexTextureBuffer) {
+        Console::GetInstance().AddLog(LogLevel::Warning, "Buffer Error");
+    }
+    if (!indexTextureBuffer) {
+        Console::GetInstance().AddLog(LogLevel::Warning, "Buffer Error");
+    }
+}
+
+//void UTextRenderComponent::TextMVPRendering()
 //{
 //    UEditorEngine::renderer.PrepareTextureShader();
 //    //FEngineLoop::renderer.UpdateSubUVConstant(0, 0);

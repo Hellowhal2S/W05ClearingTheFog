@@ -14,7 +14,7 @@
 #include "PropertyEditor/ShowFlags.h"
 #include "UnrealEd/EditorViewportClient.h"
 #include "UObject/UObjectIterator.h"
-#include <Components/UText.h>
+#include "Components/TextRenderComponent.h"
 
 
 using namespace DirectX;
