@@ -7,7 +7,7 @@
 #include "Components/LightComponent.h"
 #include "Components/SphereComp.h"
 #include "Components/UParticleSubUVComp.h"
-#include "Components/UText.h"
+#include "Components/TextRenderComponent.h"
 
 #include "Actors/Player.h"
 #include "Actors/StaticMeshActor.h"
@@ -385,7 +385,7 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
                 {
                     SpawnedActor = World->SpawnActor<AActor>();
                     SpawnedActor->SetActorLabel(TEXT("OBJ_TEXT"));
-                    UText* Text = SpawnedActor->AddComponent<UText>();
+                    UTextRenderComponent* Text = SpawnedActor->AddComponent<UTextRenderComponent>();
                     Text->SetTexture(L"Assets/Texture/font.png");
                     Text->SetRowColumnCount(106, 106);
                     Text->SetText(L"안녕하세요 Jungle 1");
