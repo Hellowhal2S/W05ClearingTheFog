@@ -781,7 +781,7 @@ void FRenderer::Render(UWorld* World, std::shared_ptr<FEditorViewportClient> Act
     int32 PointLightIndex = 0;
     for (ULightComponentBase* LightComp : RenderResources.Components.LightObjs)
     {
-        if (UPointlightComponent* PointLightComp = Cast<UPointlightComponent>(LightComp))
+        if (UPointLightComponent* PointLightComp = Cast<UPointLightComponent>(LightComp))
         {
             if (PointLightIndex >= MACRO_FCONSTANT_NUM_MAX_POINTLIGHT)
                 break;

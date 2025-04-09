@@ -6,7 +6,7 @@
 #include "LevelEditor/SLevelEditor.h"
 #include "Engine/FLoaderOBJ.h"
 #include "Classes/Components/StaticMeshComponent.h"
-#include "Engine/StaticMeshActor.h"
+#include "Actors/StaticMeshActor.h"
 #include "Components/SkySphereComponent.h"
 #include "UnrealEd/SceneMgr.h"
 #include "UObject/UObjectIterator.h"

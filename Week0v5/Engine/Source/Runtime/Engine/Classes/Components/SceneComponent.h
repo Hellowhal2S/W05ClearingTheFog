@@ -63,6 +63,7 @@ public:
     void SetRelativeQuat(FQuat _newRot);
     void SetRelativeScale(FVector _newScale);
     void SetupAttachment(USceneComponent* InParent);
+    void DetachFromParent();
 public:
 
     USceneComponent* GetAttachParent() const;
