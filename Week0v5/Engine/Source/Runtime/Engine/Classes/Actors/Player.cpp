@@ -229,9 +229,14 @@ void AEditorPlayer::PickActor(const FVector& pickPosition)
 
     // billboard로 보여지는 Primitive가 아닌 Scenecomponent를 먼저 픽킹
     // 현재 light의 distance가 이상함
+    // gizmo의 scenecomponent는 고르지 않도록 수정
     for (const auto iter : TObjectRange<USceneComponent>())
     {
         if (iter->IsA<UPrimitiveComponent>())
+        {
+            continue;
+        }
+        if (iter->GetOwner()->IsA<UTransformGizmo>())
         {
             continue;
         }
