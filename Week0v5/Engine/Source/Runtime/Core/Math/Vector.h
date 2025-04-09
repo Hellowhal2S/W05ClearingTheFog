@@ -76,7 +76,10 @@ struct FVector
             x * Other.y - y * Other.x
         };
     }
-
+    bool IsZero() const
+    {
+        return x == 0.f && y == 0.f && z == 0.f;
+    }
     bool operator==(const FVector& other) const {
         return (x == other.x && y == other.y && z == other.z);
     }

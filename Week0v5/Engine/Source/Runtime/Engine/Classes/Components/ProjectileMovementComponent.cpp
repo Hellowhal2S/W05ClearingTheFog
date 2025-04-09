@@ -32,10 +32,10 @@ void UProjectileMovementComponent::TickComponent(float DeltaTime)
 
 UObject* UProjectileMovementComponent::Duplicate() const
 {
-    UProjectileMovementComponent* ClonedActor = FObjectFactory::ConstructObjectFrom<UProjectileMovementComponent>(this);
-    ClonedActor->DuplicateSubObjects(this);
-    ClonedActor->PostDuplicate();
-    return ClonedActor;
+    UProjectileMovementComponent* ClonedComponent = FObjectFactory::ConstructObjectFrom<UProjectileMovementComponent>(this);
+    ClonedComponent->DuplicateSubObjects(this);
+    ClonedComponent->PostDuplicate();
+    return ClonedComponent;
 }
 
 void UProjectileMovementComponent::DuplicateSubObjects(const UObject* Source)

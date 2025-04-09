@@ -422,7 +422,6 @@
     <ClInclude Include="Engine\Source\Runtime\Renderer\ShaderConstants.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\PostEffect.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\PostEffect.h" />
-    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\FireballComponent.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Math\Color.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\ProjectileMovementComponent.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\MovementComponent.h" />
@@ -431,6 +430,9 @@
     <ClInclude Include="Engine\Source\Runtime\Renderer\RenderResources.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\EditorRenderer.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\RenderEngine.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Actors\AExponentialHeightFog.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\HeightFogComponent.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\RotatingMovementComponent.h" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine\Source\ThirdParty\DirectXTK\Include\DDSTextureLoader.h" />
@@ -534,17 +536,20 @@
     <ClCompile Include="Engine\Source\Runtime\Renderer\PostEffect.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\PostEffect.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Core\Math\Color.cpp" />
-    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\FireballComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\MovementComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\ProjectileMovementComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Core\Math\Matrix.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\RenderResources.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\EditorRenderer.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\RenderEngine.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Actors\AExponentialHeightFog.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\HeightFogComponent.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\RotatingMovementComponent.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\ShaderConstants.hlsli">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="Shaders\LightConstants.hlsli" />
   </ItemGroup>
 </Project>
