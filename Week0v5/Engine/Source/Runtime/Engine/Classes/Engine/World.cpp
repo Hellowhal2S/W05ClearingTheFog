@@ -18,8 +18,8 @@ UWorld::UWorld(const UWorld& Other): UObject(Other)
                                    , defaultMapName(Other.defaultMapName)
                                    , Level(Other.Level)
                                    , WorldType(Other.WorldType)
-                                   ,EditorPlayer(Other.EditorPlayer)
-                                   ,Fog(Other.Fog)
+                                   , EditorPlayer(Other.EditorPlayer)
+                                   , Fog(Other.Fog)
 {
 }
 

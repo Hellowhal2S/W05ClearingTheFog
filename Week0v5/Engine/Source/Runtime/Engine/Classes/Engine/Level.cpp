@@ -1,4 +1,4 @@
-#include "Level.h"
+﻿#include "Level.h"
 #include "GameFramework/Actor.h"
 
 ULevel::ULevel()
@@ -9,6 +9,7 @@ ULevel::ULevel(const ULevel& Other)
     : UObject(Other),  // UObject 기반 클래스 복사
     PendingBeginPlayActors(Other.PendingBeginPlayActors) // TArray 깊은 복사
 {
+    Actors.Empty();
 }
 
 ULevel::~ULevel()

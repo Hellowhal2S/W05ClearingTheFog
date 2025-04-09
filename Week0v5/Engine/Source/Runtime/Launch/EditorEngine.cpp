@@ -125,30 +125,10 @@ void UEditorEngine::Render()
             RenderEngine.RenderDebug(GWorld, LevelEditor->GetActiveViewportClient());
         }
     }
-
-    //graphicDevice.DeviceContext->OMSetRenderTargets(1, &graphicDevice.FrameBufferRTV, nullptr);
-    //graphicDevice.DeviceContext->CopyResource(graphicDevice.FrameBuffer, PostEffect::finalTexture);
-    // PostEffect::Render(ColorSRV, DepthOnlySRV, WorldPosSRV)
 }
 
 void UEditorEngine::Tick(float deltaSeconds)
 {
-    // for (FWorldContext& WorldContext : worldContexts)
-    // {
-    //     std::shared_ptr<UWorld> EditorWorld = WorldContext.World();
-    //     // GWorld = EditorWorld;
-    //     // GWorld->Tick(levelType, deltaSeconds);
-    //     if (EditorWorld && WorldContext.WorldType == EWorldType::Editor)
-    //     {
-    //         // GWorld = EditorWorld;
-    //         GWorld->Tick(LEVELTICK_ViewportsOnly, deltaSeconds);
-    //     }
-    //     else if (EditorWorld && WorldContext.WorldType == EWorldType::PIE)
-    //     {
-    //         // GWorld = EditorWorld;
-    //         GWorld->Tick(LEVELTICK_All, deltaSeconds);
-    //     }
-    // }
     GWorld->Tick(levelType, deltaSeconds);
     Input();
     // GWorld->Tick(LEVELTICK_All, deltaSeconds);
@@ -232,21 +212,23 @@ void UEditorEngine::ResumingPIE()
 
 void UEditorEngine::StopPIE()
 {
-    // 1. World Clear
 
     GWorld = worldContexts[0].thisCurrentWorld;
+    
     for (auto iter : worldContexts[1].World()->GetActors())
     {
         iter->Destroy();
         GUObjectArray.MarkRemoveObject(iter);
     }
+
     GUObjectArray.MarkRemoveObject(worldContexts[1].World()->GetLevel());
     worldContexts[1].World()->GetEditorPlayer()->Destroy();
+    
     GUObjectArray.MarkRemoveObject( worldContexts[1].World()->GetWorld());
+    
     worldContexts[1].thisCurrentWorld = nullptr;
     
     levelType = LEVELTICK_ViewportsOnly;
-    
 }
 
 void UEditorEngine::ResizeGizmo()

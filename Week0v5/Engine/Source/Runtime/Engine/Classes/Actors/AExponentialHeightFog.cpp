@@ -39,6 +39,6 @@ void AExponentialHeightFog::DuplicateSubObjects(const UObject* Source)
 inline void AExponentialHeightFog::Destroyed()
 {
     AActor::Destroyed();
-    // if (GEngine->GetWorld()->WorldType == EWorldType::Editor)
-    //     GEngine->GetWorld()->Fog = nullptr;
+    if (GEngine->levelType == LEVELTICK_ViewportsOnly)
+        GEngine->GetWorld()->Fog = nullptr;
 }
