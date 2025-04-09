@@ -127,10 +127,10 @@ void UTextRenderComponent::SetText(FWString _text)
 
 	for (int i = 0; i < _text.size(); i++)
 	{
-		FVertexTexture leftUP = { -1.0f,1.0f,0.0f,0.0f,0.0f };
-		FVertexTexture rightUP = { 1.0f,1.0f,0.0f,1.0f,0.0f };
-		FVertexTexture leftDown = { -1.0f,-1.0f,0.0f,0.0f,1.0f };
-		FVertexTexture rightDown = { 1.0f,-1.0f,0.0f,1.0f,1.0f };
+        FVertexTexture leftUP = { -1.0f, 0.0f, 1.0f, 0.0f, 0.0f }; // Y=0, Z=1
+        FVertexTexture rightUP = { 1.0f, 0.0f, 1.0f, 1.0f, 0.0f };
+        FVertexTexture leftDown = { -1.0f, 0.0f,-1.0f, 0.0f, 1.0f }; // Y=0, Z=-1
+        FVertexTexture rightDown = { 1.0f, 0.0f,-1.0f, 1.0f, 1.0f };
 		rightUP.u *= nTexelUOffset;
 		leftDown.v *= nTexelVOffset;
 		rightDown.u *= nTexelUOffset;
@@ -164,10 +164,10 @@ void UTextRenderComponent::SetText(FWString _text)
 	UINT byteWidth = static_cast<UINT>(vertexTextureArr.Num() * sizeof(FVertexTexture));
 
 	float lastX = -1.0f + quadSize* _text.size();
-	quad.Add(FVector(-1.0f,1.0f,0.0f));
-	quad.Add(FVector(-1.0f,-1.0f,0.0f));
-	quad.Add(FVector(lastX,1.0f,0.0f));
-	quad.Add(FVector(lastX,-1.0f,0.0f));
+    quad.Add(FVector(-1.0f, 0.0f, 1.0f)); // Y=0, Z=1
+    quad.Add(FVector(-1.0f, 0.0f, -1.0f)); // Y=0, Z=-1
+    quad.Add(FVector(lastX, 0.0f, 1.0f));
+    quad.Add(FVector(lastX, 0.0f, -1.0f));
 
 	CreateTextTextureVertexBuffer(vertexTextureArr,byteWidth);
 }
