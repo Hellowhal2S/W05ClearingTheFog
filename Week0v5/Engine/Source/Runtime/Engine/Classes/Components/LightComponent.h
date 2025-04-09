@@ -17,8 +17,6 @@ public:
     PROPERTY(FLinearColor, Color)
     PROPERTY(float, Intensity)
 
-    virtual int CheckRayIntersection(FVector& rayOrigin, FVector& rayDirection, float& pfNearHitDistance) override;
-
 protected:
     FLinearColor Color = FLinearColor::White;
     float Intensity = 1000.0f;
