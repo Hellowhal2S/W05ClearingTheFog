@@ -145,13 +145,13 @@ void FEngineLoop::Tick()
         }
         GEngine->Tick(deltaSeconds);
         
-        do
-        {
-            Sleep(0);
-            QueryPerformanceCounter(&endTime);
-            deltaSeconds = (endTime.QuadPart - startTime.QuadPart) * 1000.0 / frequency.QuadPart;
-        }
-        while (deltaSeconds < targetFrameTime);
+        //do
+        //{
+        //    Sleep(0);
+        //    QueryPerformanceCounter(&endTime);
+        //    deltaSeconds = (endTime.QuadPart - startTime.QuadPart) * 1000.0 / frequency.QuadPart;
+        //}
+        //while (deltaSeconds < targetFrameTime);
     }
 }
 
