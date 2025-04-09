@@ -24,7 +24,7 @@ class UWorld final : public UObject
 public:
     UWorld() = default;
     UWorld(const UWorld& Other);
-    ;
+   
     void InitWorld();
     void CreateBaseObject();
     void ReleaseBaseObject();

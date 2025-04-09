@@ -229,8 +229,8 @@ void UEditorEngine::ResumingPIE()
 void UEditorEngine::StopPIE()
 {
     // 1. World Clear
-    GWorld = worldContexts[0].thisCurrentWorld;
 
+    GWorld = worldContexts[0].thisCurrentWorld;
     for (auto iter : worldContexts[1].World()->GetActors())
     {
         iter->Destroy();
@@ -241,14 +241,8 @@ void UEditorEngine::StopPIE()
     GUObjectArray.MarkRemoveObject( worldContexts[1].World()->GetWorld());
     worldContexts[1].thisCurrentWorld = nullptr;
     
-    // GWorld->WorldType = EWorldType::Editor;
     levelType = LEVELTICK_ViewportsOnly;
-    // if (GWorld && GWorld->IsPIEWorld())
-    // {
-    //     GWorld->ClearScene();
-    // }
-    //
-    // GWorld = GetEditorWorldContext()->World();
+    
 }
 
 void UEditorEngine::Exit()

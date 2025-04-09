@@ -11,13 +11,15 @@
 #include "UnrealEd/SceneMgr.h"
 #include "UObject/UObjectIterator.h"
 #include "Level.h"
+#include "Actors/AExponentialHeightFog.h"
 
 
 UWorld::UWorld(const UWorld& Other): UObject(Other)
                                    , defaultMapName(Other.defaultMapName)
                                    , Level(Other.Level)
                                    , WorldType(Other.WorldType)
-                                    , EditorPlayer(Other.EditorPlayer)
+                                   ,EditorPlayer(Other.EditorPlayer)
+                                   ,Fog(Other.Fog)
 {
 }
 
@@ -127,6 +129,8 @@ void UWorld::DuplicateSubObjects(const UObject* SourceObj)
     UObject::DuplicateSubObjects(SourceObj);
     Level = Cast<ULevel>(Level->Duplicate());
     EditorPlayer = FObjectFactory::ConstructObject<AEditorPlayer>();
+    if (Fog)
+        Fog = Cast<AExponentialHeightFog>(Fog->Duplicate());
 }
 
 void UWorld::PostDuplicate()

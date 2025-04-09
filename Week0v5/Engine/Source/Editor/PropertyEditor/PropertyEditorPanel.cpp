@@ -6,6 +6,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "Components/UText.h"
 #include "Components/ProjectileMovementComponent.h"
+#include "Components/RotatingMovementComponent.h"
 #include "Engine/FLoaderOBJ.h"
 #include "Math/MathUtility.h"
 #include "UnrealEd/ImGuiWidget.h"
@@ -150,6 +151,13 @@ void PropertyEditorPanel::Render()
                     ProjectileMovementComponent->SetOwner(PickedActor);
                     PickedComponent = ProjectileMovementComponent;
                 }
+                if (ImGui::Selectable("RotatingMovementComponent"))
+                {
+                    URotatingMovementComponent* RotatingMovementComponent = PickedActor->AddComponent<URotatingMovementComponent>();
+                    RotatingMovementComponent->SetUpdatedComponent(PickedActor->GetRootComponent());
+                    RotatingMovementComponent->SetOwner(PickedActor);
+                    PickedComponent = RotatingMovementComponent;
+                }
                 ImGui::EndPopup();
             }
             ImGui::TreePop();
@@ -186,6 +194,35 @@ void PropertyEditorPanel::Render()
                     &ProjectileComp->Acceleration.x,
                     0.00001f, -0.01f, 0.01f, "%.5f"))
                 {
+                }
+            }
+        }
+        if (URotatingMovementComponent* RotatingComp = Cast<URotatingMovementComponent>(PickedComponent))
+        {
+            if (ImGui::CollapsingHeader("Rotating Movement Settings", ImGuiTreeNodeFlags_DefaultOpen))
+            {
+                FVector CurrentEuler = RotatingComp->RotationRate;
+                float Pitch = CurrentEuler.x;
+                float Yaw = CurrentEuler.y;
+                float Roll = CurrentEuler.z;
+
+                ImGui::Text("Rotation Rate (deg/s)");
+                ImGui::DragFloat("Pitch", &Pitch, 1.0f, -1000.0f, 1000.0f, "%.1f");
+                ImGui::DragFloat("Yaw", &Yaw, 1.0f, -1000.0f, 1000.0f, "%.1f");
+                ImGui::DragFloat("Roll", &Roll, 1.0f, -1000.0f, 1000.0f, "%.1f");
+
+                RotatingComp->RotationRate = FVector(Pitch, Yaw, Roll);
+
+                FVector Pivot = RotatingComp->PivotTranslation;
+                if (ImGui::DragFloat3("Pivot Translation", &Pivot.x, 1.0f, -1000.0f, 1000.0f))
+                {
+                    RotatingComp->PivotTranslation = Pivot;
+                }
+
+                bool bLocalSpace = RotatingComp->bRotationInLocalSpace;
+                if (ImGui::Checkbox("Rotation in Local Space", &bLocalSpace))
+                {
+                    RotatingComp->bRotationInLocalSpace = bLocalSpace;
                 }
             }
         }

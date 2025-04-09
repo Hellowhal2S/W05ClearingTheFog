@@ -4,6 +4,7 @@
 #include "UObject/Casts.h"
 #include "Components/SceneComponent.h"
 #include "GameFramework/Actor.h"
+#include "Math/JungleMath.h"
 
 UMovementComponent::UMovementComponent()
 {
@@ -40,7 +41,7 @@ void UMovementComponent::PostDuplicate()
 {
 }
 
-bool UMovementComponent::MoveUpdatedComponent(FVector Delta, FQuat& NewRotation)
+bool UMovementComponent::MoveUpdatedComponent(const FVector Delta, const FQuat& NewRotation)
 {
     if (!UpdatedComponent)
         return false;

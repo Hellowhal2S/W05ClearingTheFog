@@ -20,6 +20,7 @@ public:
     virtual FVector GetUpVector();
     void AddLocation(FVector _added);
     void AddRotation(FVector _added);
+    void AddRotation(FQuat _added);
     void AddScale(FVector _added);
 
 private:
