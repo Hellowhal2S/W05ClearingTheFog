@@ -108,7 +108,7 @@ float4 mainPS(SamplingPixelShaderInput input) : SV_TARGET
     {
         float3 litColor = g_renderTex.Sample(g_Sampler, input.texcoord).rgb;
         // 모드 1: 렌더링 이미지에 안개 효과 적용
-        if (isLit == 1)
+        if (renderMode == 0)
         {
             float3 materialDiffuseColor = g_albedoTex.Sample(g_Sampler, input.texcoord).rgb;
             float3 materialSpecularColor = g_specularTex.Sample(g_Sampler, input.texcoord).rgb;
