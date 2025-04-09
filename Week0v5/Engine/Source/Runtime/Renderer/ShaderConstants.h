@@ -195,3 +195,12 @@ struct alignas(16) FConstantBufferDebugGrid
 {
     alignas(16) FMatrix InverseViewProj;
 };
+
+/// <summary>
+/// Debug용 grid 상수버퍼 : b13
+/// </summary>
+struct alignas(16) FConstantBufferDebugIcon
+{
+    alignas(16) FVector Position;
+    float Scale;
+};

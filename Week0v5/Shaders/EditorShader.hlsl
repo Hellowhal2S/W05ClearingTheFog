@@ -1,3 +1,4 @@
+#include "EditorShaderConstants.hlsli"
 #include "ShaderConstants.hlsli"
 
 // Input Layout은 float3이지만, shader에서 missing w = 1로 처리해서 사용
@@ -212,79 +213,59 @@ float4 conePS(PS_INPUT input) : SV_Target
     return float4(0.777f, 1.0f, 1.0f, 1.0f); // 하늘색
 }
 
+
 /////////////////////////////////////////////
-// Grid
-struct PS_INPUT_GRID
+// Icon
+struct PS_INPUT_ICON
 {
     float4 Position : SV_Position;
-    float4 NearPoint : COLOR0;
-    float4 FarPoint : COLOR1;
-};
-const static float2 QuadPos[6] =
-{
-    float2(-1, -1), float2(-1, 1), float2(1, -1), // 좌하단, 좌상단, 우하단
-    float2(-1, 1), float2(1, 1), float2(1, -1) // 좌상단, 우상단, 우하단
+    float2 TexCoord : TEXCOORD;
 };
 
-PS_INPUT_GRID gridVS(uint vertexID : SV_VertexID)
+Texture2D gTexture : register(t0);
+SamplerState gSampler : register(s0);
+
+const static float2 QuadPos[6] =
 {
-    PS_INPUT_GRID output;
-    
-    output.Position = float4(QuadPos[vertexID], 0.0, 1.0);
-    
-    output.NearPoint = float4(QuadPos[vertexID], 0.0, 1.0);
-    output.NearPoint = mul(output.NearPoint, InverseViewProj);
-    output.NearPoint = output.NearPoint / output.NearPoint.w; // COLOR로 넘겨줘서 해줘야함
-    
-    output.FarPoint = float4(QuadPos[vertexID], 1.0, 1.0);
-    output.FarPoint = mul(output.FarPoint, InverseViewProj);
-    output.FarPoint = output.FarPoint / output.FarPoint.w; // COLOR로 넘겨줘서 해줘야함
-    
+    float2(-1, -1), float2(1, -1), float2(-1, 1), // 좌하단, 좌상단, 우하단
+    float2(-1, 1), float2(1, -1), float2(1, 1) // 좌상단, 우상단, 우하단
+};
+const static float2 QuadTexCoord[6] =
+{
+    float2(0, 1), float2(1, 1), float2(0, 0), // 삼각형 1: 좌하단, 우하단, 좌상단
+    float2(0, 0), float2(1, 1), float2(1, 0) // 삼각형 2: 좌상단, 우하단, 우상단
+};
+
+PS_INPUT_ICON iconVS(uint vertexID : SV_VertexID)
+{
+    PS_INPUT_ICON output;
+
+    // 카메라를 향하는 billboard 좌표계 생성
+    float3 forward = normalize(CameraPos - IconPosition);
+    float3 up = float3(0, 0, 1);
+    float3 right = normalize(cross(up, forward));
+    up = cross(forward, right);
+
+    // 쿼드 정점 계산 (아이콘 위치 기준으로 offset)
+    float2 offset = QuadPos[vertexID];
+    float3 worldPos = IconPosition + offset.x * right * IconScale + offset.y * up * IconScale;
+
+    // 변환
+    float4 viewPos = mul(float4(worldPos, 1.0), ViewMatrix);
+    output.Position = mul(viewPos, ProjMatrix);
+
+    output.TexCoord = QuadTexCoord[vertexID];
     return output;
 }
 
-// 그리드 함수
-float4 gridCalc(float3 fragPos3D, float scale)
-{
-    float2 coord = fragPos3D.xy * scale; // Use the scale variable to set the distance between the lines
-    float2 derivative = float2(ddx(coord.x), ddy(coord.y)); // HLSL의 fwidth는 ddx, ddy로 대체
-    float2 grid = abs(frac(coord - 0.5) - 0.5) / derivative;
-    float gridX = grid.x;
-    float gridY = grid.y;
-    float LinePos = min(gridX, gridY);
-    float minimumz = min(derivative.y, 1);
-    float minimumx = min(derivative.x, 1);
-    float4 color = float4(0.2, 0.2, 0.2, 1.0 - min(LinePos, 1.0));
-    
-    // Z axis
-    if (fragPos3D.x > -0.1 * minimumx && fragPos3D.x < 0.1 * minimumx)
-        color.z = 1.0;
-    
-    // X axis
-    if (fragPos3D.z > -0.1 * minimumz && fragPos3D.z < 0.1 * minimumz)
-        color.x = 1.0;
-    
-    return color;
-}
-
 // 픽셀 셰이더
-float4 gridPS(PS_INPUT_GRID input) : SV_Target
+float4 iconPS(PS_INPUT_ICON input) : SV_Target
 {
-    float t = -input.NearPoint.z / (input.FarPoint.z - input.NearPoint.z);
-    //return float4(t * 100, t * 100, t * 100, 1);
-    float3 fragPos3D = input.NearPoint + t * (input.FarPoint - input.NearPoint);
-   
-    if (t < 0)
-    {
-        return float4(1, 0, 0, 1);
-
-    }
-    if (t > 1)
-    {
-        return float4(0,1,0, 1);
-    }
-    return float4(fragPos3D / 1000, 1);
-    return float4(1, 1, 1, 1);
+    float4 col = gTexture.Sample(gSampler, input.TexCoord);
+    float threshold = 0.01; // 필요한 경우 임계값을 조정
+    if (col.a < threshold)
+        clip(-1); // 픽셀 버리기
     
-        //return gridCalc(fragPos3D, 10.0f) * float(t > 0.0f); // t > 0이면 출력
+    return col;
 }
+

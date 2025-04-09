@@ -36,6 +36,14 @@ void FResourceMgr::Initialize(FRenderer* renderer, FGraphicsDevice* device)
     LoadTextureFromFile(device->Device, device->DeviceContext, L"Assets/Texture/Pawn_64x.png");
     LoadTextureFromFile(device->Device, device->DeviceContext, L"Assets/Texture/PointLight_64x.png");
     LoadTextureFromFile(device->Device, device->DeviceContext, L"Assets/Texture/SpotLight_64x.png");
+    // 출처 : 언리얼 소스코드
+    // C:\Users\Jungle\source\repos\UnrealEngine\Engine\Content\Editor\Slate\Icons\AssetIcons
+    LoadTextureFromFile(device->Device, device->DeviceContext, L"Assets/Icons/DirectionalLight_64x.png");
+    LoadTextureFromFile(device->Device, device->DeviceContext, L"Assets/Icons/PointLight_64x.png");
+    LoadTextureFromFile(device->Device, device->DeviceContext, L"Assets/Icons/SpotLight_64x.png");
+    LoadTextureFromFile(device->Device, device->DeviceContext, L"Assets/Icons/SpotLight_64x.png");
+    LoadTextureFromFile(device->Device, device->DeviceContext, L"Assets/Icons/ExponentialHeightFog_64.png");
+    LoadTextureFromFile(device->Device, device->DeviceContext, L"Assets/Icons/AtmosphericFog_64.png");
 }
 
 void FResourceMgr::Release(FRenderer* renderer) {

@@ -1,9 +1,12 @@
 #pragma once
 
+#include <memory>
 #define _TCHAR_DEFINED
-#include <d3d11.h> // Array.h보다 늦게 선언해야 오류 안뜸 ??? 
+#include <d3d11.h>
 #include "Core/Container/Array.h"
+#include "Core/Container/Map.h"
 #include "ShaderConstants.h"
+#include "Engine/Classes/Engine/Texture.h"
 
 /// <summary>
 /// Shader관련 모음.
@@ -54,6 +57,18 @@ struct FDebugPrimitiveData
     UINT32 VertexStride;
     UINT32 NumIndices;
 };
+
+// Icon
+enum class IconType
+{
+    None,
+    DirectionalLight,
+    PointLight,
+    SpotLight,
+    ExponentialFog,
+    AtmosphericFog,
+};
+
 struct FRenderResourcesDebug
 {
     struct FWorldComponentContainer
@@ -68,9 +83,9 @@ struct FRenderResourcesDebug
         FShaderResource AxisLine;
         FShaderResource AABB;
         FShaderResource Sphere;
-        FShaderResource Line;
         FShaderResource Grid;
         FShaderResource Cone;
+        FShaderResource Icon;
     } Shaders;
 
     struct FConstantBuffers
@@ -80,6 +95,7 @@ struct FRenderResourcesDebug
         ID3D11Buffer* Sphere13;
         ID3D11Buffer* Cone13;
         ID3D11Buffer* Grid13;
+        ID3D11Buffer* Icon13;
     } ConstantBuffers;
 
     struct FPrimitiveResourceContainer
@@ -88,4 +104,6 @@ struct FRenderResourcesDebug
         FDebugPrimitiveData Sphere;
         FDebugPrimitiveData Cone;
     } Primitives;
+    
+    TMap<IconType, std::shared_ptr<FTexture>> IconTextures;
 };

@@ -64,6 +64,12 @@ private:
     void PrepareConstantbufferGrid();
     void UdpateConstantbufferGrid(FConstantBufferDebugGrid Buffer);
 
+    void LoadTexturePtr();
+    void RenderIcons(const UWorld* World, std::shared_ptr<FEditorViewportClient> ActiveViewport);
+    void PrepareConstantbufferIcon();
+    void UdpateConstantbufferIcon(FConstantBufferDebugIcon Buffer);
+    void UpdateTextureIcon(IconType type);
+
     const UINT32 ConstantBufferSizeAABB = 8;
     const UINT32 ConstantBufferSizeSphere = 8;
     const UINT32 ConstantBufferSizeCone = 8;
