@@ -21,7 +21,7 @@ public:
         UpdatedComponent = NewUpdatedComponent;
     }
 
-    bool MoveUpdatedComponent(FVector Delta, FQuat& NewRotation);
+    bool MoveUpdatedComponent(const FVector Delta, const FQuat& NewRotation);
     FVector Velocity;
     USceneComponent* UpdatedComponent;
 };
