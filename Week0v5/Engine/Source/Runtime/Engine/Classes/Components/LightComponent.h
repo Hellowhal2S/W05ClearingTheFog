@@ -18,7 +18,7 @@ public:
     PROPERTY(float, Intensity)
 
 protected:
-    FLinearColor Color = FLinearColor::Red;
+    FLinearColor Color = FLinearColor::White;
     float Intensity = 1000.0f;
 
     //texture2D->SetTexture(L"Assets/Texture/spotLight.png");
@@ -46,8 +46,8 @@ public:
     PROPERTY(float, Radius)
     PROPERTY(float, RadiusFallOff)
 protected:
-    float Radius = 500.f;
-    float RadiusFallOff = 2.f;
+    float Radius = 5.f;
+    float RadiusFallOff = 0.1f;
 };
 
 //////////////////////////////////

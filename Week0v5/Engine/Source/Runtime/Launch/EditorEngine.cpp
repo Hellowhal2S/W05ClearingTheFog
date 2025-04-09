@@ -59,6 +59,7 @@ int32 UEditorEngine::Init(HWND hwnd)
     
     UnrealEditor = new UnrealEd();
     UnrealEditor->Initialize(LevelEditor);
+    UnrealEditor->OnResize(hWnd);
     
     SceneMgr = new FSceneMgr();
 
