@@ -250,7 +250,7 @@
     <ClCompile Include="Engine\Source\Runtime\Renderer\RenderResources.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\EditorRenderer.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\RenderEngine.cpp" />
-    <ClCompile Include="UEditorStateManager.cpp" />
+    <ClCompile Include="FEditorStateManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine\Source\Runtime\Core\Delegates\Delegate.h" />
@@ -374,7 +374,7 @@
     <ClInclude Include="Engine\Source\Runtime\Renderer\RenderResources.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\EditorRenderer.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\RenderEngine.h" />
-    <ClInclude Include="UEditorStateManager.h" />
+    <ClInclude Include="FEditorStateManager.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shaders\EditorShader.hlsl">

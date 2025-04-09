@@ -15,9 +15,14 @@
 #include "UnrealEd/EditorViewportClient.h"
 #include "PropertyEditor/ShowFlags.h"
 #include "UnrealEd/SceneMgr.h"
-#include "UEditorStateManager.h"
+#include "FEditorStateManager.h"
 #include "Actors/AExponentialHeightFog.h"
 #include "Renderer/PostEffect.h"
+
+void ControlEditorPanel::Initialize(SLevelEditor* levelEditor)
+{
+    activeLevelEditor = levelEditor;
+}
 
 void ControlEditorPanel::Render()
 {
@@ -451,14 +456,10 @@ void ControlEditorPanel::CreatePIEButton(ImVec2 ButtonSize) const
     float CursorPosX = (ContentWidth - TotalWidth) * 0.5f;
     ImGui::SetCursorPosX(CursorPosX);
 
+    // if (UEditorStateManager::GetEditorState() == EEditorState::Editing)
     if (ImGui::Button("\ue9a8", ButtonSize)) // Play
     {
-        UEditorStateManager::Get().SetState(EEditorState::PreparingPlay);
-        // TODO: PIE 시작
-        // if (!UEditorStateManager::Get().IsPIERunning())
-        //     UEditorStateManager::Get().SetState(EEditorState::PreparingPlay);
-        // else
-        //     UEditorStateManager::Get().SetState(EEditorState::Resuming);
+        activeLevelEditor->GetEditorStateManager().SetState(EEditorState::PreparingPlay);
     }
 
     ImGui::SameLine();
@@ -466,7 +467,7 @@ void ControlEditorPanel::CreatePIEButton(ImVec2 ButtonSize) const
     if (ImGui::Button("\ue99c", ButtonSize)) // Pause
     {
         // TODO: PIE 일시정지
-        UEditorStateManager::Get().SetState(EEditorState::Paused);
+         activeLevelEditor->GetEditorStateManager().SetState(EEditorState::Paused);
     }
 
     ImGui::SameLine();
@@ -474,7 +475,7 @@ void ControlEditorPanel::CreatePIEButton(ImVec2 ButtonSize) const
     if (ImGui::Button("\ue9e4", ButtonSize)) // Stop
     {
         // TODO: PIE 정지
-        UEditorStateManager::Get().SetState(EEditorState::Stopped);
+         activeLevelEditor->GetEditorStateManager().SetState(EEditorState::Stopped);
     }
 }
 

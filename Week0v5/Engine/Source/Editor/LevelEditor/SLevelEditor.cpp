@@ -11,7 +11,7 @@
 extern UEditorEngine* GEngine;
 
 SLevelEditor::SLevelEditor() : bInitialize(false), HSplitter(nullptr), VSplitter(nullptr),
-World(nullptr), bMultiViewportMode(false)
+World(nullptr), bMultiViewportMode(false), EditorStateManager()
 {
 }
 
