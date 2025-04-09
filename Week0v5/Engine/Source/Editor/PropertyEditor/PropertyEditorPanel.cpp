@@ -371,7 +371,7 @@ void PropertyEditorPanel::Render()
             if (ImGui::CollapsingHeader("Point Light Settings", ImGuiTreeNodeFlags_DefaultOpen))
             {
                 float Intensity = PointLightComp->GetIntensity();
-                ImGui::DragFloat("Intensity", &Intensity, 2.f, 0.0f, 5000.0f, "%.0f");
+                ImGui::DragFloat("Intensity", &Intensity, 2.f, 0.0f, 10000.0f, "%.0f");
                 FLinearColor Color = PointLightComp->GetColor();
                 float colorArray[4] = { Color.R, Color.G, Color.B, Color.A };
                 if (ImGui::ColorEdit4("Color", colorArray, ImGuiColorEditFlags_Float))
