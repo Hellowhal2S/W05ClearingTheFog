@@ -138,6 +138,11 @@ void PropertyEditorPanel::Render()
                     UPointlightComponent* PointLightComponent = PickedActor->AddComponent<UPointlightComponent>();
                     PickedComponent = PointLightComponent;
                 }
+                if (ImGui::Selectable("DirectionalLightComponent"))
+                {
+                    UDirectionalLightComponent* DirectionalLightComponent = PickedActor->AddComponent<UDirectionalLightComponent>();
+                    PickedComponent = DirectionalLightComponent;
+                }
                 if (ImGui::Selectable("ProjectileMovementComponent"))
                 {
                     UProjectileMovementComponent* ProjectileMovementComponent = PickedActor->AddComponent<UProjectileMovementComponent>();
@@ -251,9 +256,9 @@ void PropertyEditorPanel::Render()
                 float Intensity = PointLightComp->GetIntensity();
                 float Radius = PointLightComp->GetRadius();
                 float RadiusFallOff = PointLightComp->GetRadiusFallOff();
-                ImGui::DragFloat("Intensity", &Intensity, 0.1f, 0.0f, 1000.0f, "%.2f");
-                ImGui::DragFloat("Radius", &Radius, 1.0f, 0.0f, 5000.0f, "%.0f");
-                ImGui::DragFloat("Falloff", &RadiusFallOff, 0.05f, 0.01f, 10.0f, "%.2f");
+                ImGui::DragFloat("Intensity", &Intensity, 2.f, 0.0f, 5000.0f, "%.0f");
+                ImGui::DragFloat("Radius", &Radius, 0.1f, 0.0f, 500.0f, "%.1f");
+                ImGui::DragFloat("Falloff", &RadiusFallOff, 0.01f, 0.01f, 10.0f, "%.2f");
                 FLinearColor Color = PointLightComp->GetColor();
                 float colorArray[4] = { Color.R, Color.G, Color.B, Color.A };
                 if (ImGui::ColorEdit4("Color", colorArray, ImGuiColorEditFlags_Float))
@@ -267,6 +272,38 @@ void PropertyEditorPanel::Render()
                 PointLightComp->SetIntensity(Intensity);
                 PointLightComp->SetRadius(Radius);
                 PointLightComp->SetRadiusFallOff(RadiusFallOff);
+                PointLightComp->SetColor({ colorArray[0], colorArray[1], colorArray[2], colorArray[3] });
+            }
+        }
+        ImGui::PopStyleColor();
+    }
+
+    if (PickedActor && PickedComponent && PickedComponent->IsA<UDirectionalLightComponent>())
+    {
+        ImGui::SetItemDefaultFocus();
+        ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
+        if (PickedComponent != LastComponent)
+        {
+            LastComponent = PickedComponent;
+            bFirstFrame = true;
+        }
+        UDirectionalLightComponent* PointLightComp = Cast<UDirectionalLightComponent>(PickedComponent);
+        if (PointLightComp)
+        {
+            if (ImGui::CollapsingHeader("Point Light Settings", ImGuiTreeNodeFlags_DefaultOpen))
+            {
+                float Intensity = PointLightComp->GetIntensity();
+                ImGui::DragFloat("Intensity", &Intensity, 2.f, 0.0f, 5000.0f, "%.0f");
+                FLinearColor Color = PointLightComp->GetColor();
+                float colorArray[4] = { Color.R, Color.G, Color.B, Color.A };
+                if (ImGui::ColorEdit4("Color", colorArray, ImGuiColorEditFlags_Float))
+                {
+                    Color.R = colorArray[0];
+                    Color.G = colorArray[1];
+                    Color.B = colorArray[2];
+                    Color.A = colorArray[3];
+                }
+                PointLightComp->SetIntensity(Intensity);
                 PointLightComp->SetColor({ colorArray[0], colorArray[1], colorArray[2], colorArray[3] });
             }
         }

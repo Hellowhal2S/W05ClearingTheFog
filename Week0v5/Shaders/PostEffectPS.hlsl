@@ -105,10 +105,15 @@ float4 mainPS(SamplingPixelShaderInput input) : SV_TARGET
         float3 worldPos = g_worldPosTex.Sample(g_Sampler, input.texcoord).rgb;
         float materialSpecularScalar = g_specularTex.Sample(g_Sampler, input.texcoord).a;
         float3 viewDirection = normalize(float3(eyeWorld - worldPos));
-
-        float3 color = CalculateDirectionLight(DirLights[0], worldPos, normal, viewDirection, materialDiffuseColor, materialSpecularColor, materialSpecularScalar);
+        
+        float3 color = float3(0.f, 0.f, 0.f);
+        int i;
+        for (i = 0; i < NumDirLights; i++)
+        {
+            color += CalculateDirectionLight(DirLights[i], worldPos, normal, viewDirection, materialDiffuseColor, materialSpecularColor, materialSpecularScalar);
+        }
             
-        for (int i = 0; i < NumPointLights; i++)
+        for (i = 0; i < NumPointLights; i++)
         {
             color += CalculatePointLight(PointLights[i], worldPos, normal, viewDirection, materialDiffuseColor, materialSpecularColor, materialSpecularScalar);
         }

@@ -431,7 +431,7 @@ void FRenderer::UpdateConstantbufferActor(FConstantBufferActor Buffer) const
 }
 
 void FRenderer::UpdateConstantbufferLights(FConstantBufferLights Buffer) const
-{
+{     
     if (RenderResources.ConstantBuffers.StaticMesh.Light01)
     {
         D3D11_MAPPED_SUBRESOURCE ConstantBufferMSR; // GPU�� �޸� �ּ� ����
@@ -777,12 +777,7 @@ void FRenderer::Render(UWorld* World, std::shared_ptr<FEditorViewportClient> Act
 
     if (!RenderResources.ConstantBuffers.StaticMesh.Light01) return;
     FConstantBufferLights buf;
-    buf.DirLights[0].Color.Ambient = FVector(1.0f, 1.0f, 1.0f) * 0.06f;
-    buf.DirLights[0].Color.Diffuse = FVector(1.0f, 1.0f, 1.0f) * 0.5f;
-    buf.DirLights[0].Color.Specular = FVector(1.0f, 1.0f, 1.0f) * 0.f;
-    buf.DirLights[0].Direction = FVector(0.f, 0.f, -1.f).Normalize();
-    buf.isLit = litFlag;
-
+    int32 DirLightIndex = 0;
     int32 PointLightIndex = 0;
     for (ULightComponentBase* LightComp : RenderResources.Components.LightObjs)
     {
@@ -795,11 +790,21 @@ void FRenderer::Render(UWorld* World, std::shared_ptr<FEditorViewportClient> Act
             buf.PointLights[PointLightIndex].Position = PointLightComp->GetComponentLocation();
             buf.PointLights[PointLightIndex].Intensity = PointLightComp->GetIntensity();
             buf.PointLights[PointLightIndex].Radius = PointLightComp->GetRadius();
-            buf.PointLights[PointLightIndex].RadiusFallOff = PointLightComp->GetRadiusFallOff();
-            buf.NumPointLights = ++PointLightIndex;
+            buf.PointLights[PointLightIndex++].RadiusFallOff = PointLightComp->GetRadiusFallOff();
         }
+        if (UDirectionalLightComponent* DirectionalLightComponent = Cast<UDirectionalLightComponent>(LightComp))
+        {
+            if (DirLightIndex >= MACRO_FCONSTANT_NUM_MAX_DIRLIGHT)
+                break;
 
+            buf.DirLights[DirLightIndex].Color = DirectionalLightComponent->GetColor();
+            buf.DirLights[DirLightIndex].Intensity = DirectionalLightComponent->GetIntensity();
+            buf.DirLights[DirLightIndex++].Direction = DirectionalLightComponent->GetLightDirection();
+        }
     }
+    buf.isLit = litFlag;
+    buf.NumPointLights = PointLightIndex;
+    buf.NumDirLights = DirLightIndex;
     UpdateConstantbufferLights(buf);
 
 

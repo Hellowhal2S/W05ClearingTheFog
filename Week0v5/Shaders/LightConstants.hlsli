@@ -12,9 +12,9 @@ struct FConstantLightColor
 
 struct FConstantBufferLightDir
 {
-    FConstantLightColor Color;
+    float4 Color;
     float3 Direction;
-    float _pad0;
+    float Intensity;
 };
 
 struct FConstantBufferLightPoint
@@ -49,7 +49,9 @@ cbuffer ConstantBufferLights : register(b1)
     FConstantBufferLightPoint PointLights[FCONSTANT_NUM_POINTLIGHT];
     FConstantBufferLightSpot SpotLights[FCONSTANT_NUM_SPOTLIGHT];
     uint isLit;
-    int NumPointLights;
+    uint NumPointLights;
+    uint NumDirLights;
+    float _pad0;
 }
 
 float3 CalculatePointLight(FConstantBufferLightPoint Light, float3 WorldPos, float3 Normal, float3 ViewDir, float3 DiffuseColor, float3 SpecularColor, float SpecularScalar)
@@ -61,7 +63,7 @@ float3 CalculatePointLight(FConstantBufferLightPoint Light, float3 WorldPos, flo
     float NormalizedDistance = saturate(Distance / Light.Radius);
     float RadiusAttenuation = 1.0 - NormalizedDistance * NormalizedDistance; // 부드러운 경계 추가
     float DistanceAttenuation = 1.0f / (1.0f + Light.RadiusFallOff * Distance * Distance);
-    float Attenuation = RadiusAttenuation * DistanceAttenuation * Light.Intensity;
+    float Attenuation = RadiusAttenuation * DistanceAttenuation * Light.Intensity * 0.01f;
     float Diff = max(dot(Normal, LightDir), 0.0f);
     float3 Diffuse = Light.Color.rgb * Diff * DiffuseColor * Attenuation; // float3으로 수정
     float3 ReflectDir = normalize(reflect(-LightDir, Normal)); // 눈으로 향하는 빛 반사 벡터
@@ -72,18 +74,16 @@ float3 CalculatePointLight(FConstantBufferLightPoint Light, float3 WorldPos, flo
 
 float3 CalculateDirectionLight(FConstantBufferLightDir Light, float3 WorldPos, float3 Normal, float3 ViewDir, float3 DiffuseColor, float3 SpecularColor, float SpecularScalar)
 {
-    float3 color = float3(0, 0, 0);
-    float LightDir = -normalize(DirLights[0].Direction);
-    float diffuse = max(dot(Normal, LightDir), 0);
-
-    float3 halfVector = normalize(LightDir + ViewDir);
-    float specular = pow(max(dot(Normal, LightDir), 0), SpecularScalar);
-                
-    float3 diffuseLight = diffuse + DirLights[0].Color.Diffuse;
-    float3 specularLight = specular * SpecularColor;
-                
-    color = (diffuseLight * DiffuseColor + specularLight);
-    return color;
+    float3 lightDir = -normalize(Light.Direction);
+    
+    float diffuseFactor = max(dot(Normal, lightDir), 0.0);
+    float3 diffuse = Light.Color.rgb * Light.Intensity * diffuseFactor * DiffuseColor * 0.0005f;
+    
+    float3 halfVec = normalize(lightDir + ViewDir);
+    float specFactor = pow(max(dot(Normal, halfVec), 0.0), 32);
+    float3 specular = Light.Color.rgb * Light.Intensity * specFactor * SpecularColor * 0.0005f;
+    
+    return diffuse + specular;
 }
 
 //float3 BlinnPhong(float3 lightStrength, float3 lightVec, float3 Normal,
