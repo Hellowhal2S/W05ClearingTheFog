@@ -27,14 +27,14 @@ protected:
 //////////////////////////////////
 // PointLight
 
-class UPointlightComponent : public ULightComponentBase
+class UPointLightComponent : public ULightComponentBase
 {
-    DECLARE_CLASS(UPointlightComponent, ULightComponentBase)
+    DECLARE_CLASS(UPointLightComponent, ULightComponentBase)
 
 public:
-    UPointlightComponent();
-    virtual ~UPointlightComponent() override;
-    UPointlightComponent(const UPointlightComponent& Other);
+    UPointLightComponent();
+    virtual ~UPointLightComponent() override;
+    UPointLightComponent(const UPointLightComponent& Other);
 
     virtual void InitializeComponent() override;
     virtual void TickComponent(float DeltaTime) override;

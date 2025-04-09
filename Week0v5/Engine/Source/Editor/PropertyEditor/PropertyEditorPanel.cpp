@@ -60,6 +60,7 @@ void PropertyEditorPanel::Render()
         if (ImGui::TreeNodeEx("Components", ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_OpenOnArrow))
         {
             DrawSceneComponentTree(PickedActor->GetRootComponent(), PickedComponent);
+            //SceneComponent가 아닌 경우
             const TSet<UActorComponent*>& AllComponents = PickedActor->GetComponents();
             for (UActorComponent* Component : AllComponents)
             {
@@ -69,7 +70,7 @@ void PropertyEditorPanel::Render()
                     bool bSelected = (PickedComponent == Component);
 
                     // 리프 노드 플래그 추가
-                    ImGuiTreeNodeFlags nodeFlags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_Leaf;
+                    ImGuiTreeNodeFlags nodeFlags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_DefaultOpen;
                     if (bSelected)
                         nodeFlags |= ImGuiTreeNodeFlags_Selected;
 
@@ -96,6 +97,11 @@ void PropertyEditorPanel::Render()
                 if (ImGui::Selectable("TextComponent"))
                 {
                     UText* TextComponent = PickedActor->AddComponent<UText>();
+                    if (USceneComponent* ParentComponent = Cast<USceneComponent>(PickedComponent))
+                    {
+                        TextComponent->DetachFromParent();
+                        TextComponent->SetupAttachment(ParentComponent);
+                    }
                     PickedComponent = TextComponent;
                     TextComponent->SetTexture(L"Assets/Texture/font.png");
                     TextComponent->SetRowColumnCount(106, 106);
@@ -104,6 +110,11 @@ void PropertyEditorPanel::Render()
                 if (ImGui::Selectable("BillboardComponent"))    
                 {
                     UBillboardComponent* BillboardComponent = PickedActor->AddComponent<UBillboardComponent>();
+                    if (USceneComponent* ParentComponent = Cast<USceneComponent>(PickedComponent))
+                    {
+                        BillboardComponent->DetachFromParent();
+                        BillboardComponent->SetupAttachment(ParentComponent);
+                    }
                     PickedComponent = BillboardComponent;
                     BillboardComponent->SetTexture(L"Assets/Texture/Pawn_64x.png");
                     BillboardComponent->SetRelativeLocation(FVector(0.0f, 0.0f, 3.0f));
@@ -111,11 +122,21 @@ void PropertyEditorPanel::Render()
                 if (ImGui::Selectable("LightComponent"))
                 {
                     ULightComponentBase* LightComponent = PickedActor->AddComponent<ULightComponentBase>();
+                    if (USceneComponent* ParentComponent = Cast<USceneComponent>(PickedComponent))
+                    {
+                        LightComponent->DetachFromParent();
+                        LightComponent->SetupAttachment(ParentComponent);
+                    }
                     PickedComponent = LightComponent;
                 }
                 if (ImGui::Selectable("ParticleComponent"))
                 {
                     UParticleSubUVComp* ParticleComponent = PickedActor->AddComponent<UParticleSubUVComp>();
+                    if (USceneComponent* ParentComponent = Cast<USceneComponent>(PickedComponent))
+                    {
+                        ParticleComponent->DetachFromParent();
+                        ParticleComponent->SetupAttachment(ParentComponent);
+                    }
                     PickedComponent = ParticleComponent;
                     ParticleComponent->SetTexture(L"Assets/Texture/T_Explosion_SubUV.png");
                     ParticleComponent->SetRowColumnCount(6, 6);
@@ -125,23 +146,38 @@ void PropertyEditorPanel::Render()
                 if (ImGui::Selectable("StaticMeshComponent"))
                 {
                     UStaticMeshComponent* StaticMeshComponent = PickedActor->AddComponent<UStaticMeshComponent>();
+                    if (USceneComponent* ParentComponent = Cast<USceneComponent>(PickedComponent))
+                    {
+                        StaticMeshComponent->DetachFromParent();
+                        StaticMeshComponent->SetupAttachment(ParentComponent);
+                    }
                     PickedComponent = StaticMeshComponent;
                     FManagerOBJ::CreateStaticMesh("Assets/Cube.obj");
                     StaticMeshComponent->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"Cube.obj"));
                 }
-                if (ImGui::Selectable("CubeComponent"))
-                {
-                    UCubeComp* CubeComponent = PickedActor->AddComponent<UCubeComp>();
-                    PickedComponent = CubeComponent;
-                }
+                //if (ImGui::Selectable("CubeComponent"))
+                //{
+                //    UCubeComp* CubeComponent = PickedActor->AddComponent<UCubeComp>();
+                //    PickedComponent = CubeComponent;
+                //}
                 if (ImGui::Selectable("PointLightComponent"))
                 {
-                    UPointlightComponent* PointLightComponent = PickedActor->AddComponent<UPointlightComponent>();
+                    UPointLightComponent* PointLightComponent = PickedActor->AddComponent<UPointLightComponent>();
+                    if (USceneComponent* ParentComponent = Cast<USceneComponent>(PickedComponent))
+                    {
+                        PointLightComponent->DetachFromParent();
+                        PointLightComponent->SetupAttachment(ParentComponent);
+                    }
                     PickedComponent = PointLightComponent;
                 }
                 if (ImGui::Selectable("DirectionalLightComponent"))
                 {
                     UDirectionalLightComponent* DirectionalLightComponent = PickedActor->AddComponent<UDirectionalLightComponent>();
+                    if (USceneComponent* ParentComponent = Cast<USceneComponent>(PickedComponent))
+                    {
+                        DirectionalLightComponent->DetachFromParent();
+                        DirectionalLightComponent->SetupAttachment(ParentComponent);
+                    }
                     PickedComponent = DirectionalLightComponent;
                 }
                 if (ImGui::Selectable("ProjectileMovementComponent"))
@@ -281,7 +317,7 @@ void PropertyEditorPanel::Render()
         bFirstFrame = false;
     }
 
-    if (PickedActor && PickedComponent && PickedComponent->IsA<UPointlightComponent>())
+    if (PickedActor && PickedComponent && PickedComponent->IsA<UPointLightComponent>())
     {
         ImGui::SetItemDefaultFocus();
         ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
@@ -290,7 +326,7 @@ void PropertyEditorPanel::Render()
             LastComponent = PickedComponent;
             bFirstFrame = true;
         }
-        UPointlightComponent* PointLightComp = Cast<UPointlightComponent>(PickedComponent);
+        UPointLightComponent* PointLightComp = Cast<UPointLightComponent>(PickedComponent);
         if (PointLightComp)
         {
             if (ImGui::CollapsingHeader("Point Light Settings", ImGuiTreeNodeFlags_DefaultOpen))
@@ -614,7 +650,7 @@ void PropertyEditorPanel::DrawSceneComponentTree(USceneComponent* Component, UAc
    FString Label = *Component->GetName();
    bool bSelected = (PickedComponent == Component);
 
-   ImGuiTreeNodeFlags nodeFlags = ImGuiTreeNodeFlags_OpenOnArrow;
+   ImGuiTreeNodeFlags nodeFlags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_DefaultOpen;
    if (bSelected)
        nodeFlags |= ImGuiTreeNodeFlags_Selected;
 

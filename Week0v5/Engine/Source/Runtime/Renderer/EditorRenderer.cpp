@@ -742,7 +742,7 @@ void FEditorRenderer::RenderPointlightInstanced(const UWorld* World)
     {
         // Fireball 합치면 헤더랑 여기 풀기
         
-        if (UPointlightComponent* PointLightComp = Cast<UPointlightComponent>(LightComp))
+        if (UPointLightComponent* PointLightComp = Cast<UPointLightComponent>(LightComp))
         {
             FConstantBufferDebugSphere b;
             b.Position = PointLightComp->GetComponentLocation();
