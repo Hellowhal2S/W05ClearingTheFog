@@ -178,9 +178,14 @@ void PropertyEditorPanel::Render()
                 FVector Velocity = ProjectileComp->Velocity;
                 if (ImGui::DragFloat3("Velocity",
                     &Velocity.x,
-                    0.1f, -1000.0f, 1000.0f, "%.2f"))
+                    0.1f, -10.0f, 10.0f, "%.3f"))
                 {
                     ProjectileComp->Velocity = Velocity;
+                }
+                if (ImGui::DragFloat3("Acceleration",
+                    &ProjectileComp->Acceleration.x,
+                    0.00001f, -0.01f, 0.01f, "%.5f"))
+                {
                 }
             }
         }

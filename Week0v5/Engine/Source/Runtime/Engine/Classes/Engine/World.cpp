@@ -59,7 +59,7 @@ void UWorld::ReleaseBaseObject()
 
 void UWorld::Tick(ELevelTick tickType, float deltaSeconds)
 {
-    UE_LOG(LogLevel::Error, "%d", static_cast<bool>(Fog));
+    //UE_LOG(LogLevel::Error, "%d", static_cast<bool>(Fog));
     if (tickType == LEVELTICK_ViewportsOnly)
     {
         if (EditorPlayer)
