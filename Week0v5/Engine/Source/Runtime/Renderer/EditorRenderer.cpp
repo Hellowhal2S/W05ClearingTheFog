@@ -891,6 +891,11 @@ void FEditorRenderer::RenderGrid(std::shared_ptr<FEditorViewportClient> ActiveVi
     cameraBuf.ViewMatrix = view;
     cameraBuf.ProjMatrix = proj;
     cameraBuf.CameraPos = ActiveViewport->ViewTransformPerspective.GetLocation();
+    cameraBuf.CameraLookAt = {
+        ActiveViewport->GetD3DViewport().Width,
+        ActiveViewport->GetD3DViewport().Height,
+        static_cast<float>(ActiveViewport->GetViewportType())
+    };
     UpdateConstantbufferGlobal(cameraBuf);
     UdpateConstantbufferGrid(buf);
     Renderer->Graphics->DeviceContext->Draw(12, 0); // 내부에서 버텍스 사용중

@@ -220,23 +220,72 @@ struct PS_INPUT_GRID
     float4 NearPoint : COLOR0;
     float4 FarPoint : COLOR1;
     float3 WorldPos : WORLD_POSITION;    
+    float2 Deriv : TEXCOORD1;
+    float ViewMode : TEXCOORD2;
 };
 
-const static float2 QuadPos[12] =
+static const float3 XYQuadPos[12] =
 {
-    float2(-1, -1), float2(-1, 1), float2(1, -1), // 좌하단, 좌상단, 우하단
-    float2(-1, 1), float2(1, 1), float2(1, -1), // 좌상단, 우상단, 우하단 - 오른손 좌표계
-    float2(1, -1), float2(1, 1), float2(-1, 1),
-    float2(1, -1), float2(-1, 1), float2(-1, -1),
+    float3(-1, -1,0), float3(-1, 1,0), float3(1,  -1,0), // 좌하단, 좌상단, 우하단
+    float3(-1,  1,0), float3( 1, 1,0), float3(1,  -1,0), // 좌상단, 우상단, 우하단 - 오른손 좌표계
+    float3(1,  -1,0), float3( 1, 1,0), float3(-1,  1,0),
+    float3(1,  -1,0), float3(-1, 1,0), float3(-1, -1,0),
+};
+
+// YZ 평면: X = 0, (Y,Z) 사용
+static const float3 YZQuadPos[12] =
+{
+    float3(0,-1, -1), float3(0,-1, 1), float3(0, 1, -1),  // 좌하단, 좌상단, 우하단
+    float3(0,-1, 1), float3(0, 1, 1), float3(0, 1, -1),  // 좌상단, 우상단, 우하단 - 오른손 좌표계
+    float3(0, 1, -1), float3(0, 1, 1), float3(0, -1, 1), 
+    float3(0, 1, -1), float3(0,-1, 1), float3(0, -1,-1),
+};
+
+static const float3 XZQuadPos[12] =
+{
+    float3(-1,0, -1), float3(-1,0, 1), float3( 1, 0,-1), // 좌하단, 좌상단, 우하단
+    float3(-1,0, 1 ), float3(1, 0,1), float3(  1, 0,-1), // 좌상단, 우상단, 우하단 - 오른손 좌표계
+    float3(1, 0,-1 ), float3(1, 0,1), float3(  -1,0, 1),
+    float3(1, 0,-1 ), float3(-1,0, 1), float3( -1,0, -1),
 };
 
 PS_INPUT_GRID gridVS(uint vertexID : SV_VertexID)
 {
+    // 여기선 Camera LookAt의 x, y 채널을 screenWidth, screenHeight로 사용
     PS_INPUT_GRID output;
+    float viewMode = CameraLookAt.z;
+    //float viewMode = 4.0;
     float gridScale = 1000000.0f; // 최종 그리드 크기
-    float3 vPos3 = float3(QuadPos[vertexID] * gridScale, 0.0f); // 정점 정의 거꾸로 되있었음..
-    vPos3.x += CameraPos.x;
-    vPos3.y += CameraPos.y;
+    float3 pos;
+    if (viewMode <= 2.0)
+    {
+        pos = XYQuadPos[vertexID];
+    }
+    else if (viewMode <= 4.0)
+    {
+        pos = XZQuadPos[vertexID];
+    }
+    else
+    {
+        pos = YZQuadPos[vertexID];
+    }
+    float3 vPos3 = pos * gridScale; // 정점 정의 거꾸로 되있었음..
+    
+    if (viewMode <= 2.0)
+    {
+        vPos3.x += CameraPos.x;
+        vPos3.y += CameraPos.y;
+    }
+    else if (viewMode <= 4.0)
+    {
+        vPos3.y += CameraPos.x;
+        vPos3.z += CameraPos.z;
+    }
+    else
+    {
+        vPos3.x += CameraPos.y;
+        vPos3.z += CameraPos.z;
+    }
     
     float4 vPos4 = float4(vPos3, 1.0f);
     
@@ -244,15 +293,17 @@ PS_INPUT_GRID gridVS(uint vertexID : SV_VertexID)
     vPos4 = mul(vPos4, ProjMatrix);
     output.Position = vPos4;
     output.WorldPos = vPos3;
-    
-    output.NearPoint = float4(QuadPos[vertexID], 0.0, 1.0);
+    output.Deriv = 2.0 / CameraLookAt.xy;
+    output.ViewMode = viewMode;
+
+    // [LEGACY]
+    output.NearPoint = float4(XYQuadPos[vertexID], 1.0);
     output.NearPoint = mul(output.NearPoint, InverseViewProj);
     output.NearPoint = output.NearPoint / output.NearPoint.w; // COLOR로 넘겨줘서 해줘야함
     
-    output.FarPoint = float4(QuadPos[vertexID], 1.0, 1.0);
+    output.FarPoint = float4(XYQuadPos[vertexID],1.0);
     output.FarPoint = mul(output.FarPoint, InverseViewProj);
     output.FarPoint = output.FarPoint / output.FarPoint.w; // COLOR로 넘겨줘서 해줘야함
-    
     return output;
 }
 
@@ -278,24 +329,56 @@ float2 modWrap2(float2 xy, float y)
     return float2(modWrap(xy.x, y), modWrap(xy.y, y));
 }
 
-
-// 픽셀 셰이더
-float4 gridPS(PS_INPUT_GRID input) : SV_Target
+// 뷰 모드에 따른 2D 평면 좌표 반환
+float2 GetPlaneCoords(float3 worldPos, float viewMode)
 {
-    // 화면 공간 미분: ddx, ddy 함수
-    float gGridSize = 5.0f;
-    float gGridMinPixelsBetweenCells = 0.5;
-    float gGridCellSize = 1.0;
-    float4 gGridColorThick = float4(0.7, 0.7, 0.7, 1.0);
-    float4 gGridColorThin = float4(0.2, 0.2, 0.2, 1.0);
-    float2 dvx = float2(ddx(input.WorldPos.x), ddy(input.WorldPos.x));
-    float2 dvy = float2(ddx(input.WorldPos.y), ddy(input.WorldPos.y));
-    float lx = length(dvx);
-    float ly = length(dvy);
+    if (viewMode <= 2.0)
+        return worldPos.xy; // 뷰 모드 0~2 : XY 평면
+    else if (viewMode <= 4.0)
+        return worldPos.xz; // 뷰 모드 3~4 : XZ 평면
+    else
+        return worldPos.yz; // 뷰 모드 5 이상 : YZ 평면
+}
+
+// 주어진 평면 좌표와, 셀 크기, 미분값(dudv)에 해당하는 LOD 단계의 알파값 계산
+float ComputeLODAlpha(float3 worldPos, float cellSize, float2 dudv, float viewMode)
+{
+    float2 planeCoords = GetPlaneCoords(worldPos, viewMode);
+    float2 modResult = modWrap2(planeCoords, cellSize) / dudv;
+    return max2(1.0 - abs(saturate(modResult) * 2.0 - 1.0));
+}
+
+struct PS_OUTPUT
+{
+    float4 Color : SV_Target;
+    float Depth : SV_Depth;
+};
+
+
+PS_OUTPUT gridPS(PS_INPUT_GRID input)
+{
+    PS_OUTPUT output;
+    
+    // 기본 상수 값들
+    const float gGridSize = 5.0;
+    const float gGridMinPixelsBetweenCells = 0.5;
+    const float gGridCellSize = 1.0;
+    const float4 gGridColorThick = float4(0.3, 0.3, 0.3, 1.0);
+    const float4 gGridColorThin = float4(0.2, 0.2, 0.2, 1.0);
+    
+    // 뷰모드에 따라 사용할 평면 좌표
+    float2 planeCoords = GetPlaneCoords(input.WorldPos, input.ViewMode);
+    float2 dvx = float2(ddx(planeCoords.x), ddy(planeCoords.x));
+    float2 dvy = float2(ddx(planeCoords.y), ddy(planeCoords.y));
+    
+    // 최소값 클램핑 - 한 픽셀에서의 변화량이 미미할 때 떨림 현상 방지용 (효과는 없음)
+    float epsilon = 1e-3;
+    float lx = max(length(dvx), epsilon);
+    float ly = max(length(dvy), epsilon);
     float2 dudv = float2(lx, ly);
     float l = length(dudv);
 
-    // LOD(레벨 오브 디테일)를 log10을 이용해 계산
+    // LOD 계산 (log10 기반)
     float LOD = max(0.0, log10f(l * gGridMinPixelsBetweenCells / gGridCellSize) + 1.0);
 
     float GridCellSizeLod0 = gGridCellSize * pow(10.0, floor(LOD));
@@ -304,44 +387,73 @@ float4 gridPS(PS_INPUT_GRID input) : SV_Target
 
     dudv *= 4.0;
 
-    // 각 LOD에서의 패턴을 계산
-    float2 mod_div_dudv = modWrap2(input.WorldPos.xy, GridCellSizeLod0) / dudv;
+    // 각 LOD 단계에서의 패턴 계산: 뷰모드에 따라 모듈러 연산에 전달할 2D 성분 결정
+    float2 mod_div_dudv;
+    if (input.ViewMode <= 2.0)
+    {
+        mod_div_dudv = modWrap2(input.WorldPos.xy, GridCellSizeLod0) / dudv;
+    }
+    else if (input.ViewMode <= 4.0)
+    {
+        mod_div_dudv = modWrap2(input.WorldPos.xz, GridCellSizeLod0) / dudv;
+    }
+    else
+    {
+        mod_div_dudv = modWrap2(input.WorldPos.yz, GridCellSizeLod0) / dudv;
+    }
     float Lod0a = max2(1.0 - abs(saturate(mod_div_dudv) * 2.0 - 1.0));
 
-    mod_div_dudv = modWrap2(input.WorldPos.xy, GridCellSizeLod1) / dudv;
+    if (input.ViewMode <= 2.0)
+    {
+        mod_div_dudv = modWrap2(input.WorldPos.xy, GridCellSizeLod1) / dudv;
+    }
+    else if (input.ViewMode <= 4.0)
+    {
+        mod_div_dudv = modWrap2(input.WorldPos.xz, GridCellSizeLod1) / dudv;
+    }
+    else
+    {
+        mod_div_dudv = modWrap2(input.WorldPos.yz, GridCellSizeLod1) / dudv;
+    }
     float Lod1a = max2(1.0 - abs(saturate(mod_div_dudv) * 2.0 - 1.0));
 
-    mod_div_dudv = modWrap2(input.WorldPos.xy, GridCellSizeLod2) / dudv;
+    if (input.ViewMode <= 2.0)
+    {
+        mod_div_dudv = modWrap2(input.WorldPos.xy, GridCellSizeLod2) / dudv;
+    }
+    else if (input.ViewMode <= 4.0)
+    {
+        mod_div_dudv = modWrap2(input.WorldPos.xz, GridCellSizeLod2) / dudv;
+    }
+    else
+    {
+        mod_div_dudv = modWrap2(input.WorldPos.yz, GridCellSizeLod2) / dudv;
+    }
     float Lod2a = max2(1.0 - abs(saturate(mod_div_dudv) * 2.0 - 1.0));
 
     float LOD_fade = frac(LOD);
     float4 Color;
-
     if (Lod2a > 0.0)
     {
         Color = gGridColorThick;
         Color.a *= Lod2a;
-        
+    }
+    else if (Lod1a > 0.0)
+    {
+        Color = lerp(gGridColorThick, gGridColorThin, LOD_fade);
+        Color.a *= Lod1a;
     }
     else
     {
-        if (Lod1a > 0.0)
-        {
-            Color = lerp(gGridColorThick, gGridColorThin, LOD_fade);
-            Color.a *= Lod1a;
-            
-        }
-        else
-        {
-            Color = gGridColorThin;
-            Color.a *= (Lod0a * (1.0 - LOD_fade));
-            
-        }
+        Color = gGridColorThin;
+        Color.a *= (Lod0a * LOD_fade);
     }
 
-    // 카메라와의 거리에 따른 불투명도 페이드아웃 계산
+    // 카메라와의 거리 기반 페이드아웃 계산는 그대로 사용하거나 필요 없다면 제거
     float OpacityFalloff = (1.0 - saturate(length(input.WorldPos.xy - CameraPos.xy) / gGridSize));
     Color.a *= OpacityFalloff;
 
-    return Color;
+    output.Color = Color;
+    output.Depth = 0.99999;  // 월드 그리드는 강제로 먼 깊이값 부여 (Forced to be Occluded ALL THE TIME)
+    return output;
 }
