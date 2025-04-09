@@ -267,7 +267,8 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
             { .label= "Particle",  .obj= OBJ_PARTICLE },
             { .label= "Text",      .obj= OBJ_Text },
             { .label= "Dodge",      .obj= OBJ_CAR },
-            { .label= "Fog",      .obj= OBJ_FOG }
+            { .label= "Fog",      .obj= OBJ_FOG },
+            { .label= "SkySphere",      .obj= OBJ_SKYSPHERE }
         };
 
         for (const auto& primitive : primitives)
@@ -340,7 +341,16 @@ void ControlEditorPanel::CreateModifyButton(ImVec2 ButtonSize, ImFont* IconFont)
                     MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"Dodge.obj"));
                     break;
                 }
-                case OBJ_PLAYER:
+                case OBJ_SKYSPHERE:
+                    {
+                        AStaticMeshActor* TempActor = World->SpawnActor<AStaticMeshActor>();
+                        TempActor->SetActorLabel(TEXT("OBJ_SKYSPHERE"));
+                        UStaticMeshComponent* MeshComp = TempActor->GetStaticMeshComponent();
+                        FManagerOBJ::CreateStaticMesh("Assets/SkySphere.obj");
+                        MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"SkySphere.obj"));
+                        TempActor->SetActorRotation(FVector(-90.0f, 0.0f, 0.0f));
+                        TempActor->SetActorScale(FVector(100.0f, 100.0f, 100.0f));
+                    }
                 case OBJ_END:
                     break;
                 }

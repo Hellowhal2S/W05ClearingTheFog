@@ -39,6 +39,13 @@ void UWorld::CreateBaseObject()
     {
         LocalGizmo = FObjectFactory::ConstructObject<UTransformGizmo>();
     }
+    // AStaticMeshActor* TempActor = SpawnActor<AStaticMeshActor>();
+    // TempActor->SetActorLabel(TEXT("OBJ_SKYSPHERE"));
+    // UStaticMeshComponent* MeshComp = TempActor->GetStaticMeshComponent();
+    // FManagerOBJ::CreateStaticMesh("Assets/SkySphere.obj");
+    // MeshComp->SetStaticMesh(FManagerOBJ::GetStaticMesh(L"SkySphere.obj"));
+    // TempActor->SetActorRotation(FVector(-90.0f, 0.0f, 0.0f));
+    // TempActor->SetActorScale(FVector(10.0f, 10.0f, 10.0f));
 }
 
 void UWorld::ReleaseBaseObject()
